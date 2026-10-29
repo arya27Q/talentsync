@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'shared_auth_layout.dart';
 
-import 'package:skillswap_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
 
 class MentorAuthScreen extends StatelessWidget {
   const MentorAuthScreen({super.key});

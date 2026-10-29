@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:skillswap_frontend/core/constants/app_colors.dart';
-import 'package:skillswap_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
 
 class FindMentorsScreen extends StatelessWidget {
   const FindMentorsScreen({super.key});

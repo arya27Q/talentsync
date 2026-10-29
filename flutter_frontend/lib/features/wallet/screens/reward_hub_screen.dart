@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skillswap_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/constants/app_colors.dart';
 
 class RewardHubScreen extends StatelessWidget {
   const RewardHubScreen({super.key});

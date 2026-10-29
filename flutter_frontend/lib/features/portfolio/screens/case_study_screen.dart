@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:skillswap_frontend/core/constants/app_colors.dart';
-import 'package:skillswap_frontend/core/widgets/gradient_background.dart';
+import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/widgets/gradient_background.dart';
 
 class CaseStudyScreen extends StatelessWidget {
   const CaseStudyScreen({super.key});

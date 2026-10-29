@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:skillswap_frontend/core/constants/app_colors.dart';
-import 'package:skillswap_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
 
 class StudentOnboardingScreen extends StatefulWidget {
   const StudentOnboardingScreen({super.key});

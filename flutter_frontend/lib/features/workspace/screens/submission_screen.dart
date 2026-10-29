@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:skillswap_frontend/core/constants/app_colors.dart';
-import 'package:skillswap_frontend/features/gamification/widgets/achievement_popup.dart';
+import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/features/gamification/widgets/achievement_popup.dart';
 
 class SubmissionScreen extends StatelessWidget {
   const SubmissionScreen({super.key});

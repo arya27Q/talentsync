@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:skillswap_frontend/core/constants/app_colors.dart';
-import 'package:skillswap_frontend/core/widgets/gradient_background.dart';
-import 'package:skillswap_frontend/features/dashboard/screens/dashboard_mahasiswa_screen.dart';
-import 'package:skillswap_frontend/features/project/screens/explore_projects_screen.dart';
-import 'package:skillswap_frontend/features/wallet/screens/wallet_dashboard_screen.dart';
-import 'package:skillswap_frontend/features/mentoring/screens/find_mentors_screen.dart';
-import 'package:skillswap_frontend/features/profile/screens/student_settings_screen.dart';
+import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/widgets/gradient_background.dart';
+import 'package:flutter_frontend/features/dashboard/screens/dashboard_mahasiswa_screen.dart';
+import 'package:flutter_frontend/features/project/screens/explore_projects_screen.dart';
+import 'package:flutter_frontend/features/wallet/screens/wallet_dashboard_screen.dart';
+import 'package:flutter_frontend/features/mentoring/screens/find_mentors_screen.dart';
+import 'package:flutter_frontend/features/profile/screens/student_settings_screen.dart';
 
 class StudentMainLayout extends StatefulWidget {
   const StudentMainLayout({super.key});
