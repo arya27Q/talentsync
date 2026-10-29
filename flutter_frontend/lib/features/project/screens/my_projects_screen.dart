@@ -106,13 +106,13 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> with SingleTickerPr
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primaryTan),
+                color: AppColors.primaryTan,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Center(
                 child: Text(
                   'Open Workspace',
-                  style: TextStyle(color: AppColors.primaryTan, fontWeight: FontWeight.bold, fontSize: 14),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ),
             ),

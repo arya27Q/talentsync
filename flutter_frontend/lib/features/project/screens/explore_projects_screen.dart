@@ -151,10 +151,10 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.primaryTan.withValues(alpha: 0.3)),
+                  color: AppColors.primaryTan,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text('Apply', style: TextStyle(color: AppColors.primaryTan, fontWeight: FontWeight.bold, fontSize: 13)),
+                child: const Text('Apply', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
               )
             ],
           ),

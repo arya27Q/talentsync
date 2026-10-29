@@ -66,13 +66,27 @@ class FindMentorsScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.primaryTan),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.primaryTan, // Full brown button
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryTan.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: const Center(
-                      child: Text('Book Session', style: TextStyle(color: AppColors.primaryTan, fontWeight: FontWeight.bold, fontSize: 12)),
+                      child: Text(
+                        'Book Session',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   ),
                 ],
