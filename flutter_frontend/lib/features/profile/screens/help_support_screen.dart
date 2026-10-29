@@ -35,13 +35,20 @@ class HelpSupportScreen extends StatelessWidget {
                         color: AppColors.warmOffWhite,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.keyboard_arrow_left_rounded, color: AppColors.darkBrown),
+                      child: const Icon(
+                        Icons.keyboard_arrow_left_rounded,
+                        color: AppColors.darkBrown,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   const Text(
                     'Help & Support',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkBrown),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkBrown,
+                    ),
                   ),
                 ],
               ),

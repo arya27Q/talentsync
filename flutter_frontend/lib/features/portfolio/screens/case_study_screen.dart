@@ -17,7 +17,7 @@ class CaseStudyScreen extends StatelessWidget {
             color: AppColors.darkBrown.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -25,7 +25,11 @@ class CaseStudyScreen extends StatelessWidget {
         children: [
           Text(
             title.toUpperCase(),
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFB88656), fontSize: 12),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFB88656),
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -46,8 +50,14 @@ class CaseStudyScreen extends StatelessWidget {
             children: [
               // Header
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(32),
@@ -72,34 +82,55 @@ class CaseStudyScreen extends StatelessWidget {
                               color: AppColors.warmOffWhite,
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: const Icon(Icons.keyboard_arrow_left_rounded, color: AppColors.darkBrown),
+                            child: const Icon(
+                              Icons.keyboard_arrow_left_rounded,
+                              color: AppColors.darkBrown,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
                         const Text(
                           'Case Study',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkBrown),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkBrown,
+                          ),
                         ),
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.warmOffWhite,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.download_rounded, color: Color(0xFFB88656), size: 16),
+                          Icon(
+                            Icons.download_rounded,
+                            color: Color(0xFFB88656),
+                            size: 16,
+                          ),
                           SizedBox(width: 6),
-                          Text('Export PDF', style: TextStyle(color: Color(0xFFB88656), fontWeight: FontWeight.bold, fontSize: 12)),
+                          Text(
+                            'Export PDF',
+                            style: TextStyle(
+                              color: Color(0xFFB88656),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -115,14 +146,17 @@ class CaseStudyScreen extends StatelessWidget {
                             color: AppColors.darkBrown.withValues(alpha: 0.05),
                             blurRadius: 15,
                             offset: const Offset(0, 5),
-                          )
+                          ),
                         ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ClipRRect(
-                            borderRadius: const BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(32),
+                              topRight: Radius.circular(32),
+                            ),
                             child: Image.network(
                               'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80',
                               height: 200,
@@ -137,7 +171,11 @@ class CaseStudyScreen extends StatelessWidget {
                               children: [
                                 const Text(
                                   'Warkop Sinar · Logo Design',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.darkBrown),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: AppColors.darkBrown,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -150,11 +188,17 @@ class CaseStudyScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    
-                    _buildCard('PROBLEM', 'Warkop Sinar had no cohesive visual identity for its new store.'),
-                    _buildCard('SOLUTION', 'Designed a warm minimalist logo system with 3 variants and a brand palette.'),
+
+                    _buildCard(
+                      'PROBLEM',
+                      'Warkop Sinar had no cohesive visual identity for its new store.',
+                    ),
+                    _buildCard(
+                      'SOLUTION',
+                      'Designed a warm minimalist logo system with 3 variants and a brand palette.',
+                    ),
                     _buildCard('DURATION', '8 hours 30 minutes across 5 days.'),
-                    
+
                     const SizedBox(height: 24),
                   ],
                 ),

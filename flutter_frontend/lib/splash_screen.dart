@@ -18,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _tapController;
   late AnimationController _fadeController;
   late AnimationController _logoController;
-  
+
   late Animation<double> _fadeAnimation;
   late Animation<double> _logoScale;
   late Animation<double> _logoSlide;
@@ -29,13 +29,26 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     // 1. Initial Fade In
-    _fadeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeIn));
-    
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeIn));
+
     // 2. Logo Entrance Animation (Scale & Slide up)
-    _logoController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-    _logoScale = Tween<double>(begin: 0.3, end: 1.0).animate(CurvedAnimation(parent: _logoController, curve: Curves.elasticOut));
-    _logoSlide = Tween<double>(begin: 50.0, end: 0.0).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic));
+    _logoController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _logoScale = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
+    );
+    _logoSlide = Tween<double>(begin: 50.0, end: 0.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
+    );
 
     // Start entrance sequence
     _fadeController.forward();
@@ -44,9 +57,18 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     // 3. Start Rings after Logo lands
-    _pulseController1 = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
-    _pulseController2 = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-    _pulseController3 = AnimationController(vsync: this, duration: const Duration(milliseconds: 2000));
+    _pulseController1 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _pulseController2 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _pulseController3 = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
 
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) _pulseController1.repeat(reverse: true);
@@ -59,14 +81,20 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     // Particle float
-    _floatController = AnimationController(vsync: this, duration: const Duration(milliseconds: 3600));
+    _floatController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3600),
+    );
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) _floatController.repeat();
     });
 
     // 4. Show "Continue" Elements
-    _tapController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
-    
+    _tapController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) {
         setState(() {
@@ -143,11 +171,35 @@ class _SplashScreenState extends State<SplashScreen>
                                 _buildParticles(),
 
                                 // Ring 3 (Outermost)
-                                _buildRing(_pulseController3, 220, 0.95, 1.45, 0.25, 0.04, 1.5),
+                                _buildRing(
+                                  _pulseController3,
+                                  220,
+                                  0.95,
+                                  1.45,
+                                  0.25,
+                                  0.04,
+                                  1.5,
+                                ),
                                 // Ring 2
-                                _buildRing(_pulseController2, 172, 0.9, 1.3, 0.4, 0.08, 1.5),
+                                _buildRing(
+                                  _pulseController2,
+                                  172,
+                                  0.9,
+                                  1.3,
+                                  0.4,
+                                  0.08,
+                                  1.5,
+                                ),
                                 // Ring 1 (Inner)
-                                _buildRing(_pulseController1, 130, 0.85, 1.15, 0.6, 0.15, 2.0),
+                                _buildRing(
+                                  _pulseController1,
+                                  130,
+                                  0.85,
+                                  1.15,
+                                  0.6,
+                                  0.15,
+                                  2.0,
+                                ),
 
                                 // Logo Card squircle dengan gradient
                                 AnimatedBuilder(
@@ -161,28 +213,36 @@ class _SplashScreenState extends State<SplashScreen>
                                         gradient: const LinearGradient(
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
-                                          colors: [Color(0xFFFFFDF8), Color(0xFFFFF3E0)],
+                                          colors: [
+                                            Color(0xFFFFFDF8),
+                                            Color(0xFFFFF3E0),
+                                          ],
                                         ),
                                         borderRadius: BorderRadius.circular(30),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: AppColors.primaryTan.withValues(alpha: 0.30),
+                                            color: AppColors.primaryTan
+                                                .withValues(alpha: 0.30),
                                             blurRadius: 48,
                                             offset: const Offset(0, 20),
                                           ),
                                           BoxShadow(
-                                            color: const Color(0xFF4D332D).withValues(alpha: 0.12),
+                                            color: const Color(0xFF4D332D)
+                                                .withValues(alpha: 0.12),
                                             blurRadius: 12,
                                             offset: const Offset(0, 4),
                                           ),
                                           BoxShadow(
-                                            color: AppColors.primaryTan.withValues(alpha: 0.08),
+                                            color: AppColors.primaryTan
+                                                .withValues(alpha: 0.08),
                                             blurRadius: 0,
                                             spreadRadius: glow,
                                           ),
                                         ],
                                         border: Border.all(
-                                          color: Colors.white.withValues(alpha: 0.8),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.8,
+                                          ),
                                           width: 1,
                                         ),
                                       ),
@@ -240,7 +300,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ),
                       );
-                    }
+                    },
                   ),
 
                   const SizedBox(height: 20),
@@ -259,17 +319,27 @@ class _SplashScreenState extends State<SplashScreen>
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: List.generate(5, (index) {
                                 final distance = (sweepingValue - index).abs();
-                                final opacity = (1.0 - (distance * 0.5)).clamp(0.2, 1.0);
-                                final scale = (1.0 - (distance * 0.2)).clamp(0.8, 1.2);
+                                final opacity = (1.0 - (distance * 0.5)).clamp(
+                                  0.2,
+                                  1.0,
+                                );
+                                final scale = (1.0 - (distance * 0.2)).clamp(
+                                  0.8,
+                                  1.2,
+                                );
 
                                 return Transform.scale(
                                   scale: scale,
                                   child: Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
                                     width: 6,
                                     height: 6,
                                     decoration: BoxDecoration(
-                                      color: AppColors.primaryTan.withValues(alpha: opacity),
+                                      color: AppColors.primaryTan.withValues(
+                                        alpha: opacity,
+                                      ),
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -296,7 +366,9 @@ class _SplashScreenState extends State<SplashScreen>
                           child: Text(
                             'Tap anywhere to continue',
                             style: TextStyle(
-                              color: AppColors.darkCharcoal.withValues(alpha: 0.6),
+                              color: AppColors.darkCharcoal.withValues(
+                                alpha: 0.6,
+                              ),
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.3,
@@ -316,7 +388,15 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildRing(AnimationController controller, double size, double minScale, double maxScale, double maxOp, double minOp, double borderWidth) {
+  Widget _buildRing(
+    AnimationController controller,
+    double size,
+    double minScale,
+    double maxScale,
+    double maxOp,
+    double minOp,
+    double borderWidth,
+  ) {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -331,7 +411,9 @@ class _SplashScreenState extends State<SplashScreen>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.primaryTan.withValues(alpha: opacity.clamp(0.0, 1.0)),
+                color: AppColors.primaryTan.withValues(
+                  alpha: opacity.clamp(0.0, 1.0),
+                ),
                 width: borderWidth,
               ),
             ),
@@ -343,14 +425,62 @@ class _SplashScreenState extends State<SplashScreen>
 
   Widget _buildParticles() {
     final particles = [
-      {'x': 20.0, 'y': 40.0, 'size': 6.0, 'color': AppColors.primaryTan, 'delay': 0.0},
-      {'x': 200.0, 'y': 30.0, 'size': 4.0, 'color': AppColors.tertiaryCaramel, 'delay': 0.15},
-      {'x': 40.0, 'y': 200.0, 'size': 5.0, 'color': AppColors.primaryTan, 'delay': 0.35},
-      {'x': 210.0, 'y': 190.0, 'size': 3.0, 'color': AppColors.primaryTan.withValues(alpha: 0.5), 'delay': 0.60},
-      {'x': 10.0, 'y': 120.0, 'size': 4.0, 'color': AppColors.tertiaryCaramel, 'delay': 0.25},
-      {'x': 230.0, 'y': 130.0, 'size': 5.0, 'color': AppColors.primaryTan, 'delay': 0.70},
-      {'x': 120.0, 'y': 10.0, 'size': 3.0, 'color': AppColors.primaryTan.withValues(alpha: 0.5), 'delay': 0.45},
-      {'x': 130.0, 'y': 230.0, 'size': 4.0, 'color': AppColors.tertiaryCaramel, 'delay': 0.85},
+      {
+        'x': 20.0,
+        'y': 40.0,
+        'size': 6.0,
+        'color': AppColors.primaryTan,
+        'delay': 0.0,
+      },
+      {
+        'x': 200.0,
+        'y': 30.0,
+        'size': 4.0,
+        'color': AppColors.tertiaryCaramel,
+        'delay': 0.15,
+      },
+      {
+        'x': 40.0,
+        'y': 200.0,
+        'size': 5.0,
+        'color': AppColors.primaryTan,
+        'delay': 0.35,
+      },
+      {
+        'x': 210.0,
+        'y': 190.0,
+        'size': 3.0,
+        'color': AppColors.primaryTan.withValues(alpha: 0.5),
+        'delay': 0.60,
+      },
+      {
+        'x': 10.0,
+        'y': 120.0,
+        'size': 4.0,
+        'color': AppColors.tertiaryCaramel,
+        'delay': 0.25,
+      },
+      {
+        'x': 230.0,
+        'y': 130.0,
+        'size': 5.0,
+        'color': AppColors.primaryTan,
+        'delay': 0.70,
+      },
+      {
+        'x': 120.0,
+        'y': 10.0,
+        'size': 3.0,
+        'color': AppColors.primaryTan.withValues(alpha: 0.5),
+        'delay': 0.45,
+      },
+      {
+        'x': 130.0,
+        'y': 230.0,
+        'size': 4.0,
+        'color': AppColors.tertiaryCaramel,
+        'delay': 0.85,
+      },
     ];
 
     return AnimatedBuilder(
@@ -358,7 +488,8 @@ class _SplashScreenState extends State<SplashScreen>
       builder: (context, child) {
         return Stack(
           children: particles.map((p) {
-            double progress = (_floatController.value + (p['delay'] as double)) % 1.0;
+            double progress =
+                (_floatController.value + (p['delay'] as double)) % 1.0;
             double opacity;
             if (progress < 0.5) {
               opacity = progress * 2.0;
@@ -376,7 +507,9 @@ class _SplashScreenState extends State<SplashScreen>
                   width: p['size'] as double,
                   height: p['size'] as double,
                   decoration: BoxDecoration(
-                    color: (p['color'] as Color).withValues(alpha: opacity.clamp(0.0, 1.0)),
+                    color: (p['color'] as Color).withValues(
+                      alpha: opacity.clamp(0.0, 1.0),
+                    ),
                     shape: BoxShape.circle,
                   ),
                 ),

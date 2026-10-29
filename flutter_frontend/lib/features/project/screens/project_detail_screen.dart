@@ -15,9 +15,15 @@ class ProjectDetailScreen extends StatelessWidget {
         return const SizedBox();
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final scale = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
-        final opacity = CurvedAnimation(parent: animation, curve: Curves.easeOut);
-        
+        final scale = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutBack,
+        );
+        final opacity = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOut,
+        );
+
         return ScaleTransition(
           scale: scale,
           child: FadeTransition(
@@ -26,7 +32,9 @@ class ProjectDetailScreen extends StatelessWidget {
               backgroundColor: Colors.white,
               surfaceTintColor: Colors.transparent,
               contentPadding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(32),
+              ),
               content: Container(
                 width: MediaQuery.of(context).size.width * 0.85,
                 padding: const EdgeInsets.all(32),
@@ -38,10 +46,7 @@ class ProjectDetailScreen extends StatelessWidget {
                       duration: const Duration(milliseconds: 600),
                       curve: Curves.elasticOut,
                       builder: (context, value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: child,
-                        );
+                        return Transform.scale(scale: value, child: child);
                       },
                       child: Container(
                         padding: const EdgeInsets.all(16),
@@ -53,10 +58,14 @@ class ProjectDetailScreen extends StatelessWidget {
                               color: Colors.green.withValues(alpha: 0.2),
                               blurRadius: 20,
                               spreadRadius: 5,
-                            )
+                            ),
                           ],
                         ),
-                        child: const Icon(Icons.check_rounded, color: Colors.green, size: 32),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          color: Colors.green,
+                          size: 32,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -72,12 +81,19 @@ class ProjectDetailScreen extends StatelessWidget {
                     RichText(
                       textAlign: TextAlign.center,
                       text: const TextSpan(
-                        style: TextStyle(color: Color(0xFF424242), fontSize: 13, height: 1.5),
+                        style: TextStyle(
+                          color: Color(0xFF424242),
+                          fontSize: 13,
+                          height: 1.5,
+                        ),
                         children: [
                           TextSpan(text: 'Your application for '),
                           TextSpan(
                             text: 'Redesign E-commerce Landing Page ',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.darkBrown),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkBrown,
+                            ),
                           ),
                           TextSpan(text: 'has been submitted.'),
                         ],
@@ -87,7 +103,11 @@ class ProjectDetailScreen extends StatelessWidget {
                     const Text(
                       'The MSME will review and contact you within 48 hours.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Color(0xFF616161), fontSize: 12, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        color: Color(0xFF616161),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Container(
@@ -102,24 +122,55 @@ class ProjectDetailScreen extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Reward', style: TextStyle(color: Color(0xFF616161), fontSize: 12, fontWeight: FontWeight.w500)),
+                              const Text(
+                                'Reward',
+                                style: TextStyle(
+                                  color: Color(0xFF616161),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFB88656),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Text('3 TC', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                child: const Text(
+                                  '3 TC',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
                           const Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('Status', style: TextStyle(color: Color(0xFF616161), fontSize: 12, fontWeight: FontWeight.w500)),
+                              Text(
+                                'Status',
+                                style: TextStyle(
+                                  color: Color(0xFF616161),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                               SizedBox(height: 4),
-                              Text('Under Review', style: TextStyle(color: Color(0xFFE64A19), fontSize: 13, fontWeight: FontWeight.bold)),
+                              Text(
+                                'Under Review',
+                                style: TextStyle(
+                                  color: Color(0xFFE64A19),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -138,7 +189,11 @@ class ProjectDetailScreen extends StatelessWidget {
                         child: const Center(
                           child: Text(
                             'Close',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                       ),
@@ -172,7 +227,11 @@ class ProjectDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoColumn(String label, String value, {bool isPremium = false}) {
+  Widget _buildInfoColumn(
+    String label,
+    String value, {
+    bool isPremium = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,14 +239,31 @@ class ProjectDetailScreen extends StatelessWidget {
         const SizedBox(height: 6),
         isPremium
             ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFB88656),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
               )
-            : Text(value, style: const TextStyle(color: AppColors.darkBrown, fontWeight: FontWeight.bold, fontSize: 15)),
+            : Text(
+                value,
+                style: const TextStyle(
+                  color: AppColors.darkBrown,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
       ],
     );
   }
@@ -203,7 +279,11 @@ class ProjectDetailScreen extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: Colors.grey, fontSize: 14, height: 1.4),
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -225,8 +305,14 @@ class ProjectDetailScreen extends StatelessWidget {
                 children: [
                   // Floating Header
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(24),
@@ -249,14 +335,24 @@ class ProjectDetailScreen extends StatelessWidget {
                               color: AppColors.warmOffWhite,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.keyboard_arrow_left_rounded, color: AppColors.darkBrown),
+                            child: const Icon(
+                              Icons.keyboard_arrow_left_rounded,
+                              color: AppColors.darkBrown,
+                            ),
                           ),
                         ),
                         const Text(
                           'Project Detail',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkBrown),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkBrown,
+                          ),
                         ),
-                        const Icon(Icons.local_activity_rounded, color: Color(0xFFEF5350)),
+                        const Icon(
+                          Icons.local_activity_rounded,
+                          color: Color(0xFFEF5350),
+                        ),
                       ],
                     ),
                   ),
@@ -290,33 +386,68 @@ class ProjectDetailScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: const Center(
-                                child: Text('BN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                                child: Text(
+                                  'BN',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 16),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Batik Nusantara', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.darkBrown)),
+                                const Text(
+                                  'Batik Nusantara',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: AppColors.darkBrown,
+                                  ),
+                                ),
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFE8F5E9),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: const Row(
                                         children: [
-                                          Icon(Icons.star_rounded, color: Color(0xFFFFD54F), size: 14),
+                                          Icon(
+                                            Icons.star_rounded,
+                                            color: Color(0xFFFFD54F),
+                                            size: 14,
+                                          ),
                                           SizedBox(width: 4),
-                                          Text('4.9', style: TextStyle(color: Color(0xFF388E3C), fontWeight: FontWeight.bold, fontSize: 11)),
+                                          Text(
+                                            '4.9',
+                                            style: TextStyle(
+                                              color: Color(0xFF388E3C),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 11,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    const Text('12 projects posted', style: TextStyle(color: Color(0xFF616161), fontSize: 12, fontWeight: FontWeight.w500)),
+                                    const Text(
+                                      '12 projects posted',
+                                      style: TextStyle(
+                                        color: Color(0xFF616161),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -377,12 +508,20 @@ class ProjectDetailScreen extends StatelessWidget {
                       children: [
                         const Text(
                           'Project Description',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkBrown),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkBrown,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
                           "We need a talented student to redesign our e-commerce landing page. The current design is outdated and we want a modern, conversion-focused UI using Figma and React. You'll collaborate directly with our marketing team.",
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 14, height: 1.6),
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                            height: 1.6,
+                          ),
                         ),
                       ],
                     ),
@@ -411,17 +550,25 @@ class ProjectDetailScreen extends StatelessWidget {
                       children: [
                         const Text(
                           'Requirements',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkBrown),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkBrown,
+                          ),
                         ),
                         const SizedBox(height: 16),
-                        _buildRequirement('Proficiency in Figma or similar tools'),
-                        _buildRequirement('Understanding of e-commerce UX patterns'),
+                        _buildRequirement(
+                          'Proficiency in Figma or similar tools',
+                        ),
+                        _buildRequirement(
+                          'Understanding of e-commerce UX patterns',
+                        ),
                         _buildRequirement('Basic React knowledge'),
                         _buildRequirement('Ability to meet deadlines'),
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
 
                   // Applicants
@@ -442,7 +589,13 @@ class ProjectDetailScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('7 students applied', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.darkBrown)),
+                        const Text(
+                          '7 students applied',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkBrown,
+                          ),
+                        ),
                         SizedBox(
                           width: 80,
                           height: 32,
@@ -450,15 +603,24 @@ class ProjectDetailScreen extends StatelessWidget {
                             children: [
                               Positioned(
                                 right: 0,
-                                child: _buildAvatar('DP', const Color(0xFFBCAAA4)),
+                                child: _buildAvatar(
+                                  'DP',
+                                  const Color(0xFFBCAAA4),
+                                ),
                               ),
                               Positioned(
                                 right: 20,
-                                child: _buildAvatar('BS', const Color(0xFF8D6E63)),
+                                child: _buildAvatar(
+                                  'BS',
+                                  const Color(0xFF8D6E63),
+                                ),
                               ),
                               Positioned(
                                 right: 40,
-                                child: _buildAvatar('AR', const Color(0xFFA1887F)),
+                                child: _buildAvatar(
+                                  'AR',
+                                  const Color(0xFFA1887F),
+                                ),
                               ),
                             ],
                           ),
@@ -470,7 +632,7 @@ class ProjectDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Apply Button Fixed at Bottom
           Positioned(
             left: 24,
@@ -500,7 +662,11 @@ class ProjectDetailScreen extends StatelessWidget {
                     SizedBox(width: 8),
                     Text(
                       'Apply for 3 TC',
-                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
@@ -524,7 +690,11 @@ class ProjectDetailScreen extends StatelessWidget {
       child: Center(
         child: Text(
           initials,
-          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

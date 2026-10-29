@@ -25,7 +25,12 @@ class _StudentMainLayoutState extends State<StudentMainLayout> {
     const StudentSettingsScreen(),
   ];
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
+  Widget _buildNavItem({
+    required IconData activeIcon,
+    required IconData inactiveIcon,
+    required String label,
+    required int index,
+  }) {
     bool isActive = _currentIndex == index;
     return GestureDetector(
       onTap: () {
@@ -37,7 +42,7 @@ class _StudentMainLayoutState extends State<StudentMainLayout> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            icon,
+            isActive ? activeIcon : inactiveIcon,
             color: isActive ? const Color(0xFFB88656) : Colors.grey.shade400,
             size: 24,
           ),
@@ -61,42 +66,70 @@ class _StudentMainLayoutState extends State<StudentMainLayout> {
       backgroundColor: AppColors.warmOffWhite,
       body: GradientBackground(
         child: Stack(
-        children: [
-          // The current screen
-          _screens[_currentIndex],
-          
-          // Floating Capsule Bottom Navigation Bar
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom: 24,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(40),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkBrown.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildNavItem(Icons.home_outlined, 'Explore', 0),
-                  _buildNavItem(Icons.work_outline_rounded, 'My Tasks', 1),
-                  _buildNavItem(Icons.people_outline_rounded, 'Mentors', 2),
-                  _buildNavItem(Icons.account_balance_wallet_outlined, 'Wallet', 3),
-                  _buildNavItem(Icons.person_outline_rounded, 'Profile', 4),
-                ],
+          children: [
+            // The current screen
+            _screens[_currentIndex],
+
+            // Floating Capsule Bottom Navigation Bar
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 24,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkBrown.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildNavItem(
+                      activeIcon: Icons.explore_rounded,
+                      inactiveIcon: Icons.explore_outlined,
+                      label: 'Explore',
+                      index: 0,
+                    ),
+                    _buildNavItem(
+                      activeIcon: Icons.layers_rounded,
+                      inactiveIcon: Icons.layers_outlined,
+                      label: 'My Tasks',
+                      index: 1,
+                    ),
+                    _buildNavItem(
+                      activeIcon: Icons.school_rounded,
+                      inactiveIcon: Icons.school_outlined,
+                      label: 'Mentors',
+                      index: 2,
+                    ),
+                    _buildNavItem(
+                      activeIcon: Icons.token_rounded,
+                      inactiveIcon: Icons.token_outlined,
+                      label: 'Wallet',
+                      index: 3,
+                    ),
+                    _buildNavItem(
+                      activeIcon: Icons.account_circle_rounded,
+                      inactiveIcon: Icons.account_circle_outlined,
+                      label: 'Profile',
+                      index: 4,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
+
 import '../../wallet/screens/transfer_screen.dart';
 import '../../wallet/screens/history_screen.dart';
-import 'package:flutter_frontend/core/routes/app_routes.dart';
 
 class DashboardMahasiswaScreen extends StatelessWidget {
   const DashboardMahasiswaScreen({super.key});
@@ -22,7 +23,10 @@ class DashboardMahasiswaScreen extends StatelessWidget {
             children: [
               // White Floating Header
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -44,10 +48,12 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              'Good morning ',
-                              style: TextStyle(color: Colors.grey, fontSize: 14),
+                              'Good morning',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
                             ),
-                            Icon(Icons.wb_sunny_rounded, color: Colors.orangeAccent, size: 16),
                           ],
                         ),
                         SizedBox(height: 4),
@@ -63,9 +69,17 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        _buildHeaderIcon(context, Icons.chat_bubble_outline_rounded, route: AppRoutes.inbox),
+                        _buildHeaderIcon(
+                          context,
+                          Icons.chat_bubble_outline_rounded,
+                          route: AppRoutes.inbox,
+                        ),
                         const SizedBox(width: 12),
-                        _buildHeaderIcon(context, Icons.notifications_none_rounded, route: AppRoutes.notifications),
+                        _buildHeaderIcon(
+                          context,
+                          Icons.notifications_none_rounded,
+                          route: AppRoutes.notifications,
+                        ),
                       ],
                     ),
                   ],
@@ -84,10 +98,7 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF8C5E3C),
-                            Color(0xFF4D332D),
-                          ], // Lighter brown to dark brown
+                          colors: [Color(0xFF8C5E3C), Color(0xFF4D332D)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -162,8 +173,8 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
-                                  Icons.monetization_on_rounded,
-                                  color: AppColors.primaryTan,
+                                  Icons.toll_rounded,
+                                  color: Color(0xFFFFD54F),
                                   size: 28,
                                 ),
                               ),
@@ -173,15 +184,31 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                           Row(
                             children: [
                               Expanded(
-                                child: _buildWalletButton('Transfer', onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TransferScreen()));
-                                }),
+                                child: _buildWalletButton(
+                                  'Transfer',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const TransferScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: _buildWalletButton('History', onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen()));
-                                }),
+                                child: _buildWalletButton(
+                                  'History',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const HistoryScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -190,13 +217,13 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // Stats Row
+                    // Stats Row - Modern & Professional
                     Row(
                       children: [
                         Expanded(
                           child: _buildStatCard(
-                            Icons.rocket_launch_rounded,
-                            const Color(0xFFE57373),
+                            Icons.bolt_rounded,
+                            const Color(0xFFE05656), // Coral red
                             '2',
                             'Active',
                           ),
@@ -204,8 +231,8 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildStatCard(
-                            Icons.verified_rounded,
-                            const Color(0xFF81C784),
+                            Icons.task_alt_rounded,
+                            const Color(0xFF10B981), // Emerald green
                             '8',
                             'Completed',
                           ),
@@ -213,8 +240,8 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildStatCard(
-                            Icons.workspace_premium_rounded,
-                            const Color(0xFFFFD54F),
+                            Icons.star_rounded,
+                            const Color(0xFFF59E0B), // Warm gold
                             '4.8',
                             'Rating',
                           ),
@@ -303,7 +330,8 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildInProgressCard(context, 
+                    _buildInProgressCard(
+                      context,
                       'Digitalisasi UMKM Batik Solo',
                       'Batik Nusantara',
                       '5 TC',
@@ -311,7 +339,8 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                       '68% complete',
                       '5 days left',
                     ),
-                    _buildInProgressCard(context, 
+                    _buildInProgressCard(
+                      context,
                       'Update Katalog Produk',
                       'Toko Kue Enak',
                       'Barter',
@@ -329,7 +358,11 @@ class DashboardMahasiswaScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderIcon(BuildContext context, IconData icon, {String? route}) {
+  Widget _buildHeaderIcon(
+    BuildContext context,
+    IconData icon, {
+    String? route,
+  }) {
     return GestureDetector(
       onTap: route != null ? () => Navigator.pushNamed(context, route) : null,
       child: Container(
@@ -370,6 +403,7 @@ class DashboardMahasiswaScreen extends StatelessWidget {
     );
   }
 
+  /// Stat Card persis seperti contoh di gambar screenshot
   Widget _buildStatCard(
     IconData icon,
     Color iconColor,
@@ -506,7 +540,8 @@ class DashboardMahasiswaScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInProgressCard(BuildContext context, 
+  Widget _buildInProgressCard(
+    BuildContext context,
     String title,
     String client,
     String reward,
@@ -522,7 +557,9 @@ class DashboardMahasiswaScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.primaryTan.withValues(alpha: 0.3)),
+          border: Border.all(
+            color: AppColors.primaryTan.withValues(alpha: 0.3),
+          ),
           boxShadow: [
             BoxShadow(
               color: AppColors.darkBrown.withValues(alpha: 0.04),
@@ -553,7 +590,10 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         client,
-                        style: const TextStyle(color: Colors.grey, fontSize: 13),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),

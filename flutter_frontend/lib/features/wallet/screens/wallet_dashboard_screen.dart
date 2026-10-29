@@ -12,7 +12,14 @@ class WalletDashboardScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.darkBrown.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -40,7 +47,7 @@ class WalletDashboardScreen extends StatelessWidget {
             ),
           ),
           Text(
-            isPositive ? '+$amount TC' : '-$amount TC',
+            '${isPositive ? '+' : '-'}$amount TC',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -80,22 +87,22 @@ class WalletDashboardScreen extends StatelessWidget {
                     ],
                   ),
                   child: GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.rewardHub),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF8E1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.card_giftcard_rounded, color: Color(0xFFFF8F00), size: 16),
-                              SizedBox(width: 8),
-                              Text('Rewards', style: TextStyle(color: Color(0xFFFF8F00), fontWeight: FontWeight.bold, fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                      )
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.rewardHub),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8E1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.card_giftcard_rounded, color: Color(0xFFFF8F00), size: 16),
+                          SizedBox(width: 8),
+                          Text('Rewards', style: TextStyle(color: Color(0xFFFF8F00), fontWeight: FontWeight.bold, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -130,9 +137,14 @@ class WalletDashboardScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       const Row(
                         children: [
-                          Icon(Icons.monetization_on_rounded, color: Color(0xFFFFB300), size: 36),
-                          SizedBox(width: 8),
+                          Icon(Icons.toll_rounded, color: Color(0xFFFFB300), size: 36),
+                          SizedBox(width: 10),
                           Text('125.00', style: TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w900)),
+                          SizedBox(width: 8),
+                          Padding(
+                            padding: EdgeInsets.only(top: 8.0),
+                            child: Text('TC', style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 32),

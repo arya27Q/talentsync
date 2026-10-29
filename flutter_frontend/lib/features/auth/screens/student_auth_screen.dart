@@ -19,7 +19,9 @@ class StudentAuthScreen extends StatelessWidget {
           isPassword: true,
         ),
         const SizedBox(height: 24),
-        buildElevatedButton('Sign In', () { Navigator.pushReplacementNamed(context, AppRoutes.studentOnboarding); }),
+        buildElevatedButton('Sign In', () {
+          Navigator.pushReplacementNamed(context, AppRoutes.studentOnboarding);
+        }),
         const SizedBox(height: 16),
 
         buildAuthFooter('Belum punya akun?', 'Daftar di sini', () {

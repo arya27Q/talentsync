@@ -41,7 +41,7 @@ class RewardHubScreen extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.monetization_on_rounded, color: Color(0xFFFFB300), size: 14),
+                const Icon(Icons.toll_rounded, color: Color(0xFFFFB300), size: 14),
                 const SizedBox(width: 4),
                 Text('$price TC', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFFFF8F00))),
               ],
@@ -51,10 +51,6 @@ class RewardHubScreen extends StatelessWidget {
       ),
     );
   }
-
- 
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +109,7 @@ class RewardHubScreen extends StatelessWidget {
                       _buildRewardCard('MSME Coffee Voucher', '15', Icons.coffee_rounded, const Color(0xFF795548)),
                       _buildRewardCard('Premium Mentoring (1 hr)', '30', Icons.workspace_premium_rounded, const Color(0xFF1976D2)),
                       _buildRewardCard('Gojek Promo Discount', '10', Icons.discount_rounded, const Color(0xFF388E3C)),
-                      _buildRewardCard('SkillSwap Pro Badge', '50', Icons.verified_rounded, const Color(0xFFF57C00)),
+                      _buildRewardCard('TalentSync Pro Badge', '50', Icons.verified_rounded, const Color(0xFFF57C00)),
                     ],
                   ),
                 ),

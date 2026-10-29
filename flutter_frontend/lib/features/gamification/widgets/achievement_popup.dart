@@ -40,20 +40,19 @@ class AchievementPopup {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Golden Coins Graphic (using icons as placeholder)
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      Icon(Icons.monetization_on_rounded, color: const Color(0xFFFFC107).withValues(alpha: 0.5), size: 100),
+                      Icon(Icons.toll_rounded, color: const Color(0xFFFFC107).withValues(alpha: 0.5), size: 100),
                       const Positioned(
                         left: 20,
                         top: 20,
-                        child: Icon(Icons.monetization_on_rounded, color: Color(0xFFFFCA28), size: 40),
+                        child: Icon(Icons.toll_rounded, color: Color(0xFFFFCA28), size: 40),
                       ),
                       const Positioned(
                         right: 10,
                         bottom: 10,
-                        child: Icon(Icons.monetization_on_rounded, color: Color(0xFFFFB300), size: 60),
+                        child: Icon(Icons.toll_rounded, color: Color(0xFFFFB300), size: 60),
                       ),
                     ],
                   ),
