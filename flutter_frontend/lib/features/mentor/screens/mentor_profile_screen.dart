@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorProfileScreen extends StatelessWidget {
@@ -42,7 +43,39 @@ class MentorProfileScreen extends StatelessWidget {
     const SizedBox(height: 20),
     const MentorSectionTitle('Tentang saya'),
     const MentorCard(child: Text('Membantu mahasiswa membangun fondasi software engineering, membuat aplikasi Flutter, dan menghubungkan frontend dengan REST API Laravel.', style: TextStyle(color: Colors.grey, fontSize: 13, height: 1.55))),
+    const SizedBox(height: 18),
+    MentorCard(
+      padding: const EdgeInsets.all(0),
+      child: ListTile(
+        onTap: () => _confirmLogout(context),
+        leading: const Icon(Icons.logout_rounded, color: Color(0xFFB74C45)),
+        title: const Text('Keluar', style: TextStyle(color: Color(0xFFB74C45), fontWeight: FontWeight.w700)),
+        subtitle: const Text('Keluar dari akun mentor ini', style: TextStyle(fontSize: 12)),
+        trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+      ),
+    ),
+    const SizedBox(height: 20),
   ]));
+
+  void _confirmLogout(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Keluar dari akun?', style: TextStyle(color: AppColors.darkBrown, fontWeight: FontWeight.w800)),
+        content: const Text('Anda perlu masuk kembali untuk mengakses dashboard mentor.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Batal')),
+          ElevatedButton(
+            onPressed: () => Navigator.pushNamedAndRemoveUntil(context, AppRoutes.roleSelection, (route) => false),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB74C45), foregroundColor: Colors.white),
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _divider() => Container(width: 1, height: 36, color: const Color(0xFFEDE6DE));
 }
