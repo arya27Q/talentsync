@@ -1,76 +1,81 @@
-# Struktur Menu & UI/UX Aplikasi TimeWork
-**Platform:** Flutter Mobile App
-**Model:** Multi-Role (Mahasiswa, UMKM, Mentor)
+# Struktur Menu & UI/UX Aplikasi TalentSync
+**Platform:** Flutter Mobile App  
+**Model:** Multi-Role (Mahasiswa, UMKM, Mentor)  
 
-Dokumen ini merangkum seluruh *flow* navigasi (menu) aplikasi TimeWork berdasarkan 3 sudut pandang (POV) pengguna, yang telah ditambahkan fitur **Pesan (Chat)** dan **Notifikasi** agar lebih *user-friendly*. 
+Dokumen ini merangkum seluruh *flow* navigasi (menu) aplikasi **TalentSync** berdasarkan 3 sudut pandang (POV) pengguna, dilengkapi dengan fitur **Pesan/Workspace Chat**, **Notifikasi**, serta integrasi perputaran **TimeCoin (TC)**.
 
-Agar UI/UX terlihat profesional dan modern seperti aplikasi *startup* sungguhan, menu-menu ini dikelompokkan menggunakan **Bottom Navigation Bar** untuk fitur utama, dan menu pendukung diletakkan di dalam halaman profil.
+Untuk menjaga tampilan antarmuka tetap bersih, ergonomis, dan terbebas dari *AI Slop*, menu-menu utama diorganisasikan menggunakan **Bottom Navigation Bar** dengan rute terstruktur, sedangkan menu pengaturan dan profil diletakkan pada tab Profil masing-masing peran.
 
 ---
 
 ## 1. 🎓 Menu POV: Mahasiswa
-*Target Pengguna: Mahasiswa aktif yang mencari tugas UMKM, membangun portofolio, dan mencari mentor.*
+*Target Pengguna:* Mahasiswa aktif yang mencari tugas UMKM, membangun portofolio, dan bimbingan bersama mentor.
 
 ### A. Bottom Navigation Bar (Menu Utama)
-1.  **Beranda (Dashboard)**
-    *   Ringkasan proyek aktif & rekomendasi pekerjaan.
-    *   Informasi saldo TimeCoin & Rupiah (Widget sekilas).
-    *   *Ikon Top Bar:* **Notifikasi** (Pemberitahuan lamaran tugas/sesi diterima) & **Pesan/Chat**.
-2.  **Proyek**
-    *   *Tab 1 (Cari Proyek):* Eksplorasi daftar proyek UMKM (Jalur Barter & *Cash Task*).
-    *   *Tab 2 (Proyek Saya):* Memantau proyek yang sedang dikerjakan (In Progress) dan riwayat yang sudah selesai.
-3.  **Mentoring**
-    *   Mencari daftar mentor yang tersedia (Dosen praktisi atau *Kating*).
-    *   Melihat profil mentor, harga bimbingan (TC/Rupiah), dan melakukan *Booking* jadwal.
-4.  **Wallet & Reward**
-    *   *Tab 1 (TimeCoin Wallet):* Mengecek detail saldo dan riwayat mutasi koin.
-    *   *Tab 2 (Reward Hub):* Menukarkan TimeCoin dengan *voucher* promo dari UMKM.
-5.  **Profil**
-    *   Menampilkan *Rating* reputasi dan level mahasiswa (misal: *Top Talent*).
-    *   **Portofolio:** Daftar riwayat tugas yang berhasil diselesaikan beserta nilai dari UMKM.
+1. **Beranda (Dashboard Mahasiswa)**
+   * Ringkasan statistik aktivitas: Proyek Aktif (`Icons.bolt_rounded`), Proyek Selesai (`Icons.task_alt_rounded`), Skor Rating (`Icons.star_rounded`).
+   * Widget ringkas saldo TimeCoin (`Icons.toll_rounded`).
+   * Banner rekomendasi proyek terkini (*Explore Projects*).
+   * *Top Bar:* Ikon Notifikasi & Pesan/Chat.
+2. **Proyek (Projects Hub)**
+   * *Tab 1 (Cari Proyek):* Menjelajahi proyek terbuka dari UMKM, filter kategori, nominal imbalan TimeCoin, dan syarat portofolio/badge mentor.
+   * *Tab 2 (Proyek Saya):* Memantau tugas yang sedang dikerjakan (*In Progress*) dan riwayat proyek yang telah disetujui (*Completed*).
+   * Tombol aksi: **Open Workspace** (menuju papan Kanban & chat kolaborasi dengan UMKM).
+3. **Mentoring**
+   * Direktori mentor profesional dan praktisi industri.
+   * Filter bidang keahlian (Flutter, UI/UX, Backend, dll.).
+   * Tombol aksi kartu: **Book Session** (coklat solid `AppColors.primaryTan`) untuk memesan jadwal bimbingan dengan tarif TimeCoin.
+4. **Dompet & Reward (Wallet)**
+   * *Tab 1 (TimeCoin Wallet):* Saldo TC, riwayat mutasi transaksi kredit masuk/keluar, dan menu pencairan (*Cash-Out* ke Rupiah dengan **0% potongan admin**).
+   * *Tab 2 (Reward Hub):* Menukarkan TimeCoin dengan reward internal atau voucher promosi.
+5. **Profil & Portofolio**
+   * Identitas mahasiswa, universitas, program studi, dan status verifikasi KTM.
+   * Galeri portofolio proyek selesai dan ulasan bintang dari UMKM.
+   * *Badge Rekomendasi Kerja (Endorsement)* dari mentor.
 
-### B. Fitur Khusus (Terdapat di dalam Halaman Profil)
-*   **Switch to Mentor Mode:** *Toggle* khusus untuk beralih profil menjadi Mentor (Hanya akan muncul dan bisa diklik jika mahasiswa sudah memenuhi syarat reputasi/portofolio minimal).
+### B. Fitur Khusus Mahasiswa
+* **Switch as a Mentor:** *Toggle* mode mentor pada halaman profil yang otomatis aktif jika mahasiswa telah menyelesaikan $\ge 5$ proyek UMKM dengan rekam jejak penilaian baik.
 
 ---
 
-## 2. 🏪 Menu POV: UMKM
-*Target Pengguna: Pemilik usaha yang ingin mencari talenta mahasiswa untuk membantu operasional atau digitalisasi.*
+## 2. 🏪 Menu POV: Mitra UMKM
+*Target Pengguna:* Pelaku UMKM yang membutuhkan tenaga pendukung digitalisasi usaha dengan bantuan mahasiswa terkurasi.
 
 ### A. Bottom Navigation Bar (Menu Utama)
-1.  **Beranda (Dashboard)**
-    *   Ringkasan jumlah proyek aktif, jumlah pelamar, dan statistik performa.
-    *   *Ikon Top Bar:* **Notifikasi** & **Pesan/Chat** (Untuk diskusi detail tugas dengan mahasiswa).
-2.  **Proyek Saya**
-    *   Daftar tugas yang telah dipublikasikan.
-    *   **Buat Proyek Baru:** Tombol aksi utama (FAB) untuk *posting* lowongan/kerjaan baru.
-    *   Pusat **Evaluasi & Rating**: Memberikan nilai Bintang 1-5 dan *review* untuk mahasiswa yang telah menyelesaikan tugas.
-3.  **Talent Search (Cari Mahasiswa)**
-    *   Eksplorasi/pencarian mahasiswa berdasarkan kemampuan (skill), *rating*, dan pengalaman portofolio.
-4.  **Wallet & Premium**
-    *   *Tab 1 (TimeCoin Quota):* Mengecek sisa modal TimeCoin (kuota 20 TC bulanan).
-    *   *Tab 2 (Premium Access):* Halaman langganan untuk membuka fitur *"Cash Task"* (membayar mahasiswa menggunakan Rupiah untuk merekrut talenta terbaik).
-5.  **Profil UMKM**
-    *   Informasi usaha, deskripsi toko, galeri produk, dan status verifikasi akun.
+1. **Dashboard UMKM**
+   * Ringkasan proyek aktif berjalan, pelamar baru yang masuk, dan total penyelesaian proyek.
+   * Kuota TimeCoin bulanan yang tersedia (kuota dasar bulanan).
+   * *Top Bar:* Notifikasi lamaran & Workspace Chat.
+2. **Manajemen Proyek (Projects)**
+   * Daftar proyek yang sedang dipublikasikan beserta status pelamar.
+   * **Tombol FAB (Posting Proyek Baru):** Formulir pengisian nama pekerjaan, kategori, deskripsi tugas, imbalan TimeCoin, dan syarat wajib (portofolio eksternal / badge mentor).
+   * **Evaluasi & Validasi Hasil Kerja:** Halaman pemeriksaan berkas *deliverable*, tombol minta revisi, atau tombol validasi hasil akhir (*"Validasi Hasil & Transfer 150 TimeCoin"*) disertai pemberian rating bintang 1-5 dan ulasan.
+3. **Talent Search (Cari Talenta)**
+   * Menjelajahi profil mahasiswa berdasarkan keahlian teknis, rating portofolio, dan kepemilikan Badge Rekomendasi Mentor.
+4. **Wallet & Layanan Premium**
+   * Status kuota TimeCoin proyek.
+   * Menu langganan **Paket Premium UMKM** (membuka kuota posting ekstra dan filter pelamar khusus talenta ber-badge).
+5. **Profil Usaha**
+   * Nama usaha, legalitas/dokumen verifikasi, bidang industri, dan kontak resmi.
 
 ---
 
 ## 3. 💼 Menu POV: Mentor
-*Target Pengguna: Profesional industri atau Mahasiswa Kating (Peer-to-Peer) yang membuka jasa bimbingan.*
+*Target Pengguna:* Profesional industri atau alumni/mahasiswa berprestasi yang membuka bimbingan keterampilan.
 
 ### A. Bottom Navigation Bar (Menu Utama)
-1.  **Beranda (Dashboard)**
-    *   Ringkasan jadwal mentoring hari ini/minggu ini.
-    *   Laporan total pendapatan (TC & Rupiah) sekilas.
-    *   *Ikon Top Bar:* **Notifikasi** & **Pesan/Chat** (Jalur komunikasi dengan mahasiswa).
-2.  **Kelola Booking**
-    *   Daftar permintaan bimbingan masuk (Pending) untuk di-ACC atau ditolak.
-    *   Jadwal *meeting* yang akan datang beserta *link* ruang kerja virtual (contoh: GMeet/Zoom).
-3.  **Jasa Mentoring (Lapak)**
-    *   Pengaturan bidang keahlian, deskripsi kelas, durasi sesi, dan pasang tarif (dalam TC maupun Rupiah).
-4.  **Wallet & Cash-Out**
-    *   Rincian saldo masuk dari hasil mengajar.
-    *   **Tarik Dana (Cash-Out):** Form pengajuan pencairan TimeCoin menjadi Rupiah yang ditransfer ke rekening pribadi.
-5.  **Profil Mentor**
-    *   Ulasan (*Review* & *Rating*) dari anak didik sebelumnya.
-    *   Akses ke fitur **Featured Mentor** (Langganan premium berbayar agar profil selalu disorot di urutan teratas pencarian).
+1. **Dashboard Mentor**
+   * Ringkasan jadwal sesi mentoring aktif, total murid yang dibimbing, dan perolehan saldo TimeCoin.
+   * *Top Bar:* Notifikasi booking baru & Chat Bimbingan.
+2. **Kelola Sesi & Kelas Mentoring**
+   * Daftar sesi bimbingan yang akan datang (*Upcoming Sessions*).
+   * Tautan ruang virtual (*Virtual Workspace / Video Call UI / Google Meet*).
+   * Halaman evaluasi murid: Memeriksa tugas bimbingan dan tombol **"Beri Badge (Endorse)"** untuk merekomendasikan murid kompeten ke mitra UMKM.
+3. **Lapak Bimbingan (Services)**
+   * Pengaturan topik keahlian, silabus ringkas, jadwal ketersediaan bimbingan, dan penetapan tarif TimeCoin per jam (*"Book for 3 TC / hr"*).
+4. **Dompet & Penarikan Dana (Cash-Out)**
+   * Saldo TimeCoin yang terkumpul dari sesi kelas.
+   * Form penarikan dana ke rekening bank ($1\text{ TC} \approx \text{Rp}1.000$).
+   * Tampilan skema biaya admin: Freemium (potongan 10%) vs opsi upgrade ke **Premium Mentor** (0% potongan admin).
+5. **Profil Mentor**
+   * Portofolio profesional, ulasan bintang dari anak didik, dan pengaturan akun.
