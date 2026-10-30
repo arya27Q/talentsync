@@ -19,7 +19,13 @@ class MentorAuthScreen extends StatelessWidget {
           isPassword: true,
         ),
         const SizedBox(height: 24),
-        buildElevatedButton('Sign In', () {}),
+        buildElevatedButton('Sign In', () {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.mentorDashboard,
+            (route) => false,
+          );
+        }),
 
         buildAuthFooter('Belum punya akun?', 'Daftar di sini', () {
           Navigator.pushNamed(context, AppRoutes.mentorRegister);

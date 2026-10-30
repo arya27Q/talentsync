@@ -30,6 +30,7 @@ import 'package:flutter_frontend/features/profile/screens/edit_profile_screen.da
 import 'package:flutter_frontend/features/profile/screens/privacy_security_screen.dart';
 import 'package:flutter_frontend/features/profile/screens/help_support_screen.dart';
 import 'package:flutter_frontend/features/project/screens/project_detail_screen.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_main_layout.dart';
 
 class AppRoutes {
   // Define Route Names
@@ -43,6 +44,7 @@ class AppRoutes {
   static const String mentorRegister = '/auth/mentor/register';
   static const String studentOnboarding = '/auth/student/onboarding';
   static const String studentDashboard = '/dashboard/student';
+  static const String mentorDashboard = '/dashboard/mentor';
   static const String studentSetupProfile = '/auth/student/setup-profile';
   static const String projectDetail = '/project-detail';
   static const String myProjects = '/my-projects';
@@ -78,6 +80,7 @@ class AppRoutes {
     mentorRegister: (context) => const MentorRegisterScreen(),
     studentOnboarding: (context) => const StudentOnboardingScreen(),
     studentDashboard: (context) => const StudentMainLayout(),
+    mentorDashboard: (context) => const MentorMainLayout(),
     studentSetupProfile: (context) => const StudentSetupProfileScreen(),
     projectDetail: (context) => const ProjectDetailScreen(),
 
