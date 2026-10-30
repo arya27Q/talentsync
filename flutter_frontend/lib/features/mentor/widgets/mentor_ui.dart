@@ -50,7 +50,7 @@ class MentorPageHeader extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailing != null) trailing!,
+            ?trailing,
           ],
         ),
       );
