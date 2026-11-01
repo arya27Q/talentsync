@@ -1,112 +1,158 @@
-# Struktur Folder Flutter (Architecture Design)
+# Struktur Folder & Arsitektur Direktori Flutter (Feature-First Clean Architecture)
+**Aplikasi:** TalentSync — Mobile Platform Kolaborasi Mahasiswa, UMKM, dan Mentor  
+**Pola Arsitektur:** Feature-First Architecture dengan Pemisahan Tanggung Jawab (Separation of Concerns)  
 
-Untuk aplikasi dengan skala menengah ke atas dan *multi-role* (Mahasiswa, UMKM, Mentor) seperti ekosistem TimeCoin, arsitektur yang paling direkomendasikan adalah **Feature-First Architecture** yang disesuaikan dengan penggunaan **Provider** untuk State Management.
+Untuk proyek berskala menengah ke atas dengan *multi-role* (Mahasiswa, UMKM, dan Mentor), struktur direktori disusun menggunakan pendekatan **Feature-First Architecture**. Setiap fitur utama diisolasi secara mandiri dalam direktori khusus sehingga mudah dirawat, diskalakan, dan dikembangkan secara paralel oleh tim tanpa konflik kode.
 
-Berikut adalah rancangan struktur direktori untuk proyek Flutter-mu di dalam folder `lib/`:
+---
 
-## 📁 Struktur `lib/` (Feature-First dengan Provider)
+## 📁 1. Struktur Direktori Standar Per Fitur (`features/nama_fitur/`)
+
+Setiap folder fitur di dalam `lib/features/` wajib mengikuti pola struktur terstandar berikut:
+
+```text
+features/nama_fitur/
+├── data/ (atau services/)  # Pemanggilan API / repository / datasource khusus fitur tersebut
+├── models/                 # Data model & JSON serialization (fromJson / toJson)
+├── controllers/            # Logika bisnis & state management (pengganti nama 'logic/' atau 'providers/')
+├── screens/ (atau views/)  # Halaman utama & modal full-page (pengganti nama 'ui/')
+├── widgets/                # Komponen UI pecahan modular (kartu, list item, custom badge, header)
+└── utils/ (opsional)       # Helper, validator, konstanta, atau formatter khusus fitur itu
+```
+
+### 📋 Peran & Tanggung Jawab Sub-Direktori Fitur:
+
+| Sub-Direktori | Peran Utama | Contoh Berkas |
+|---|---|---|
+| **`data/`** *(atau `services/`)* | Menangani pemanggilan endpoint backend (RESTful API Laravel), integrasi database lokal, atau abstraksi *repository pattern* khusus fitur. | `project_api_service.dart`, `mentoring_repository.dart` |
+| **`models/`** | Mendefinisikan struktur data entitas, tipe atribut, validasi null safety, dan serialisasi data JSON. | `project_model.dart`, `mentor_class_model.dart`, `wallet_transaction_model.dart` |
+| **`controllers/`** | Pusat logika bisnis, pemrosesan event, dan pengelolaan status (*state management*) reaktif. Menggantikan penamaan lama `logic/` atau `providers/`. | `project_controller.dart`, `booking_session_controller.dart`, `wallet_controller.dart` |
+| **`screens/`** *(atau `views/`)* | Lapisan antarmuka pengguna level halaman (screen/page) yang terhubung ke rute navigasi dan mengikat *controller* ke UI. | `explore_projects_screen.dart`, `find_mentors_screen.dart`, `wallet_dashboard_screen.dart` |
+| **`widgets/`** | Potongan komponen antarmuka yang dapat digunakan kembali (*reusable components*) dalam cakupan fitur terkait. | `project_card.dart`, `mentor_stat_badge.dart`, `coin_balance_banner.dart` |
+| **`utils/`** *(opsional)* | Berkas utilitas, kalkulator nilai, atau pemformat teks spesifik untuk fitur tersebut. | `project_date_formatter.dart`, `timecoin_calculator.dart` |
+
+---
+
+## 📁 2. Peta Lengkap Struktur `lib/` TalentSync
+
+Berikut adalah arsitektur direktori lengkap aplikasi `flutter_frontend/lib/`:
 
 ```text
 lib/
 │
-├── core/                   # 1. Kebutuhan Global (Dipakai di mana-mana)
-│   ├── constants/          # Warna, ukuran font, path icon/gambar
-│   ├── network/            # Setup dasar API (Dio/HTTP, Interceptor token)
-│   ├── providers/          # Provider Global (misal: ThemeProvider, SessionProvider)
-│   ├── routes/             # Konfigurasi Navigasi / Rute (GoRouter atau Route Names)
-│   ├── utils/              # Fungsi bantuan (misal: format Rupiah)
-│   └── widgets/            # Widget global (misal: CustomButton, LoadingBox)
+├── core/                                 # 1. Fondasi Global Aplikasi (Shared Across Features)
+│   ├── constants/                        # Konstanta global (AppColors, AppFonts, AppStrings)
+│   │   └── app_colors.dart
+│   ├── network/                          # Konfigurasi HTTP Client, Base URL, Auth Interceptor
+│   ├── routes/                           # Navigasi rute terpusat berbasis peran (AppRoutes)
+│   │   └── app_routes.dart
+│   ├── utils/                            # Helper global (format Rupiah, format tanggal, currency)
+│   └── widgets/                          # Widget global yang dipakai lintas fitur (TimeCoinIcon, GradientBackground)
+│       ├── gradient_background.dart
+│       └── time_coin_icon.dart
 │
-├── features/               # 2. Fitur Utama Aplikasi
+├── features/                             # 2. Modul Fitur Mandiri (Feature-First)
 │   │
-│   ├── auth/               # --> FITUR LOGIN / REGISTER
-│   │   ├── models/         # Blueprint data (contoh: user_model.dart)
-│   │   ├── services/       # Tempat nembak API Laravel (contoh: auth_service.dart)
-│   │   ├── providers/      # Logika state / Provider (contoh: auth_provider.dart)
-│   │   ├── screens/        # Halaman UI (contoh: login_screen.dart)
-│   │   └── widgets/        # Komponen UI khusus fitur ini aja
+│   ├── auth/                             # Fitur Otentikasi & Registrasi Multi-Role
+│   │   ├── controllers/                  # State login, register, dan verifikasi dokumen
+│   │   ├── data/                         # API login, register, upload KTM/identitas usaha
+│   │   ├── models/                       # UserModel, AuthTokenModel
+│   │   ├── screens/                      # student_auth_screen, mentor_auth_screen, msme_auth_screen, onboarding
+│   │   └── widgets/                      # shared_auth_layout, auth_text_field
 │   │
-│   ├── dashboard/          # --> FITUR DASBOR UTAMA 
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── providers/
-│   │   └── screens/        # (Bisa dipisah: dashboard_mahasiswa_screen, umkm, mentor)
+│   ├── dashboard/                        # Fitur Dasbor Utama Berdasarkan Peran
+│   │   ├── controllers/                  # Summary data & metric tracker controller
+│   │   ├── data/                         # API fetch status proyek & kuota TimeCoin
+│   │   ├── models/                       # DashboardStatsModel
+│   │   ├── screens/                      # dashboard_mahasiswa_screen, student_main_layout
+│   │   └── widgets/                      # stat_card, recent_activity_list
 │   │
-│   ├── project/            # --> FITUR TUGAS / PROYEK
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── providers/
-│   │   └── screens/
+│   ├── project/                          # Fitur Eksplorasi & Manajemen Proyek UMKM
+│   │   ├── controllers/                  # ProjectFilterController, ApplicationController
+│   │   ├── data/                         # ProjectApiService (CRUD Proyek & Submit Lamaran)
+│   │   ├── models/                       # ProjectModel, ProjectApplicationModel, DeliverableModel
+│   │   ├── screens/                      # explore_projects_screen, my_projects_screen, project_detail_screen
+│   │   └── widgets/                      # project_card, applicant_item, submission_modal
 │   │
-│   ├── mentoring/          # --> FITUR MENTORING (Peer-to-Peer)
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── providers/
-│   │   └── screens/
+│   ├── mentoring/                        # Fitur Mentoring Mahasiswa (Find & Book Mentor)
+│   │   ├── controllers/                  # MentorSearchController, BookingController
+│   │   ├── data/                         # MentoringApiService (Daftar mentor, book session, review)
+│   │   ├── models/                       # MentorModel, MentoringSessionModel
+│   │   ├── screens/                      # find_mentors_screen, mentor_profile_screen, booking_session_screen, mentor_chat_screen
+│   │   └── widgets/                      # mentor_card, skill_chip, review_tile
 │   │
-│   ├── wallet/             # --> FITUR TIMECOIN, VOUCHER, & CASH-OUT
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── providers/
-│   │   └── screens/
+│   ├── mentor/                           # Fitur POV Khusus Pengajar / Mentor
+│   │   ├── controllers/                  # MentorScheduleController, EndorsementController
+│   │   ├── data/                         # MentorDashboardApiService (kelola murid & tarif)
+│   │   ├── models/                       # StudentEnrollmentModel, ServicePriceModel
+│   │   ├── screens/                      # mentor_dashboard_screen, mentor_bookings_screen, mentor_services_screen, mentor_wallet_screen
+│   │   └── widgets/                      # mentor_ui, student_eval_card, badge_stamp_widget
+│   │
+│   ├── wallet/                           # Fitur Dompet TimeCoin, Mutasi & Cash-Out
+│   │   ├── controllers/                  # WalletController, CashOutController
+│   │   ├── data/                         # WalletApiService (saldo, ledger transaksi, withdraw)
+│   │   ├── models/                       # WalletSummaryModel, TransactionLedgerModel
+│   │   ├── screens/                      # wallet_dashboard_screen, reward_hub_screen, transfer_screen, history_screen
+│   │   └── widgets/                      # balance_card, transaction_item, voucher_card
+│   │
+│   ├── workspace/                        # Fitur Kanban Workspace, Deliverable & Chat Proyek
+│   │   ├── controllers/                  # KanbanController, WorkspaceChatController
+│   │   ├── data/                         # WorkspaceApiService (update task stage, send deliverable)
+│   │   ├── models/                       # KanbanTaskModel, WorkspaceMessageModel
+│   │   ├── screens/                      # workspace_kanban_screen, workspace_chat_screen, submission_screen, inbox_screen
+│   │   └── widgets/                      # kanban_column, task_card, chat_bubble
+│   │
+│   ├── portfolio/                        # Fitur Galeri Portofolio & Case Study Mahasiswa
+│   │   ├── controllers/                  # PortfolioController
+│   │   ├── data/                         # PortfolioApiService
+│   │   ├── models/                       # PortfolioModel, CaseStudyModel
+│   │   ├── screens/                      # portfolio_dashboard_screen, case_study_screen
+│   │   └── widgets/                      # portfolio_gallery_card, verified_badge
+│   │
+│   ├── profile/                          # Fitur Profil Pengguna, Pengaturan & Switch Mode
+│   │   ├── controllers/                  # ProfileController, SwitchMentorController
+│   │   ├── data/                         # ProfileApiService
+│   │   ├── models/                       # UserProfileModel
+│   │   ├── screens/                      # edit_profile_screen, student_settings_screen, help_support_screen, privacy_security_screen
+│   │   └── widgets/                      # profile_header, settings_tile, switch_mentor_dialog
+│   │
+│   ├── notifications/                    # Fitur Notifikasi Real-Time & Riwayat Pengingat
+│   │   ├── controllers/                  # NotificationController
+│   │   ├── data/                         # NotificationApiService
+│   │   ├── models/                       # AppNotificationModel
+│   │   ├── screens/                      # notifications_screen.dart
+│   │   └── widgets/                      # notification_item_tile
+│   │
+│   ├── chat/                             # Fitur Ruang Virtual & Video Call
+│   │   ├── controllers/                  # VideoCallController
+│   │   ├── data/                         # CallSignalingService
+│   │   ├── models/                       # CallSessionModel
+│   │   ├── screens/                      # video_call_screen.dart
+│   │   └── widgets/                      # call_controls_bar
+│   │
+│   └── gamification/                     # Fitur Badge Prestasi & Pencapaian
+│       ├── controllers/                  # AchievementController
+│       ├── data/                         # AchievementApiService
+│       ├── models/                       # BadgeModel
+│       ├── screens/                      # .gitkeep
+│       └── widgets/                      # achievement_popup.dart
 │
-└── main.dart               # Entry point (runApp dan MultiProvider ditaruh sini)
+├── main.dart                             # Titik masuk utama aplikasi (Entry Point)
+├── role_selection_screen.dart            # Layar pemilihan peran awal (Mahasiswa / UMKM / Mentor)
+└── splash_screen.dart                    # Layar splash pembuka aplikasi
 ```
 
 ---
 
-## 📝 Penjelasan Filosofi Struktur
+## 📝 3. Mengapa Menggunakan Arsitektur Ini?
 
-Mengapa kita menggunakan **Feature-First Architecture** dan bukan *Layer-First* tradisional?
-
-Analogi mudahnya adalah seperti **Supermarket vs Toko Kelontong**:
-*   **Cara Lama (Layer-First / Toko Kelontong):** Memisahkan *file* berdasarkan JENISNYA (Semua model dikumpul di folder `models`, semua API di `services`). Saat proyek membesar, satu folder bisa berisi puluhan *file* yang tidak saling terkait (model mentoring campur dengan model proyek).
-*   **Cara Kita (Feature-First / Supermarket):** Memisahkan *folder* berdasarkan **FITUR (Bagian)**. Setiap fitur memiliki "divisinya" sendiri secara mandiri (terdiri dari `models`, `services`, `providers`, dan `screens`).
-
-**Kelebihan Pendekatan Ini:**
-1.  **Fokus:** Saat mengerjakan fitur `mentoring`, Anda hanya perlu membuka folder `features/mentoring`.
-2.  **Team-Work Friendly:** Mendukung kerja tim paralel tanpa memicu *conflict* kode.
-3.  **Modular:** Fitur sangat mudah dihapus, dimodifikasi, atau dipindahkan tanpa membuat *error* berantai.
-
----
-
-## 🔗 Pemetaan Fitur Terhadap 3 Sudut Pandang (POV)
-
-Struktur 5 folder utama di dalam `features/` telah dirancang untuk mencakup seluruh ekosistem (Mahasiswa, UMKM, dan Mentor) dengan pembagian tugas sebagai berikut:
-
-### 1. `features/mentoring` (Fitur Mentoring)
-*   **POV Mahasiswa:** Mencari daftar Mentor (termasuk *Kating* yang menggunakan *Switch Mode*), melihat jadwal, dan melakukan *booking* (menggunakan TimeCoin atau Jalur Rupiah Darurat).
-*   **POV Mentor:** Menerima/menolak pesanan bimbingan, mengatur jadwal, dan melihat riwayat sesi.
-*   *POV UMKM: Tidak menggunakan fitur ini.*
-
-### 2. `features/wallet` (Fitur Dompet & Keuangan)
-*   **POV Mahasiswa:** Mengecek saldo TimeCoin dari hasil tugas, dan menukar TimeCoin menjadi *Voucher Promo UMKM*.
-*   **POV Mentor:** Mengecek saldo TimeCoin yang diperoleh, dan mengajukan **Cash-Out** (pencairan ke Rupiah).
-*   **POV UMKM:** Mengecek kuota TC bulanan (20 TC) untuk membuat proyek jalur barter.
-
-### 3. `features/project` (Fitur Tugas UMKM)
-*   **POV UMKM:** Mempublikasikan lowongan/pekerjaan (Jalur Barter atau *Cash Task*).
-*   **POV Mahasiswa:** Mencari tugas, melamar pekerjaan, mengunggah portofolio (Figma/Github), dan mendapatkan ulasan (Rating Bintang 5).
-*   *POV Mentor: Tidak menggunakan fitur ini.*
-
-### 4. `features/dashboard` (Halaman Utama)
-Sebagai layar beranda (*Home Screen*) yang akan menampilkan antarmuka berbeda secara dinamis setelah pengguna *login*. 
-Terdiri dari layar spesifik:
-*   `dashboard_mahasiswa_screen.dart`
-*   `dashboard_umkm_screen.dart`
-*   `dashboard_mentor_screen.dart`
-
-### 5. `features/auth` (Otentikasi & Profil)
-Digunakan oleh ke-3 POV untuk proses *Login*, *Register* (termasuk unggah KTM untuk Mahasiswa atau Foto Toko untuk UMKM), serta menangani profil pengguna (termasuk memunculkan tombol *"Switch to Mentor Mode"* untuk mahasiswa yang memenuhi syarat).
-
----
-
-## ⚙️ Penanganan Proses Pencairan Uang (Cash-Out) & Ketiadaan Admin POV di Flutter
-
-Aplikasi seluler (Flutter) ini secara khusus didesain **hanya sebagai antarmuka pengguna akhir (end-user)**. Oleh karena itu, aplikasi ini **tidak menyertakan POV Admin (Admin Panel)** di dalamnya.
-
-**Alur Penanganan *Cash-Out*:**
-1.  **Sisi Aplikasi Flutter (Pengaju):** Di dalam `features/wallet/screens`, aplikasi hanya menyediakan antarmuka bagi Mentor untuk memasukkan nominal penarikan, detail rekening, dan memantau status pengajuan (misal: "Pending/Sedang Diproses").
-2.  **Sisi Backend Laravel (Pengelola):** Seluruh *Dashboard Admin* (untuk memantau transaksi, menyetujui pengajuan, dan mengubah status pencairan menjadi "Sukses") sepenuhnya di-hosting dan dikelola melalui **Web Backend Laravel** (misalnya menggunakan *Filament*, *Nova*, atau tampilan *Blade* khusus). Admin (pemilik aplikasi) akan melakukan transfer lalu memberikan konfirmasi via Web Panel, yang otomatis akan memperbarui status di aplikasi Flutter.
-
-Desain ini menjamin keamanan (*security*) tingkat tinggi, memisahkan logika sensitif dari *client-side*, dan mencegah aplikasi *mobile* dari beban *bloatware* yang tidak perlu.
+1. **Pemisahan Logika & Tampilan (Separation of Concerns):**
+   - File antarmuka di `screens/` dan `widgets/` hanya berfokus pada rendering visual, penataan tata letak, dan interaksi pengguna.
+   - Semua pemanggilan HTTP, validasi form, dan manipulasi state berada di `controllers/` dan `data/`.
+2. **Skalabilitas Tinggi (Scalability):**
+   - Menambahkan fitur baru (misalnya modul pelatihan baru atau integrasi QRIS) cukup dengan menduplikasi struktur 5 folder standar tanpa menyentuh fitur lain yang sudah berjalan.
+3. **Pengujian Lebih Mudah (Testability):**
+   - `controllers/` dan `data/` dapat diuji menggunakan *unit test* dan *mock test* tanpa memerlukan rendering *widget tree* Flutter.
+   - `widgets/` dan `screens/` dapat diuji secara terpisah menggunakan *widget test*.
+4. **Anti "Spaghetti Code" & AI Slop:**
+   - Menghindari pembuatan berkas monolitik raksasa yang menumpuk logika API, state, dan widget dalam satu file 1000+ baris.

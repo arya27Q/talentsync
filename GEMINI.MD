@@ -218,8 +218,20 @@ Bagian ini mencatat setiap masalah teknis yang pernah dihadapi agar agen langsun
 
 ---
 
-## 🗺️ 6. Peta Direktori & Navigasi Kode (`flutter_frontend/lib`)
+## 🗺️ 6. Peta Direktori & Arsitektur Standar Kode (`flutter_frontend/lib`)
 
+Setiap modul di dalam `lib/features/nama_fitur/` mengadopsi struktur Feature-First terstandar:
+```text
+features/nama_fitur/
+├── data/ (atau services/)  # Pemanggilan API / repository khusus fitur tersebut
+├── models/                 # Data model & JSON serialization
+├── controllers/            # Logika bisnis & state (pengganti nama 'logic/' atau 'providers/')
+├── screens/ (atau views/)  # Halaman utama & modal (pengganti nama 'ui/')
+├── widgets/                # Komponen UI pecahan (kartu, header, grafik)
+└── utils/ (opsional)       # Helper / konstanta / formatter khusus fitur itu
+```
+
+Peta direktori modul aplikasi `flutter_frontend/lib/`:
 ```text
 lib/
 ├── main.dart                                # Entry point aplikasi
@@ -230,19 +242,21 @@ lib/
 │   ├── routes/app_routes.dart               # Daftar nama rute aplikasi
 │   └── widgets/                             # Widget global (TimeCoinIcon, GradientBackground)
 └── features/
-    ├── auth/screens/                        # Login, Register, Onboarding, Setup Profile (per peran)
-    ├── dashboard/screens/                   # dashboard_mahasiswa_screen, student_main_layout
-    ├── project/screens/                     # explore_projects_screen, my_projects_screen, project_detail_screen
-    ├── mentoring/screens/                   # find_mentors_screen, mentor_profile_screen, booking_session_screen, mentor_chat_screen
-    ├── wallet/screens/                      # wallet_dashboard_screen, reward_hub_screen, transfer_screen, history_screen
-    ├── workspace/screens/                   # workspace_kanban_screen, workspace_chat_screen, submission_screen, inbox_screen
-    ├── portfolio/screens/                   # portfolio_dashboard_screen, case_study_screen
-    ├── profile/screens/                     # student_settings_screen, edit_profile_screen, help_support_screen, privacy_security_screen
-    └── notifications/screens/               # notifications_screen
+    ├── auth/                                # controllers/, data/, models/, screens/, widgets/
+    ├── dashboard/                           # controllers/, data/, models/, screens/, widgets/
+    ├── project/                             # controllers/, data/, models/, screens/, widgets/
+    ├── mentoring/                           # controllers/, data/, models/, screens/, widgets/
+    ├── mentor/                              # controllers/, data/, models/, screens/, widgets/
+    ├── wallet/                              # controllers/, data/, models/, screens/, widgets/
+    ├── workspace/                           # controllers/, data/, models/, screens/, widgets/
+    ├── portfolio/                           # controllers/, data/, models/, screens/, widgets/
+    ├── profile/                             # controllers/, data/, models/, screens/, widgets/
+    ├── notifications/                       # controllers/, data/, models/, screens/, widgets/
+    ├── chat/                                # controllers/, data/, models/, screens/, widgets/
+    └── gamification/                        # controllers/, data/, models/, screens/, widgets/
 ```
 
 ---
-
 ## 📝 7. Prosedur Kerja Agen Selanjutnya (Standard Operating Procedure)
 
 1. **Cek Dokumen Terlebih Dahulu:** Sebelum menjawab atau membuat perubahan, baca `GEMINI.MD` dan berkas terkait di `docs/`.
