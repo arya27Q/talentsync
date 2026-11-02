@@ -1,287 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
 
-class ProjectDetailScreen extends StatelessWidget {
+class ProjectDetailScreen extends StatefulWidget {
   const ProjectDetailScreen({super.key});
 
-  void _showSuccessModal(BuildContext context) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Dismiss',
-      barrierColor: Colors.black.withValues(alpha: 0.5),
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return const SizedBox();
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final scale = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutBack,
-        );
-        final opacity = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOut,
-        );
+  @override
+  State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
+}
 
-        return ScaleTransition(
-          scale: scale,
-          child: FadeTransition(
-            opacity: opacity,
-            child: AlertDialog(
-              backgroundColor: Colors.white,
-              surfaceTintColor: Colors.transparent,
-              contentPadding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(32),
-              ),
-              content: Container(
-                width: MediaQuery.of(context).size.width * 0.85,
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0.0, end: 1.0),
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.elasticOut,
-                      builder: (context, value, child) {
-                        return Transform.scale(scale: value, child: child);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.green.withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              spreadRadius: 5,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.check_rounded,
-                          color: Colors.green,
-                          size: 32,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Application Sent!',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkBrown,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    RichText(
-                      textAlign: TextAlign.center,
-                      text: const TextSpan(
-                        style: TextStyle(
-                          color: Color(0xFF424242),
-                          fontSize: 13,
-                          height: 1.5,
-                        ),
-                        children: [
-                          TextSpan(text: 'Your application for '),
-                          TextSpan(
-                            text: 'Redesign E-commerce Landing Page ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkBrown,
-                            ),
-                          ),
-                          TextSpan(text: 'has been submitted.'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'The MSME will review and contact you within 48 hours.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color(0xFF616161),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.warmOffWhite,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Reward',
-                                style: TextStyle(
-                                  color: Color(0xFF616161),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFB88656),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  '3 TC',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                'Status',
-                                style: TextStyle(
-                                  color: Color(0xFF616161),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Under Review',
-                                style: TextStyle(
-                                  color: Color(0xFFE64A19),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFB88656),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Close',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
+  bool _isBookmarked = false;
+
+  Widget _buildInfoBox({
+    required String label,
+    required Widget valueWidget,
+    required String subtext,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+        decoration: BoxDecoration(
+          color: AppColors.canvasWhite,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.borderSlate),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.secondarySlate,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTag(String text) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.warmOffWhite,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: AppColors.darkBrown,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
+            const SizedBox(height: 6),
+            valueWidget,
+            const SizedBox(height: 4),
+            Text(
+              subtext,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.secondarySlate,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoColumn(
-    String label,
-    String value, {
-    bool isPremium = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 6),
-        isPremium
-            ? Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFB88656),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-              )
-            : Text(
-                value,
-                style: const TextStyle(
-                  color: AppColors.darkBrown,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-      ],
+  Widget _buildSkillTag(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.lightBlueSurface,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primaryNavy,
+        ),
+      ),
     );
   }
 
-  Widget _buildRequirement(String text) {
+  Widget _buildChecklistItem(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_rounded, color: Color(0xFFB88656), size: 20),
-          const SizedBox(width: 8),
+          const Icon(
+            Icons.check_circle_rounded,
+            color: Color(0xFF10B981),
+            size: 18,
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
               style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
+                fontSize: 13,
+                color: AppColors.darkSlate,
                 height: 1.4,
               ),
             ),
@@ -294,407 +100,495 @@ class ProjectDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.warmOffWhite,
-      body: Stack(
-        children: [
-          SafeArea(
-            bottom: false,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 120),
-              child: Column(
-                children: [
-                  // Floating Header
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkBrown.withValues(alpha: 0.05),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      backgroundColor: AppColors.canvasWhite,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 110),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. Top Header Bar
+                    Row(
                       children: [
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            width: 44,
+                            height: 44,
                             decoration: BoxDecoration(
-                              color: AppColors.warmOffWhite,
-                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.cardSurface,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                            child: const Icon(
-                              Icons.keyboard_arrow_left_rounded,
-                              color: AppColors.darkBrown,
+                            child: const Center(
+                              child: Icon(
+                                Icons.keyboard_arrow_left_rounded,
+                                size: 24,
+                                color: AppColors.darkSlate,
+                              ),
                             ),
                           ),
                         ),
-                        const Text(
-                          'Project Detail',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkBrown,
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Text(
+                            'Detail Proyek UMKM',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const Icon(
-                          Icons.local_activity_rounded,
-                          color: Color(0xFFEF5350),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isBookmarked = !_isBookmarked;
+                            });
+                          },
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppColors.cardSurface,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.borderSlate),
+                            ),
+                            child: Icon(
+                              _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                              size: 20,
+                              color: _isBookmarked ? AppColors.primaryNavy : AppColors.darkSlate,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.cardSurface,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.borderSlate),
+                          ),
+                          child: const Icon(
+                            Icons.share_outlined,
+                            size: 20,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
                       ],
                     ),
-                  ),
 
-                  // Main Card
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkBrown.withValues(alpha: 0.03),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Client Info
-                        Row(
-                          children: [
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8C5E3C),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'BN',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ),
+                    const SizedBox(height: 18),
+
+                    // 2. Verified Tag
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.lightBlueSurface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.verified_rounded,
+                            color: AppColors.primaryNavy,
+                            size: 14,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            'Proyek Terverifikasi',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryNavy,
                             ),
-                            const SizedBox(width: 16),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Batik Nusantara',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: AppColors.darkBrown,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    // 3. Main Project Header Card
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.darkSlate.withValues(alpha: 0.04),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Business Info Row
+                          Row(
+                            children: [
+                              Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  color: AppColors.lightBlueSurface,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.restaurant_rounded,
+                                    color: AppColors.primaryNavy,
+                                    size: 24,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
-                                Row(
+                              ),
+                              const SizedBox(width: 12),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFE8F5E9),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Row(
-                                        children: [
-                                          Icon(
-                                            Icons.star_rounded,
-                                            color: Color(0xFFFFD54F),
-                                            size: 14,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            '4.9',
-                                            style: TextStyle(
-                                              color: Color(0xFF388E3C),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ],
+                                    Text(
+                                      'Sambal Bu Rudi',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      '12 projects posted',
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Klaster Kuliner · Rungkut',
                                       style: TextStyle(
-                                        color: Color(0xFF616161),
                                         fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.secondarySlate,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          'Redesign E-commerce Landing Page',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.darkBrown,
-                            height: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            _buildTag('Web Dev'),
-                            _buildTag('UI/UX'),
-                            _buildTag('Figma'),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildInfoColumn('Reward', '3 TC', isPremium: true),
-                            _buildInfoColumn('Deadline', '3 days'),
-                            _buildInfoColumn('Type', 'Remote'),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Description Card
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.all(24),
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkBrown.withValues(alpha: 0.03),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Project Description',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkBrown,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          "We need a talented student to redesign our e-commerce landing page. The current design is outdated and we want a modern, conversion-focused UI using Figma and React. You'll collaborate directly with our marketing team.",
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 14,
-                            height: 1.6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Requirements Card
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.all(24),
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkBrown.withValues(alpha: 0.03),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Requirements',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkBrown,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildRequirement(
-                          'Proficiency in Figma or similar tools',
-                        ),
-                        _buildRequirement(
-                          'Understanding of e-commerce UX patterns',
-                        ),
-                        _buildRequirement('Basic React knowledge'),
-                        _buildRequirement('Ability to meet deadlines'),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Applicants
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkBrown.withValues(alpha: 0.03),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          '7 students applied',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkBrown,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 80,
-                          height: 32,
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                right: 0,
-                                child: _buildAvatar(
-                                  'DP',
-                                  const Color(0xFFBCAAA4),
-                                ),
                               ),
-                              Positioned(
-                                right: 20,
-                                child: _buildAvatar(
-                                  'BS',
-                                  const Color(0xFF8D6E63),
-                                ),
-                              ),
-                              Positioned(
-                                right: 40,
-                                child: _buildAvatar(
-                                  'AR',
-                                  const Color(0xFFA1887F),
+                              const Text(
+                                '3 hari tersisa',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.secondarySlate,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
 
-          // Apply Button Fixed at Bottom
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom: 24,
-            child: GestureDetector(
-              onTap: () => _showSuccessModal(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFB88656), Color(0xFF8C5E3C)],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF8C5E3C).withValues(alpha: 0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+                          const SizedBox(height: 16),
+
+                          // Project Title
+                          const Text(
+                            'Redesain Kemasan & Katalog Online',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                              height: 1.25,
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // Division Info
+                          const Row(
+                            children: [
+                              Icon(
+                                Icons.storefront_outlined,
+                                size: 16,
+                                color: AppColors.secondarySlate,
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'Divisi Branding & Pemasaran',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.secondarySlate,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // 3 Info Boxes
+                          Row(
+                            children: [
+                              _buildInfoBox(
+                                label: 'Imbalan',
+                                valueWidget: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.toll_rounded,
+                                      color: AppColors.accentAmberGold,
+                                      size: 16,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '300 TC',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                subtext: 'Rp300.000 escrow',
+                              ),
+                              const SizedBox(width: 8),
+                              _buildInfoBox(
+                                label: 'Durasi',
+                                valueWidget: const Text(
+                                  '2 Minggu',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkSlate,
+                                  ),
+                                ),
+                                subtext: '3 milestone',
+                              ),
+                              const SizedBox(width: 8),
+                              _buildInfoBox(
+                                label: 'Metode',
+                                valueWidget: const Text(
+                                  'Hybrid',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkSlate,
+                                  ),
+                                ),
+                                subtext: '1x pertemuan',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('🚀', style: TextStyle(fontSize: 18)),
-                    SizedBox(width: 8),
-                    Text(
-                      'Apply for 3 TC',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+
+                    const SizedBox(height: 20),
+
+                    // 4. Section: Keahlian dibutuhkan
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Keahlian dibutuhkan',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildSkillTag('UI/UX Design'),
+                              _buildSkillTag('Figma'),
+                              _buildSkillTag('Packaging'),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.cardSurface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.borderSlate),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.school_outlined, size: 14, color: AppColors.darkSlate),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Konversi 2 SKS',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkSlate,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // 5. Section: Ringkasan proyek
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Ringkasan proyek',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Merancang ulang label kemasan sambal botol dan membuat katalog online sederhana yang bisa memamerkan produk UMKM secara profesional di platform digital.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.secondarySlate,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildChecklistItem('Label kemasan 4 varian rasa siap cetak'),
+                          _buildChecklistItem('Template feed Instagram untuk peluncuran'),
+                          _buildChecklistItem('File master Figma & aset resolusi tinggi'),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildAvatar(String initials, Color color) {
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-      ),
-      child: Center(
-        child: Text(
-          initials,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-          ),
+            // Bottom Fixed Action Bar
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.cardSurface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkSlate.withValues(alpha: 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Chat UMKM Button
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.workspaceChat);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: AppColors.cardSurface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.borderSlate),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.chat_bubble_outline_rounded,
+                              size: 18,
+                              color: AppColors.darkSlate,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Chat UMKM',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.darkSlate,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Primary CTA: Lamar Proyek Ini
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, AppRoutes.applyProject);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryNavy,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Lamar Proyek Ini',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 6),
+                              Icon(
+                                Icons.arrow_forward_rounded,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

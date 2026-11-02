@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
-import 'package:flutter_frontend/core/widgets/gradient_background.dart';
 import 'package:flutter_frontend/features/dashboard/screens/dashboard_mahasiswa_screen.dart';
-import 'package:flutter_frontend/features/project/screens/explore_projects_screen.dart';
+import 'package:flutter_frontend/features/project/screens/my_projects_screen.dart';
 import 'package:flutter_frontend/features/wallet/screens/wallet_dashboard_screen.dart';
-import 'package:flutter_frontend/features/mentoring/screens/find_mentors_screen.dart';
 import 'package:flutter_frontend/features/profile/screens/student_settings_screen.dart';
 
 class StudentMainLayout extends StatefulWidget {
@@ -19,43 +17,64 @@ class _StudentMainLayoutState extends State<StudentMainLayout> {
 
   final List<Widget> _screens = [
     const DashboardMahasiswaScreen(),
-    const ExploreProjectsScreen(),
-    const FindMentorsScreen(),
+    const MyProjectsScreen(),
     const WalletDashboardScreen(),
     const StudentSettingsScreen(),
   ];
 
   Widget _buildNavItem({
-    required IconData activeIcon,
-    required IconData inactiveIcon,
+    required IconData icon,
     required String label,
     required int index,
   }) {
-    bool isActive = _currentIndex == index;
+    final bool isActive = _currentIndex == index;
+
+    if (isActive) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primaryNavy,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryNavy.withValues(alpha: 0.25),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return GestureDetector(
       onTap: () {
         setState(() {
           _currentIndex = index;
         });
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isActive ? activeIcon : inactiveIcon,
-            color: isActive ? const Color(0xFFB88656) : Colors.grey.shade400,
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              color: isActive ? const Color(0xFFB88656) : Colors.grey.shade400,
-            ),
-          ),
-        ],
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        color: Colors.transparent,
+        child: Icon(
+          icon,
+          color: AppColors.secondarySlate,
+          size: 24,
+        ),
       ),
     );
   }
@@ -63,73 +82,58 @@ class _StudentMainLayoutState extends State<StudentMainLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.warmOffWhite,
-      body: GradientBackground(
-        child: Stack(
-          children: [
-            // The current screen
-            _screens[_currentIndex],
+      backgroundColor: AppColors.canvasWhite,
+      body: Stack(
+        children: [
+          // Current Screen
+          _screens[_currentIndex],
 
-            // Floating Capsule Bottom Navigation Bar
-            Positioned(
-              left: 24,
-              right: 24,
-              bottom: 24,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(40),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.darkBrown.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildNavItem(
-                      activeIcon: Icons.explore_rounded,
-                      inactiveIcon: Icons.explore_outlined,
-                      label: 'Explore',
-                      index: 0,
-                    ),
-                    _buildNavItem(
-                      activeIcon: Icons.layers_rounded,
-                      inactiveIcon: Icons.layers_outlined,
-                      label: 'My Tasks',
-                      index: 1,
-                    ),
-                    _buildNavItem(
-                      activeIcon: Icons.school_rounded,
-                      inactiveIcon: Icons.school_outlined,
-                      label: 'Mentors',
-                      index: 2,
-                    ),
-                    _buildNavItem(
-                      activeIcon: Icons.token_rounded,
-                      inactiveIcon: Icons.token_outlined,
-                      label: 'Wallet',
-                      index: 3,
-                    ),
-                    _buildNavItem(
-                      activeIcon: Icons.account_circle_rounded,
-                      inactiveIcon: Icons.account_circle_outlined,
-                      label: 'Profile',
-                      index: 4,
-                    ),
-                  ],
-                ),
+          // Floating Pill Bottom Navigation Bar
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(36),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.darkSlate.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(
+                    icon: Icons.explore_rounded,
+                    label: 'Explore',
+                    index: 0,
+                  ),
+                  _buildNavItem(
+                    icon: Icons.assignment_outlined,
+                    label: 'Tasks',
+                    index: 1,
+                  ),
+                  _buildNavItem(
+                    icon: Icons.account_balance_wallet_outlined,
+                    label: 'Wallet',
+                    index: 2,
+                  ),
+                  _buildNavItem(
+                    icon: Icons.person_outline_rounded,
+                    label: 'Profile',
+                    index: 3,
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

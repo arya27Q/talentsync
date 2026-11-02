@@ -10,315 +10,652 @@ class ExploreProjectsScreen extends StatefulWidget {
 }
 
 class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
-  String _selectedFilter = 'All';
+  int _selectedCategoryIndex = 0;
+  bool _konversiSks = false;
+  final TextEditingController _searchController = TextEditingController();
 
-  final List<String> _filters = [
-    'All',
-    'TimeCoin',
-    'Cash Task',
-    'Barter',
-    'Web Dev',
-    'Design',
+  final List<String> _categories = [
+    'Semua',
+    'Terdekat',
+    'UI/UX Design',
+    'Frontend',
+    'Backend',
     'Marketing',
-    'Writing'
   ];
 
-  Widget _buildFilterPill(String text) {
-    final isActive = _selectedFilter == text;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedFilter = text;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildTag(String text, {bool isSks = false}) {
+    if (isSks) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.primaryTan : Colors.white,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            if (!isActive)
-              BoxShadow(
-                color: AppColors.darkBrown.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+          color: AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.borderSlate),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.school_outlined, size: 14, color: AppColors.darkSlate),
+            const SizedBox(width: 4),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
               ),
-            if (isActive)
-              BoxShadow(
-                color: AppColors.primaryTan.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
+            ),
           ],
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.grey.shade600,
-            fontWeight: FontWeight.bold,
-          ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.lightBlueSurface,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primaryNavy,
         ),
       ),
     );
   }
 
-  Widget _buildListTaskCard({
-    required IconData icon,
-    required String category,
-    required String reward,
+  Widget _buildProjectCard({
+    required String businessName,
+    required String cluster,
     required String title,
-    required String client,
-    required String due,
-    required Color iconBgColor,
-    required Color iconColor,
-    required bool isPremium,
+    required String description,
+    required String tcReward,
+    required List<String> tags,
+    required String sksText,
+    required String deadline,
+    required String location,
+    required IconData businessIcon,
+    Color? deadlineColor,
   }) {
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.projectDetail),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.darkBrown.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
+            color: AppColors.darkSlate.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header Row
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.lightBlueSurface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Icon(businessIcon, color: AppColors.primaryNavy, size: 22),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            businessName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.verified_rounded,
+                          color: AppColors.primaryNavy,
+                          size: 14,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      cluster,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.toll_rounded,
+                      color: AppColors.accentAmberGold,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$tcReward TC',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFB45309),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // Title & Description
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            description,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.secondarySlate,
+              height: 1.4,
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // Tags Wrap
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ...tags.map((tag) => _buildTag(tag)),
+              _buildTag(sksText, isSks: true),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Divider
+          Container(height: 1, color: AppColors.borderSlate),
+
+          const SizedBox(height: 14),
+
+          // Bottom Info & CTA
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: iconBgColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(icon, color: iconColor, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(category, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
-                      const SizedBox(height: 2),
-                      Text(client, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.darkBrown)),
+                      Icon(
+                        Icons.calendar_today_rounded,
+                        size: 13,
+                        color: deadlineColor ?? const Color(0xFFDC2626),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        deadline,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: deadlineColor ?? const Color(0xFFDC2626),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.swap_horiz_rounded,
+                        size: 14,
+                        color: AppColors.secondarySlate,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        location,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondarySlate,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isPremium ? const Color(0xFFB88656) : AppColors.warmOffWhite,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  reward,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isPremium ? Colors.white : AppColors.darkBrown,
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.projectDetail);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryNavy,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryNavy.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    children: [
+                      Text(
+                        'Lihat Detail',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 6),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.darkBrown)),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.access_time_rounded, size: 14, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(due, style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryTan,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text('Apply', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-              )
-            ],
-          ),
         ],
       ),
-    ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.warmOffWhite,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Explore Project',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkBrown,
-                          height: 1.2,
+    return Scaffold(
+      backgroundColor: AppColors.canvasWhite,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 120),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Top Header Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppColors.cardSurface,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.keyboard_arrow_left_rounded,
+                                size: 24,
+                                color: AppColors.darkSlate,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Find your next project',
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkBrown.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                        const SizedBox(width: 14),
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Cari Proyek',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.darkSlate,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Halo, Arya · UNESA Sistem Informasi',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondarySlate,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.tune_rounded, color: AppColors.darkBrown),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.darkBrown.withValues(alpha: 0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.darkSlate.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Icon(
+                            Icons.notifications_none_rounded,
+                            size: 24,
+                            color: AppColors.darkSlate,
+                          ),
+                          Positioned(
+                            top: 11,
+                            right: 12,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: AppColors.accentAmberGold,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search for projects, skills...',
-                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15),
-                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primaryTan),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
+              ),
+
+              // 2. Search & Filter Row
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.cardSurface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.borderSlate),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          style: const TextStyle(fontSize: 14, color: AppColors.darkSlate),
+                          decoration: const InputDecoration(
+                            hintText: 'Cari proyek web, desain, marketir',
+                            hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                            prefixIcon: Icon(
+                              Icons.search_rounded,
+                              color: AppColors.secondarySlate,
+                              size: 20,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryNavy,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.tune_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            
-            // Filter Pills
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                children: _filters.map((filter) => _buildFilterPill(filter)).toList(),
+
+              const SizedBox(height: 16),
+
+              // 3. Meta Status Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          '24 Proyek UMKM Terverifikasi',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Text(
+                      'Update 12 mnt lalu',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            
-            // List Body
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(left: 24, right: 24, bottom: 120),
+
+              const SizedBox(height: 14),
+
+              // 4. Horizontal Category Filter Chips
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  children: List.generate(_categories.length, (index) {
+                    final isSelected = _selectedCategoryIndex == index;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedCategoryIndex = index;
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primaryNavy : AppColors.cardSurface,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: isSelected ? AppColors.primaryNavy : AppColors.borderSlate,
+                          ),
+                        ),
+                        child: Text(
+                          _categories[index],
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : AppColors.darkSlate,
+                            fontSize: 13,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // 5. Filter Sorting & Konversi SKS Row
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: const Row(
+                        children: [
+                          Text(
+                            'Urutkan: ',
+                            style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                          ),
+                          Text(
+                            'Rekomendasi',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 18,
+                            color: AppColors.secondarySlate,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        const Text(
+                          'Konversi SKS',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Switch(
+                          value: _konversiSks,
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: AppColors.primaryNavy,
+                          inactiveThumbColor: Colors.white,
+                          inactiveTrackColor: const Color(0xFFCBD5E1),
+                          onChanged: (val) {
+                            setState(() {
+                              _konversiSks = val;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 6. Project Cards List
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   children: [
-                    _buildListTaskCard(
-                      icon: Icons.code_rounded,
-                      category: 'Web Dev',
-                      reward: '15 TC',
-                      title: 'Build Landing Page for Cafe',
-                      client: 'Kopitiam Sari',
-                      due: 'Due in 3 days',
-                      iconBgColor: const Color(0xFFE3F2FD),
-                      iconColor: const Color(0xFF1976D2),
-                      isPremium: true,
+                    _buildProjectCard(
+                      businessName: 'Sambal Bu Rudi',
+                      cluster: 'Klaster Kuliner',
+                      title: 'Redesain Kemasan & Katalog Online',
+                      description:
+                          'Merancang ulang label kemasan sambal botol dan membuat katalog online sederhana yang bisa memamerkan produk UMKM...',
+                      tcReward: '300',
+                      tags: ['UI/UX Design', 'Figma'],
+                      sksText: 'Konversi 2 SKS',
+                      deadline: 'Tenggat: 3 hari lagi',
+                      location: 'Hybrid · Rungkut',
+                      businessIcon: Icons.restaurant_rounded,
                     ),
-                    _buildListTaskCard(
-                      icon: Icons.brush_rounded,
-                      category: 'Design',
-                      reward: 'Barter',
-                      title: 'Logo Redesign & Branding',
-                      client: 'Batik Nusantara',
-                      due: 'Due in 5 days',
-                      iconBgColor: const Color(0xFFF3E5F5),
-                      iconColor: const Color(0xFF7B1FA2),
-                      isPremium: false,
-                    ),
-                    _buildListTaskCard(
-                      icon: Icons.storefront_rounded,
-                      category: 'Marketing',
-                      reward: '50 TC',
-                      title: 'Social Media Strategy & Content',
-                      client: 'Warung Bu Ani',
-                      due: 'Due in 1 week',
-                      iconBgColor: const Color(0xFFE8F5E9),
-                      iconColor: const Color(0xFF388E3C),
-                      isPremium: true,
-                    ),
-                    _buildListTaskCard(
-                      icon: Icons.edit_document,
-                      category: 'Writing',
-                      reward: '5 TC',
-                      title: 'Copywriting for Catalog',
-                      client: 'Toko Sepatu Juara',
-                      due: 'Due in 2 days',
-                      iconBgColor: const Color(0xFFFFF3E0),
-                      iconColor: const Color(0xFFF57C00),
-                      isPremium: true,
-                    ),
-                    _buildListTaskCard(
-                      icon: Icons.data_usage_rounded,
-                      category: 'Data Entry',
-                      reward: '30 TC',
-                      title: 'Input Data Inventory',
-                      client: 'Toko Makmur',
-                      due: 'Due tomorrow',
-                      iconBgColor: const Color(0xFFE0F7FA),
-                      iconColor: const Color(0xFF0097A7),
-                      isPremium: true,
+                    _buildProjectCard(
+                      businessName: 'Batik Warisan Nusantara',
+                      cluster: 'Klaster Fesyen',
+                      title: 'Landing Page Pemesanan Batik Tulis',
+                      description:
+                          'Halaman pemesanan batik tulis custom dengan galeri motif, estimasi harga, dan formulir pesanan interaktif...',
+                      tcReward: '450',
+                      tags: ['Frontend Web', 'React'],
+                      sksText: 'Konversi 3 SKS',
+                      deadline: 'Tenggat: 7 hari lagi',
+                      location: 'Remote · Gubeng',
+                      businessIcon: Icons.palette_outlined,
+                      deadlineColor: const Color(0xFFF59E0B),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
