@@ -556,108 +556,118 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                     children: [
                       // Sertifikat Card
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.borderSlate),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7),
-                                  borderRadius: BorderRadius.circular(10),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, AppRoutes.certificates);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColors.borderSlate),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.darkSlate.withValues(alpha: 0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
                                 ),
-                                child: const Icon(
-                                  Icons.military_tech_rounded,
-                                  color: AppColors.accentAmberGold,
-                                  size: 22,
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF3C7),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.military_tech_rounded,
+                                    color: AppColors.accentAmberGold,
+                                    size: 22,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'Sertifikat',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Sertifikat',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkSlate,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                '3 sertifikat',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.secondarySlate,
+                                const SizedBox(height: 2),
+                                const Text(
+                                  '3 sertifikat',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.secondarySlate,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       // Log Bimbingan Card
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.borderSlate),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: AppColors.lightBlueSurface,
-                                  borderRadius: BorderRadius.circular(10),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, AppRoutes.bookingSession);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColors.borderSlate),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.darkSlate.withValues(alpha: 0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
                                 ),
-                                child: const Icon(
-                                  Icons.menu_book_rounded,
-                                  color: AppColors.primaryNavy,
-                                  size: 20,
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.lightBlueSurface,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.menu_book_rounded,
+                                    color: AppColors.primaryNavy,
+                                    size: 20,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'Log Bimbingan',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Log Bimbingan',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkSlate,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                '5 sesi · 3.8 jam',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.secondarySlate,
+                                const SizedBox(height: 2),
+                                const Text(
+                                  '5 sesi · 3.8 jam',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.secondarySlate,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -825,7 +835,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
             ),
           ),
 
-          // Floating Bottom Navigation
+          // Bottom Floating Navigation
           _buildBottomNavFloating(context),
         ],
       ),

@@ -14,6 +14,7 @@ import 'package:flutter_frontend/features/dashboard/screens/student_main_layout.
 import 'package:flutter_frontend/features/project/screens/explore_projects_screen.dart';
 import 'package:flutter_frontend/features/project/screens/project_detail_screen.dart';
 import 'package:flutter_frontend/features/project/screens/apply_project_screen.dart';
+import 'package:flutter_frontend/features/project/screens/my_projects_screen.dart';
 import 'package:flutter_frontend/features/project/screens/project_completed_screen.dart';
 import 'package:flutter_frontend/features/notifications/screens/notifications_screen.dart';
 import 'package:flutter_frontend/features/workspace/screens/workspace_kanban_screen.dart';
@@ -22,6 +23,7 @@ import 'package:flutter_frontend/features/chat/screens/video_call_screen.dart';
 import 'package:flutter_frontend/features/workspace/screens/inbox_screen.dart';
 import 'package:flutter_frontend/features/workspace/screens/submission_screen.dart';
 import 'package:flutter_frontend/features/portfolio/screens/portfolio_dashboard_screen.dart';
+import 'package:flutter_frontend/features/portfolio/screens/certificates_screen.dart';
 import 'package:flutter_frontend/features/portfolio/screens/case_study_screen.dart';
 import 'package:flutter_frontend/features/wallet/screens/wallet_dashboard_screen.dart';
 import 'package:flutter_frontend/features/mentoring/screens/find_mentors_screen.dart';
@@ -62,6 +64,7 @@ class AppRoutes {
   static const String inbox = '/inbox';
   static const String submission = '/workspace/submission';
   static const String portfolio = '/portfolio';
+  static const String certificates = '/portfolio/certificates';
   static const String caseStudy = '/portfolio/case-study';
   static const String wallet = '/wallet';
   static const String findMentors = '/mentors';
@@ -92,7 +95,7 @@ class AppRoutes {
     exploreProjects: (context) => const ExploreProjectsScreen(),
     projectDetail: (context) => const ProjectDetailScreen(),
     applyProject: (context) => const ApplyProjectScreen(),
-    myProjects: (context) => const StudentMainLayout(initialIndex: 1),
+    myProjects: (context) => const MyProjectsScreen(),
     projectCompleted: (context) => const ProjectCompletedScreen(),
     notifications: (context) => const NotificationsScreen(),
     workspaceKanban: (context) => const WorkspaceKanbanScreen(),
@@ -101,6 +104,7 @@ class AppRoutes {
     inbox: (context) => const InboxScreen(),
     submission: (context) => const SubmissionScreen(),
     portfolio: (context) => const PortfolioDashboardScreen(),
+    certificates: (context) => const CertificatesScreen(),
     caseStudy: (context) => const CaseStudyScreen(),
     wallet: (context) => const WalletDashboardScreen(),
     findMentors: (context) => const FindMentorsScreen(),
