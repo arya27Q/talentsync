@@ -261,7 +261,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -290,7 +292,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.05,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -372,11 +376,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                   child: Image.network(
                                     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200',
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        const Icon(
-                                      Icons.storefront_rounded,
-                                      color: AppColors.primaryNavy,
-                                    ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                              Icons.storefront_rounded,
+                                              color: AppColors.primaryNavy,
+                                            ),
                                   ),
                                 ),
                               ),
@@ -405,11 +410,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.canvasWhite,
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: AppColors.borderSlate),
+                                  border: Border.all(
+                                    color: AppColors.borderSlate,
+                                  ),
                                 ),
                                 child: const Text(
                                   '3 hari tersisa',
@@ -776,7 +786,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           _buildMilestoneItem(
                             number: 2,
                             title: 'Desain label final',
-                            subtitle: 'Tiga varian label siap cetak · Hari ke-9',
+                            subtitle:
+                                'Tiga varian label siap cetak · Hari ke-9',
                             tc: 125,
                           ),
                           _buildMilestoneItem(

@@ -127,20 +127,13 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
     );
   }
 
-  Widget _buildNavIcon({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildNavIcon({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         color: Colors.transparent,
-        child: Icon(
-          icon,
-          color: AppColors.secondarySlate,
-          size: 24,
-        ),
+        child: Icon(icon, color: AppColors.secondarySlate, size: 24),
       ),
     );
   }
@@ -159,7 +152,10 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                 children: [
                   // 1. Top App Bar: Back, Title & Subtitle, Add Mentor Button
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -167,7 +163,10 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                             if (Navigator.canPop(context)) {
                               Navigator.pop(context);
                             } else {
-                              Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+                              Navigator.pushReplacementNamed(
+                                context,
+                                AppRoutes.studentDashboard,
+                              );
                             }
                           },
                           child: Container(
@@ -178,7 +177,9 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -229,7 +230,9 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -270,7 +273,10 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                           count: '3',
                           label: 'Sertifikat',
                           onTap: () {
-                            Navigator.pushNamed(context, AppRoutes.certificates);
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.certificates,
+                            );
                           },
                         ),
                       ],
@@ -289,7 +295,9 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 14,
                             offset: const Offset(0, 6),
                           ),
@@ -319,9 +327,16 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                   child: Image.network(
                                     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                                     fit: BoxFit.cover,
-                                    errorBuilder: (ctx, err, stack) => const Center(
-                                      child: Text('DP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                    ),
+                                    errorBuilder: (ctx, err, stack) =>
+                                        const Center(
+                                          child: Text(
+                                            'DP',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
                                   ),
                                 ),
                               ),
@@ -351,17 +366,27 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushNamed(context, AppRoutes.mentoringSession);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.mentoringSession,
+                                  );
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Row(
                                     children: [
-                                      Icon(Icons.videocam_rounded, color: AppColors.primaryNavy, size: 16),
+                                      Icon(
+                                        Icons.videocam_rounded,
+                                        color: AppColors.primaryNavy,
+                                        size: 16,
+                                      ),
                                       SizedBox(width: 6),
                                       Text(
                                         'Masuk',
@@ -417,9 +442,16 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                       child: Image.network(
                                         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                                         fit: BoxFit.cover,
-                                        errorBuilder: (ctx, err, stack) => const Center(
-                                          child: Text('DP', style: TextStyle(color: AppColors.primaryNavy, fontWeight: FontWeight.bold)),
-                                        ),
+                                        errorBuilder: (ctx, err, stack) =>
+                                            const Center(
+                                              child: Text(
+                                                'DP',
+                                                style: TextStyle(
+                                                  color: AppColors.primaryNavy,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
                                       ),
                                     ),
                                   ),
@@ -447,7 +479,8 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           'Dimas Prasetyo',
@@ -458,14 +491,23 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                           ),
                                         ),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFFFF7ED),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: const Text(
                                             '2 materi baru',
-                                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFFEA580C),
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -473,12 +515,19 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                     const SizedBox(height: 2),
                                     const Text(
                                       'Senior Flutter Engineer',
-                                      style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
                                     const SizedBox(height: 2),
                                     const Text(
                                       'Arsitektur Flutter & BLoC',
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primaryNavy,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -510,21 +559,30 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                 icon: Icons.insights_rounded,
                                 label: 'Hasil (3)',
                                 onTap: () {
-                                  Navigator.pushNamed(context, AppRoutes.mentoringResult);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.mentoringResult,
+                                  );
                                 },
                               ),
                               _buildQuickChip(
                                 icon: Icons.workspace_premium_outlined,
                                 label: 'Sertifikat (2)',
                                 onTap: () {
-                                  Navigator.pushNamed(context, AppRoutes.certificates);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.certificates,
+                                  );
                                 },
                               ),
                               _buildQuickChip(
                                 icon: Icons.rocket_launch_outlined,
                                 label: 'Proyek (2)',
                                 onTap: () {
-                                  Navigator.pushNamed(context, AppRoutes.myProjects);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.myProjects,
+                                  );
                                 },
                               ),
                             ],
@@ -541,7 +599,11 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.assignment_outlined, size: 16, color: Color(0xFFEA580C)),
+                                Icon(
+                                  Icons.assignment_outlined,
+                                  size: 16,
+                                  color: Color(0xFFEA580C),
+                                ),
                                 SizedBox(width: 8),
                                 Text(
                                   '2 tugas perlu dikerjakan',
@@ -562,7 +624,10 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushNamed(context, AppRoutes.mentorChat);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.mentorChat,
+                                  );
                                 },
                                 child: Container(
                                   width: 44,
@@ -570,10 +635,16 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                    border: Border.all(
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
                                   ),
                                   child: const Center(
-                                    child: Icon(Icons.chat_bubble_outline_rounded, size: 20, color: AppColors.darkSlate),
+                                    child: Icon(
+                                      Icons.chat_bubble_outline_rounded,
+                                      size: 20,
+                                      color: AppColors.darkSlate,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -581,19 +652,31 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.pushNamed(context, AppRoutes.mentorProfile);
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.mentorProfile,
+                                    );
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2E8F0),
+                                      ),
                                     ),
                                     child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.calendar_today_rounded, size: 15, color: AppColors.darkSlate),
+                                        Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 15,
+                                          color: AppColors.darkSlate,
+                                        ),
                                         SizedBox(width: 6),
                                         Text(
                                           'Sewa lagi',
@@ -612,23 +695,30 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.pushNamed(context, AppRoutes.ruangBelajar);
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.ruangBelajar,
+                                    );
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppColors.primaryNavy,
                                       borderRadius: BorderRadius.circular(14),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                                          color: AppColors.primaryNavy
+                                              .withValues(alpha: 0.25),
                                           blurRadius: 8,
                                           offset: const Offset(0, 3),
                                         ),
                                       ],
                                     ),
                                     child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Text(
                                           'Ruang Belajar',
@@ -639,7 +729,11 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                           ),
                                         ),
                                         SizedBox(width: 6),
-                                        Icon(Icons.menu_book_rounded, size: 15, color: Colors.white),
+                                        Icon(
+                                          Icons.menu_book_rounded,
+                                          size: 15,
+                                          color: Colors.white,
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -684,9 +778,16 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                   child: Image.network(
                                     'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200',
                                     fit: BoxFit.cover,
-                                    errorBuilder: (ctx, err, stack) => const Center(
-                                      child: Text('NK', style: TextStyle(color: AppColors.primaryNavy, fontWeight: FontWeight.bold)),
-                                    ),
+                                    errorBuilder: (ctx, err, stack) =>
+                                        const Center(
+                                          child: Text(
+                                            'NK',
+                                            style: TextStyle(
+                                              color: AppColors.primaryNavy,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
                                   ),
                                 ),
                               ),
@@ -696,7 +797,8 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           'Nadia Kusuma',
@@ -707,14 +809,23 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                           ),
                                         ),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFFFF7ED),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: const Text(
                                             '1 materi baru',
-                                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFFEA580C),
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -722,12 +833,19 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                     const SizedBox(height: 2),
                                     const Text(
                                       'Product Designer',
-                                      style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
                                     const SizedBox(height: 2),
                                     const Text(
                                       'Design System & Figma Token',
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primaryNavy,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -753,7 +871,10 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushNamed(context, AppRoutes.mentorChat);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.mentorChat,
+                                  );
                                 },
                                 child: Container(
                                   width: 44,
@@ -761,10 +882,16 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                    border: Border.all(
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
                                   ),
                                   child: const Center(
-                                    child: Icon(Icons.chat_bubble_outline_rounded, size: 20, color: AppColors.darkSlate),
+                                    child: Icon(
+                                      Icons.chat_bubble_outline_rounded,
+                                      size: 20,
+                                      color: AppColors.darkSlate,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -772,19 +899,31 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.pushNamed(context, AppRoutes.mentorProfile);
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.mentorProfile,
+                                    );
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2E8F0),
+                                      ),
                                     ),
                                     child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.calendar_today_rounded, size: 15, color: AppColors.darkSlate),
+                                        Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 15,
+                                          color: AppColors.darkSlate,
+                                        ),
                                         SizedBox(width: 6),
                                         Text(
                                           'Sewa lagi',
@@ -803,23 +942,30 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.pushNamed(context, AppRoutes.ruangBelajar);
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.ruangBelajar,
+                                    );
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppColors.primaryNavy,
                                       borderRadius: BorderRadius.circular(14),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                                          color: AppColors.primaryNavy
+                                              .withValues(alpha: 0.25),
                                           blurRadius: 8,
                                           offset: const Offset(0, 3),
                                         ),
                                       ],
                                     ),
                                     child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Text(
                                           'Ruang Belajar',
@@ -830,7 +976,11 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                           ),
                                         ),
                                         SizedBox(width: 6),
-                                        Icon(Icons.menu_book_rounded, size: 15, color: Colors.white),
+                                        Icon(
+                                          Icons.menu_book_rounded,
+                                          size: 15,
+                                          color: Colors.white,
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -871,13 +1021,20 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                   _buildNavIcon(
                     icon: Icons.explore_outlined,
                     onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.studentDashboard, (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.studentDashboard,
+                        (route) => false,
+                      );
                     },
                   ),
                   _buildNavIcon(
                     icon: Icons.assignment_outlined,
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.myProjects);
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.myProjects,
+                      );
                     },
                   ),
                   _buildNavIcon(
@@ -901,4 +1058,3 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
     );
   }
 }
-

@@ -74,7 +74,9 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
         onTap: () {
           Navigator.pop(ctx);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Permintaan Top Up $tc ($price) sedang diproses.')),
+            SnackBar(
+              content: Text('Permintaan Top Up $tc ($price) sedang diproses.'),
+            ),
           );
         },
         child: Container(
@@ -97,7 +99,10 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
               const SizedBox(height: 4),
               Text(
                 price,
-                style: const TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.secondarySlate,
+                ),
               ),
             ],
           ),
@@ -156,14 +161,31 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.account_balance_rounded, color: AppColors.primaryNavy, size: 22),
+                    Icon(
+                      Icons.account_balance_rounded,
+                      color: AppColors.primaryNavy,
+                      size: 22,
+                    ),
                     SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Bank Central Asia (BCA)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.darkSlate)),
+                        Text(
+                          'Bank Central Asia (BCA)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
                         SizedBox(height: 2),
-                        Text('8291029102 · Arya Pratama', style: TextStyle(fontSize: 11, color: AppColors.secondarySlate)),
+                        Text(
+                          '8291029102 · Arya Pratama',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.secondarySlate,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -174,15 +196,27 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryNavy,
                   minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 onPressed: () {
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Pengajuan pencairan 150 TC (Rp150.000) berhasil dikirim.')),
+                    const SnackBar(
+                      content: Text(
+                        'Pengajuan pencairan 150 TC (Rp150.000) berhasil dikirim.',
+                      ),
+                    ),
                   );
                 },
-                child: const Text('Cairkan 150 TC ke Rekening', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Cairkan 150 TC ke Rekening',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
@@ -221,11 +255,7 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                   color: const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: const Color(0xFFB45309),
-                  size: 22,
-                ),
+                child: Icon(icon, color: const Color(0xFFB45309), size: 22),
               ),
               const SizedBox(height: 10),
               Text(
@@ -270,12 +300,18 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: isPositive ? AppColors.lightGreenSurface : AppColors.canvasWhite,
+              color: isPositive
+                  ? AppColors.lightGreenSurface
+                  : AppColors.canvasWhite,
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isPositive ? Icons.call_received_rounded : Icons.call_made_rounded,
-              color: isPositive ? AppColors.successGreen : AppColors.secondarySlate,
+              isPositive
+                  ? Icons.call_received_rounded
+                  : Icons.call_made_rounded,
+              color: isPositive
+                  ? AppColors.successGreen
+                  : AppColors.secondarySlate,
               size: 18,
             ),
           ),
@@ -338,17 +374,29 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard),
+              onTap: () => Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.studentDashboard,
+              ),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.explore_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.explore_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.submission),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.submission),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.assignment_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.assignment_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             Container(
@@ -359,7 +407,11 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 18),
+                  Icon(
+                    Icons.account_balance_wallet_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Wallet',
@@ -373,10 +425,15 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.person_outline_rounded, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
           ],
@@ -493,12 +550,19 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                                 children: [
                                   Text(
                                     'Total masuk',
-                                    style: TextStyle(fontSize: 11, color: Colors.white70),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white70,
+                                    ),
                                   ),
                                   SizedBox(height: 2),
                                   Text(
                                     '+130 TC',
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -509,12 +573,19 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                                 children: [
                                   Text(
                                     'Total keluar',
-                                    style: TextStyle(fontSize: 11, color: Colors.white70),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white70,
+                                    ),
                                   ),
                                   SizedBox(height: 2),
                                   Text(
                                     '-80 TC',
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -539,7 +610,9 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primaryNavy.withValues(alpha: 0.2),
+                                  color: AppColors.primaryNavy.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -579,7 +652,9 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                               border: Border.all(color: AppColors.borderSlate),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.03),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.03,
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
                                 ),
@@ -617,19 +692,24 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                       _buildQuickCard(
                         icon: Icons.card_giftcard_rounded,
                         label: 'Reward',
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.rewardHub),
+                        onTap: () =>
+                            Navigator.pushNamed(context, AppRoutes.rewardHub),
                       ),
                       const SizedBox(width: 10),
                       _buildQuickCard(
                         icon: Icons.school_outlined,
                         label: 'Cari Mentor',
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.findMentors),
+                        onTap: () =>
+                            Navigator.pushNamed(context, AppRoutes.findMentors),
                       ),
                       const SizedBox(width: 10),
                       _buildQuickCard(
                         icon: Icons.menu_book_outlined,
                         label: 'Mentor Saya',
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.bookingSession),
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.bookingSession,
+                        ),
                       ),
                     ],
                   ),

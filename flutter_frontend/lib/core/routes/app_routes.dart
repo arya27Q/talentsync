@@ -43,6 +43,7 @@ import 'package:flutter_frontend/features/profile/screens/privacy_security_scree
 import 'package:flutter_frontend/features/profile/screens/help_support_screen.dart';
 import 'package:flutter_frontend/features/profile/screens/switch_to_mentor_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_main_layout.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_onboarding_screen.dart';
 
 class AppRoutes {
   // Define Route Names
@@ -57,8 +58,10 @@ class AppRoutes {
   static const String studentOnboarding = '/auth/student/onboarding';
   static const String studentDashboard = '/dashboard/student';
   static const String mentorDashboard = '/dashboard/mentor';
+  static const String mentorOnboarding = '/mentor/onboarding';
   static const String studentSetupProfile = '/auth/student/setup-profile';
-  static const String studentSetupProfileStep2 = '/auth/student/setup-profile-step2';
+  static const String studentSetupProfileStep2 =
+      '/auth/student/setup-profile-step2';
   static const String exploreProjects = '/projects/explore';
   static const String projectDetail = '/project-detail';
   static const String applyProject = '/project/apply';
@@ -104,8 +107,10 @@ class AppRoutes {
     studentOnboarding: (context) => const StudentOnboardingScreen(),
     studentDashboard: (context) => const StudentMainLayout(),
     mentorDashboard: (context) => const MentorMainLayout(),
+    mentorOnboarding: (context) => const MentorOnboardingScreen(),
     studentSetupProfile: (context) => const StudentSetupProfileScreen(),
-    studentSetupProfileStep2: (context) => const StudentSetupProfileStep2Screen(),
+    studentSetupProfileStep2: (context) =>
+        const StudentSetupProfileStep2Screen(),
     exploreProjects: (context) => const ExploreProjectsScreen(),
     projectDetail: (context) => const ProjectDetailScreen(),
     applyProject: (context) => const ApplyProjectScreen(),

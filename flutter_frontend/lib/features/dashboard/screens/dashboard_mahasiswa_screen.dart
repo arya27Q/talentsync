@@ -125,7 +125,9 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: progress,
                     backgroundColor: AppColors.borderSlate,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryNavy),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.primaryNavy,
+                    ),
                     minHeight: 6,
                   ),
                 ),
@@ -184,7 +186,9 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                     daysLeft,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: deadlineColor != null ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: deadlineColor != null
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       color: deadlineColor ?? AppColors.secondarySlate,
                     ),
                   ),
@@ -210,7 +214,10 @@ class DashboardMahasiswaScreen extends StatelessWidget {
             children: [
               // 1. Top App Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -273,7 +280,9 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.darkSlate.withValues(alpha: 0.05),
+                              color: AppColors.darkSlate.withValues(
+                                alpha: 0.05,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -309,7 +318,10 @@ class DashboardMahasiswaScreen extends StatelessWidget {
 
               // 2. Main Balance & SKS Card
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 8.0,
+                ),
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(22),
@@ -415,17 +427,26 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.pushNamed(context, AppRoutes.exploreProjects);
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.exploreProjects,
+                                );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: const Column(
                                   children: [
-                                    Icon(Icons.search_rounded, color: Colors.white, size: 20),
+                                    Icon(
+                                      Icons.search_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
                                     SizedBox(height: 6),
                                     Text(
                                       'Cari Proyek',
@@ -444,17 +465,26 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.pushNamed(context, AppRoutes.findMentors);
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.findMentors,
+                                );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: const Column(
                                   children: [
-                                    Icon(Icons.school_outlined, color: Colors.white, size: 20),
+                                    Icon(
+                                      Icons.school_outlined,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
                                     SizedBox(height: 6),
                                     Text(
                                       'Mentor Saya',
@@ -473,17 +503,26 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.pushNamed(context, AppRoutes.rewardHub);
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.rewardHub,
+                                );
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: const Column(
                                   children: [
-                                    Icon(Icons.card_giftcard_rounded, color: Colors.white, size: 20),
+                                    Icon(
+                                      Icons.card_giftcard_rounded,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
                                     SizedBox(height: 6),
                                     Text(
                                       'Reward',
@@ -676,14 +715,21 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFFEF3C7),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.toll_rounded, color: AppColors.accentAmberGold, size: 14),
+                                Icon(
+                                  Icons.toll_rounded,
+                                  color: AppColors.accentAmberGold,
+                                  size: 14,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   '300 TC',
@@ -721,10 +767,16 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.pushNamed(context, AppRoutes.projectDetail);
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.projectDetail,
+                              );
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.primaryNavy,
                                 borderRadius: BorderRadius.circular(10),

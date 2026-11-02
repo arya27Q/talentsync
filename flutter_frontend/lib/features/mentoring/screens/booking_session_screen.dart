@@ -23,7 +23,9 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
     if (!_isAgreed) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Harap setujui ketentuan bimbingan & kebijakan reschedule.'),
+          content: Text(
+            'Harap setujui ketentuan bimbingan & kebijakan reschedule.',
+          ),
           backgroundColor: Color(0xFFDC2626),
           duration: Duration(seconds: 2),
         ),
@@ -47,25 +49,40 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: Icon(Icons.check_rounded, color: Color(0xFF16A34A), size: 32),
+                child: Icon(
+                  Icons.check_rounded,
+                  color: Color(0xFF16A34A),
+                  size: 32,
+                ),
               ),
             ),
             const SizedBox(height: 18),
             const Text(
               'Booking Berhasil!',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
               'Saldo 30 TC berhasil ditahan di Smart Escrow. Sesi bimbingan dijadwalkan besok pukul 19.00 WIB bersama Dimas Prasetyo.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: AppColors.secondarySlate, height: 1.4),
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.secondarySlate,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () {
                 Navigator.pop(dialogContext); // Close dialog
-                Navigator.pushReplacementNamed(context, AppRoutes.mentoringSession);
+                Navigator.pushReplacementNamed(
+                  context,
+                  AppRoutes.mentoringSession,
+                );
               },
               child: Container(
                 width: double.infinity,
@@ -84,7 +101,11 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                 child: const Center(
                   child: Text(
                     'Masuk ke Ruang Sesi',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
@@ -137,10 +158,7 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
     );
   }
 
-  Widget _buildEscrowBullet({
-    required String title,
-    required String desc,
-  }) {
+  Widget _buildEscrowBullet({required String title, required String desc}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -187,7 +205,10 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
             children: [
               // 1. Top Bar: Back, Title, Aman Pill
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: Row(
                   children: [
                     GestureDetector(
@@ -200,7 +221,9 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.darkSlate.withValues(alpha: 0.05),
+                              color: AppColors.darkSlate.withValues(
+                                alpha: 0.05,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -226,7 +249,10 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFDCFCE7),
                         borderRadius: BorderRadius.circular(10),
@@ -234,7 +260,11 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.shield_outlined, size: 13, color: Color(0xFF16A34A)),
+                          Icon(
+                            Icons.shield_outlined,
+                            size: 13,
+                            color: Color(0xFF16A34A),
+                          ),
                           SizedBox(width: 4),
                           Text(
                             'Aman',
@@ -262,7 +292,11 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.lock_rounded, size: 16, color: AppColors.secondarySlate),
+                      const Icon(
+                        Icons.lock_rounded,
+                        size: 16,
+                        color: AppColors.secondarySlate,
+                      ),
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Column(
@@ -280,14 +314,21 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(color: const Color(0xFFCBD5E1)),
                         ),
                         child: const Text(
                           'SSL aktif',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.secondarySlate),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.secondarySlate,
+                          ),
                         ),
                       ),
                     ],
@@ -327,9 +368,16 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                               child: Image.network(
                                 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => const Center(
-                                  child: Text('DP', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryNavy)),
-                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Center(
+                                      child: Text(
+                                        'DP',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryNavy,
+                                        ),
+                                      ),
+                                    ),
                               ),
                             ),
                           ),
@@ -350,14 +398,21 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                                     ),
                                     const SizedBox(width: 6),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFEFF6FF),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: const Text(
                                         'Verified',
-                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryNavy,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -365,12 +420,19 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                                 const SizedBox(height: 2),
                                 const Text(
                                   'Senior Flutter Engineer',
-                                  style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.secondarySlate,
+                                  ),
                                 ),
                                 const SizedBox(height: 2),
                                 const Text(
                                   '"Kurasi portofolio tender UMKM"',
-                                  style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: AppColors.secondarySlate),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontStyle: FontStyle.italic,
+                                    color: AppColors.secondarySlate,
+                                  ),
                                 ),
                               ],
                             ),
@@ -424,7 +486,10 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                       const SizedBox(height: 12),
                       const Text(
                         'Tautan panggilan video dikirim otomatis via kalender dan notifikasi.',
-                        style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.secondarySlate,
+                        ),
                       ),
                     ],
                   ),
@@ -454,22 +519,37 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.account_balance_wallet_outlined, size: 20, color: AppColors.primaryNavy),
+                          const Icon(
+                            Icons.account_balance_wallet_outlined,
+                            size: 20,
+                            color: AppColors.primaryNavy,
+                          ),
                           const SizedBox(width: 8),
                           const Text(
                             'Dompet TimeCoin',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
                           ),
                           const Spacer(),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFDCFCE7),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Text(
                               'Saldo cukup',
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF16A34A),
+                              ),
                             ),
                           ),
                         ],
@@ -480,16 +560,42 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Saldo TimeCoin kamu', style: TextStyle(fontSize: 13, color: AppColors.secondarySlate)),
-                          Text('150 TC', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.darkSlate)),
+                          Text(
+                            'Saldo TimeCoin kamu',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.secondarySlate,
+                            ),
+                          ),
+                          Text(
+                            '150 TC',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Biaya mentoring (60 menit)', style: TextStyle(fontSize: 13, color: AppColors.secondarySlate)),
-                          Text('- 30 TC', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFDC2626))),
+                          Text(
+                            'Biaya mentoring (60 menit)',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.secondarySlate,
+                            ),
+                          ),
+                          Text(
+                            '- 30 TC',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFDC2626),
+                            ),
+                          ),
                         ],
                       ),
 
@@ -503,18 +609,29 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                         children: [
                           Text(
                             'Sisa saldo tersedia',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
                           ),
                           Text(
                             '120 TC',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 2),
                       const Text(
                         'Bisa dipakai untuk sesi atau reward lain',
-                        style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.secondarySlate,
+                        ),
                       ),
                     ],
                   ),
@@ -544,22 +661,36 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.link_rounded, size: 20, color: AppColors.primaryNavy),
+                          const Icon(
+                            Icons.link_rounded,
+                            size: 20,
+                            color: AppColors.primaryNavy,
+                          ),
                           const SizedBox(width: 8),
                           const Text(
                             'Bahan bimbingan (opsional)',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 6),
                       const Text(
                         'Tautan Figma, link repositori GitHub, atau pertanyaan problem yang ingin dikurasi',
-                        style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondarySlate,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(14),
@@ -568,10 +699,16 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                         child: TextField(
                           controller: _materialsController,
                           maxLines: 2,
-                          style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.darkSlate,
+                          ),
                           decoration: const InputDecoration(
                             hintText: 'https://figma.com/file/... atau tulis catatan pertanyaan',
-                            hintStyle: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                            hintStyle: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondarySlate,
+                            ),
                             border: InputBorder.none,
                           ),
                         ),
@@ -605,7 +742,11 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.shield_outlined, size: 20, color: AppColors.primaryNavy),
+                          Icon(
+                            Icons.shield_outlined,
+                            size: 20,
+                            color: AppColors.primaryNavy,
+                          ),
                           SizedBox(width: 10),
                           Text(
                             'Sistem escrow terlindungi 100%',
@@ -648,7 +789,9 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                     color: AppColors.cardSurface,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: _isAgreed ? AppColors.primaryNavy.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
+                      color: _isAgreed
+                          ? AppColors.primaryNavy.withValues(alpha: 0.3)
+                          : const Color(0xFFE2E8F0),
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -674,7 +817,9 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                           child: Checkbox(
                             value: _isAgreed,
                             activeColor: AppColors.primaryNavy,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
                             onChanged: (val) {
                               setState(() {
                                 _isAgreed = val ?? false;
@@ -726,11 +871,17 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
-                          color: _isAgreed ? AppColors.primaryNavy : const Color(0xFF94A3B8),
+                          color: _isAgreed
+                              ? AppColors.primaryNavy
+                              : const Color(0xFF94A3B8),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: (_isAgreed ? AppColors.primaryNavy : Colors.transparent).withValues(alpha: 0.25),
+                              color:
+                                  (_isAgreed
+                                          ? AppColors.primaryNavy
+                                          : Colors.transparent)
+                                      .withValues(alpha: 0.25),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -748,7 +899,11 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                               ),
                             ),
                             SizedBox(width: 8),
-                            Icon(Icons.lock_outline_rounded, color: Colors.white, size: 16),
+                            Icon(
+                              Icons.lock_outline_rounded,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                           ],
                         ),
                       ),
@@ -757,7 +912,11 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                     const Text(
                       'Didukung Smart Escrow TimeCoin TalentSync. Dana baru dialihkan ke mentor setelah kamu konfirmasi kepuasan.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 10, color: AppColors.secondarySlate, height: 1.4),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.secondarySlate,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),

@@ -12,7 +12,10 @@ class AchievementPopup {
         return const SizedBox();
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final scale = CurvedAnimation(parent: animation, curve: Curves.elasticOut);
+        final scale = CurvedAnimation(
+          parent: animation,
+          curve: Curves.elasticOut,
+        );
         return ScaleTransition(
           scale: scale,
           child: AlertDialog(
@@ -34,7 +37,7 @@ class AchievementPopup {
                     color: const Color(0xFFF57C00).withValues(alpha: 0.3),
                     blurRadius: 30,
                     spreadRadius: 10,
-                  )
+                  ),
                 ],
               ),
               child: Column(
@@ -43,16 +46,28 @@ class AchievementPopup {
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      Icon(Icons.toll_rounded, color: const Color(0xFFFFC107).withValues(alpha: 0.5), size: 100),
+                      Icon(
+                        Icons.toll_rounded,
+                        color: const Color(0xFFFFC107).withValues(alpha: 0.5),
+                        size: 100,
+                      ),
                       const Positioned(
                         left: 20,
                         top: 20,
-                        child: Icon(Icons.toll_rounded, color: Color(0xFFFFCA28), size: 40),
+                        child: Icon(
+                          Icons.toll_rounded,
+                          color: Color(0xFFFFCA28),
+                          size: 40,
+                        ),
                       ),
                       const Positioned(
                         right: 10,
                         bottom: 10,
-                        child: Icon(Icons.toll_rounded, color: Color(0xFFFFB300), size: 60),
+                        child: Icon(
+                          Icons.toll_rounded,
+                          color: Color(0xFFFFB300),
+                          size: 60,
+                        ),
                       ),
                     ],
                   ),
@@ -87,20 +102,25 @@ class AchievementPopup {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF4D332D).withValues(alpha: 0.3),
+                            color: const Color(0xFF4D332D)
+                                .withValues(alpha: 0.3),
                             blurRadius: 15,
                             offset: const Offset(0, 8),
-                          )
+                          ),
                         ],
                       ),
                       child: const Center(
                         child: Text(
                           'Awesome!',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

@@ -49,7 +49,11 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 18),
+            Icon(
+              Icons.account_balance_wallet_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             SizedBox(width: 8),
             Text(
               'Wallet',
@@ -69,11 +73,7 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         color: Colors.transparent,
-        child: Icon(
-          icon,
-          color: AppColors.secondarySlate,
-          size: 24,
-        ),
+        child: Icon(icon, color: AppColors.secondarySlate, size: 24),
       ),
     );
   }
@@ -92,7 +92,10 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                 children: [
                   // 1. Top App Bar: Back, Title & Subtitle, Book Icon
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -100,7 +103,10 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                             if (Navigator.canPop(context)) {
                               Navigator.pop(context);
                             } else {
-                              Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+                              Navigator.pushReplacementNamed(
+                                context,
+                                AppRoutes.studentDashboard,
+                              );
                             }
                           },
                           child: Container(
@@ -111,7 +117,9 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -162,7 +170,9 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -258,11 +268,16 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                               Navigator.pushNamed(context, AppRoutes.wallet);
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
+                                ),
                               ),
                               child: const Row(
                                 children: [
@@ -359,11 +374,22 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                       ),
                       child: TextField(
                         controller: _searchController,
-                        style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.darkSlate,
+                        ),
                         decoration: const InputDecoration(
-                          hintText: 'Cari mentor, keahlian, topik (Figma, Flutter...',
-                          hintStyle: TextStyle(color: AppColors.secondarySlate, fontSize: 13),
-                          prefixIcon: Icon(Icons.search_rounded, color: AppColors.secondarySlate, size: 20),
+                          hintText:
+                              'Cari mentor, keahlian, topik (Figma, Flutter...',
+                          hintStyle: TextStyle(
+                            color: AppColors.secondarySlate,
+                            fontSize: 13,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            color: AppColors.secondarySlate,
+                            size: 20,
+                          ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 14),
                         ),
@@ -380,7 +406,8 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       scrollDirection: Axis.horizontal,
                       itemCount: _categories.length,
-                      separatorBuilder: (context, index) => const SizedBox(width: 8),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(width: 8),
                       itemBuilder: (context, index) {
                         final isSelected = _selectedCategoryIndex == index;
                         return GestureDetector(
@@ -390,9 +417,14 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                             });
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primaryNavy : const Color(0xFFF1F5F9),
+                              color: isSelected
+                                  ? AppColors.primaryNavy
+                                  : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Center(
@@ -400,8 +432,12 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                                 _categories[index],
                                 style: TextStyle(
                                   fontSize: 12,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                  color: isSelected ? Colors.white : AppColors.darkSlate,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w600,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.darkSlate,
                                 ),
                               ),
                             ),
@@ -420,7 +456,10 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
@@ -447,7 +486,11 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                         ),
                         const Row(
                           children: [
-                            Icon(Icons.bolt_rounded, size: 16, color: AppColors.primaryNavy),
+                            Icon(
+                              Icons.bolt_rounded,
+                              size: 16,
+                              color: AppColors.primaryNavy,
+                            ),
                             SizedBox(width: 4),
                             Text(
                               '3 mentor siap',
@@ -483,7 +526,10 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFDCFCE7),
                                 borderRadius: BorderRadius.circular(8),
@@ -548,16 +594,21 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                                       child: Image.network(
                                         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => const Center(
-                                          child: Text(
-                                            'DP',
-                                            style: TextStyle(
-                                              color: AppColors.primaryNavy,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
+                                        errorBuilder:
+                                            (
+                                              context,
+                                              error,
+                                              stackTrace,
+                                            ) => const Center(
+                                              child: Text(
+                                                'DP',
+                                                style: TextStyle(
+                                                  color: AppColors.primaryNavy,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
                                       ),
                                     ),
                                   ),
@@ -585,7 +636,8 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           'Dimas Prasetyo',
@@ -635,10 +687,15 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                                     Row(
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFEFF6FF),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: const Text(
                                             'Top Mentor',
@@ -651,10 +708,15 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                                         ),
                                         const SizedBox(width: 6),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFF1F5F9),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: const Text(
                                             'Kompak & Detail',
@@ -681,7 +743,9 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: const Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -727,7 +791,10 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                                 children: [
                                   Text(
                                     'Investasi bimbingan',
-                                    style: TextStyle(fontSize: 10, color: AppColors.secondarySlate),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.secondarySlate,
+                                    ),
                                   ),
                                   SizedBox(height: 2),
                                   Text(
@@ -742,15 +809,24 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                               ),
                               const Spacer(),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                  ),
                                 ),
                                 child: const Row(
                                   children: [
-                                    Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.primaryNavy),
+                                    Icon(
+                                      Icons.calendar_today_rounded,
+                                      size: 13,
+                                      color: AppColors.primaryNavy,
+                                    ),
                                     SizedBox(width: 6),
                                     Text(
                                       'Jadwal terdekat: Besok, 19.00 WIB',
@@ -774,14 +850,19 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.pushNamed(context, AppRoutes.mentorProfile);
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.mentorProfile,
+                                    );
                                   },
                                   child: Container(
                                     height: 44,
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2E8F0),
+                                      ),
                                     ),
                                     child: const Center(
                                       child: Text(
@@ -800,7 +881,10 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.pushNamed(context, AppRoutes.bookingSession);
+                                    Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.bookingSession,
+                                    );
                                   },
                                   child: Container(
                                     height: 44,
@@ -809,14 +893,16 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                                          color: AppColors.primaryNavy
+                                              .withValues(alpha: 0.25),
                                           blurRadius: 8,
                                           offset: const Offset(0, 3),
                                         ),
                                       ],
                                     ),
                                     child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Text(
                                           'Sewa Mentor',
@@ -827,7 +913,11 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                                           ),
                                         ),
                                         SizedBox(width: 4),
-                                        Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 15),
+                                        Icon(
+                                          Icons.arrow_forward_rounded,
+                                          color: Colors.white,
+                                          size: 15,
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -868,13 +958,20 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                   _buildNavIcon(
                     icon: Icons.explore_outlined,
                     onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.studentDashboard, (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.studentDashboard,
+                        (route) => false,
+                      );
                     },
                   ),
                   _buildNavIcon(
                     icon: Icons.assignment_outlined,
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.myProjects);
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.myProjects,
+                      );
                     },
                   ),
                   _buildNavIcon(

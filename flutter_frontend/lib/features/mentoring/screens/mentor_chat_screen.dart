@@ -96,10 +96,14 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
-        crossAxisAlignment: message.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: message.isMe
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           Container(
-            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: message.isMe ? AppColors.primaryNavy : Colors.white,
@@ -129,7 +133,10 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
           const SizedBox(height: 4),
           Text(
             message.time,
-            style: const TextStyle(fontSize: 10, color: AppColors.secondarySlate),
+            style: const TextStyle(
+              fontSize: 10,
+              color: AppColors.secondarySlate,
+            ),
           ),
         ],
       ),
@@ -145,7 +152,10 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
           children: [
             // 1. Top App Bar (Dimas Prasetyo, Online, Mentor badge)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 12.0,
+              ),
               child: Row(
                 children: [
                   GestureDetector(
@@ -188,7 +198,13 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
                             'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                             fit: BoxFit.cover,
                             errorBuilder: (ctx, err, stack) => const Center(
-                              child: Text('DP', style: TextStyle(color: AppColors.primaryNavy, fontWeight: FontWeight.bold)),
+                              child: Text(
+                                'DP',
+                                style: TextStyle(
+                                  color: AppColors.primaryNavy,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -225,11 +241,18 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
                         const SizedBox(height: 1),
                         Row(
                           children: const [
-                            Icon(Icons.circle, size: 7, color: Color(0xFF10B981)),
+                            Icon(
+                              Icons.circle,
+                              size: 7,
+                              color: Color(0xFF10B981),
+                            ),
                             SizedBox(width: 4),
                             Text(
                               'Online',
-                              style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.secondarySlate,
+                              ),
                             ),
                           ],
                         ),
@@ -238,14 +261,21 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
                   ),
 
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
                       'Mentor',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryNavy,
+                      ),
                     ),
                   ),
                 ],
@@ -254,13 +284,19 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
 
             // 2. Shortcut Banner to Ruang Belajar
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 4.0,
+              ),
               child: GestureDetector(
                 onTap: () {
                   Navigator.pushNamed(context, AppRoutes.ruangBelajar);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -275,15 +311,27 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
                   ),
                   child: Row(
                     children: const [
-                      Icon(Icons.menu_book_rounded, color: AppColors.primaryNavy, size: 18),
+                      Icon(
+                        Icons.menu_book_rounded,
+                        color: AppColors.primaryNavy,
+                        size: 18,
+                      ),
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'Ruang belajar: materi, tugas, proyek, hasil',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
                       ),
-                      Icon(Icons.chevron_right_rounded, color: AppColors.secondarySlate, size: 18),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.secondarySlate,
+                        size: 18,
+                      ),
                     ],
                   ),
                 ),
@@ -306,7 +354,10 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
                   return _buildBubble(_messages[index]);
@@ -327,7 +378,10 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
                     onTap: () => _sendMessage(_suggestions[index]),
                     child: Container(
                       margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -336,7 +390,11 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
                       child: Center(
                         child: Text(
                           _suggestions[index],
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.darkSlate),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
                       ),
                     ),
@@ -361,16 +419,27 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.attach_file_rounded, color: AppColors.secondarySlate),
+                    icon: const Icon(
+                      Icons.attach_file_rounded,
+                      color: AppColors.secondarySlate,
+                    ),
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lampirkan screenshot atau file tugas...'), duration: Duration(seconds: 1)),
+                        const SnackBar(
+                          content: Text(
+                            'Lampirkan screenshot atau file tugas...',
+                          ),
+                          duration: Duration(seconds: 1),
+                        ),
                       );
                     },
                   ),
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(24),
@@ -379,10 +448,16 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
                       child: TextField(
                         controller: _messageController,
                         onSubmitted: (_) => _sendMessage(),
-                        style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.darkSlate,
+                        ),
                         decoration: const InputDecoration(
                           hintText: 'Tulis pesan...',
-                          hintStyle: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                          hintStyle: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                          ),
                           border: InputBorder.none,
                         ),
                       ),
@@ -399,7 +474,11 @@ class _MentorChatScreenState extends State<MentorChatScreen> {
                         shape: BoxShape.circle,
                       ),
                       child: const Center(
-                        child: Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                        child: Icon(
+                          Icons.send_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                       ),
                     ),
                   ),

@@ -44,25 +44,40 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 34),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  color: Color(0xFF16A34A),
+                  size: 34,
+                ),
               ),
             ),
             const SizedBox(height: 18),
             const Text(
               'Escrow Berhasil Dilepas!',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
               '30 TC telah ditransfer ke Dimas Prasetyo dan ulasanmu telah dipublikasikan. Portofolio kamu kini berstatus Terverifikasi Siap Tender!',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: AppColors.secondarySlate, height: 1.4),
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.secondarySlate,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () {
                 Navigator.pop(dialogContext); // Close dialog
-                Navigator.pushReplacementNamed(context, AppRoutes.mentoringResult);
+                Navigator.pushReplacementNamed(
+                  context,
+                  AppRoutes.mentoringResult,
+                );
               },
               child: Container(
                 width: double.infinity,
@@ -74,7 +89,11 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                 child: const Center(
                   child: Text(
                     'Lihat Lembar Evaluasi',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
@@ -114,7 +133,10 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                 children: [
                   // 1. Top Bar: Back, Title
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -127,7 +149,9 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -162,14 +186,21 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFDCFCE7),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
                             children: const [
-                              Icon(Icons.circle, size: 7, color: Color(0xFF16A34A)),
+                              Icon(
+                                Icons.circle,
+                                size: 7,
+                                color: Color(0xFF16A34A),
+                              ),
                               SizedBox(width: 6),
                               Text(
                                 'Sesi selesai · konfirmasi mahasiswa',
@@ -184,7 +215,11 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                         ),
                         Row(
                           children: const [
-                            Icon(Icons.verified_rounded, size: 16, color: AppColors.primaryNavy),
+                            Icon(
+                              Icons.verified_rounded,
+                              size: 16,
+                              color: AppColors.primaryNavy,
+                            ),
                             SizedBox(width: 4),
                             Text(
                               'Terverifikasi',
@@ -232,9 +267,16 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                                   child: Image.network(
                                     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                                     fit: BoxFit.cover,
-                                    errorBuilder: (ctx, err, stack) => const Center(
-                                      child: Text('DP', style: TextStyle(color: AppColors.primaryNavy, fontWeight: FontWeight.bold)),
-                                    ),
+                                    errorBuilder: (ctx, err, stack) =>
+                                        const Center(
+                                          child: Text(
+                                            'DP',
+                                            style: TextStyle(
+                                              color: AppColors.primaryNavy,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
                                   ),
                                 ),
                               ),
@@ -254,12 +296,19 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                                     SizedBox(height: 2),
                                     Text(
                                       'Senior Flutter Engineer · Fintech lokal',
-                                      style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
                                     SizedBox(height: 2),
                                     Text(
                                       'Mentor utama TalentSync',
-                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primaryNavy,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -275,7 +324,9 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,18 +342,32 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                                 const SizedBox(height: 8),
                                 Row(
                                   children: const [
-                                    Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.secondarySlate),
+                                    Icon(
+                                      Icons.calendar_today_rounded,
+                                      size: 13,
+                                      color: AppColors.secondarySlate,
+                                    ),
                                     SizedBox(width: 6),
                                     Text(
                                       'Besok, 25 Jun',
-                                      style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
                                     SizedBox(width: 16),
-                                    Icon(Icons.access_time_rounded, size: 13, color: AppColors.secondarySlate),
+                                    Icon(
+                                      Icons.access_time_rounded,
+                                      size: 13,
+                                      color: AppColors.secondarySlate,
+                                    ),
                                     SizedBox(width: 6),
                                     Text(
                                       '60 menit (Meet selesai)',
-                                      style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -340,7 +405,11 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                             children: [
                               Row(
                                 children: const [
-                                  Icon(Icons.lock_outline_rounded, size: 14, color: AppColors.secondarySlate),
+                                  Icon(
+                                    Icons.lock_outline_rounded,
+                                    size: 14,
+                                    color: AppColors.secondarySlate,
+                                  ),
                                   SizedBox(width: 6),
                                   Text(
                                     'PELEPASAN ESCROW',
@@ -359,7 +428,11 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                                   color: const Color(0xFFFEF3C7),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(Icons.toll_rounded, color: AppColors.accentAmberGold, size: 20),
+                                child: const Icon(
+                                  Icons.toll_rounded,
+                                  color: AppColors.accentAmberGold,
+                                  size: 20,
+                                ),
                               ),
                             ],
                           ),
@@ -370,11 +443,17 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                               children: [
                                 TextSpan(
                                   text: '30 TC ',
-                                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 TextSpan(
                                   text: 'terkunci',
-                                  style: TextStyle(fontSize: 14, color: AppColors.secondarySlate),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.secondarySlate,
+                                  ),
                                 ),
                               ],
                             ),
@@ -382,16 +461,27 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                           const SizedBox(height: 8),
                           const Text(
                             'Dana diteruskan otomatis ke dompet Dimas Prasetyo setelah kamu mengirim konfirmasi pelepasan.',
-                            style: TextStyle(fontSize: 12, color: AppColors.secondarySlate, height: 1.45),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondarySlate,
+                              height: 1.45,
+                            ),
                           ),
                           const SizedBox(height: 10),
                           Row(
                             children: const [
-                              Icon(Icons.shield_outlined, size: 14, color: AppColors.primaryNavy),
+                              Icon(
+                                Icons.shield_outlined,
+                                size: 14,
+                                color: AppColors.primaryNavy,
+                              ),
                               SizedBox(width: 6),
                               Text(
                                 'Smart Escrow aman & terenkripsi',
-                                style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.secondarySlate,
+                                ),
                               ),
                             ],
                           ),
@@ -421,7 +511,11 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                               color: const Color(0xFFFEF3C7),
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            child: const Icon(Icons.emoji_events_rounded, color: Color(0xFFD97706), size: 24),
+                            child: const Icon(
+                              Icons.emoji_events_rounded,
+                              color: Color(0xFFD97706),
+                              size: 24,
+                            ),
                           ),
                           const SizedBox(width: 14),
                           const Expanded(
@@ -486,7 +580,10 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                           const Text(
                             'Ulasanmu membantu menjaga integritas komunitas belajar',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondarySlate,
+                            ),
                           ),
                           const SizedBox(height: 14),
 
@@ -502,11 +599,15 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                                   });
                                 },
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4.0,
+                                  ),
                                   child: Icon(
                                     Icons.star_rounded,
                                     size: 36,
-                                    color: starNum <= _starRating ? AppColors.accentAmberGold : const Color(0xFFCBD5E1),
+                                    color: starNum <= _starRating
+                                        ? AppColors.accentAmberGold
+                                        : const Color(0xFFCBD5E1),
                                   ),
                                 ),
                               );
@@ -517,11 +618,16 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
 
                           // Rating Pill
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: Text(
                               _getRatingText(_starRating),
@@ -564,21 +670,32 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                                   });
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.primaryNavy : Colors.white,
+                                    color: isSelected
+                                        ? AppColors.primaryNavy
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: isSelected ? AppColors.primaryNavy : const Color(0xFFCBD5E1),
+                                      color: isSelected
+                                          ? AppColors.primaryNavy
+                                          : const Color(0xFFCBD5E1),
                                     ),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        isSelected ? Icons.check_rounded : Icons.add_rounded,
+                                        isSelected
+                                            ? Icons.check_rounded
+                                            : Icons.add_rounded,
                                         size: 14,
-                                        color: isSelected ? Colors.white : AppColors.darkSlate,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.darkSlate,
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
@@ -586,7 +703,9 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
-                                          color: isSelected ? Colors.white : AppColors.darkSlate,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : AppColors.darkSlate,
                                         ),
                                       ),
                                     ],
@@ -612,27 +731,41 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                               ),
                               Text(
                                 '${_reviewController.text.length}/300',
-                                style: const TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.secondarySlate,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: TextField(
                               controller: _reviewController,
                               maxLines: 4,
                               maxLength: 300,
                               onChanged: (text) => setState(() {}),
-                              style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.darkSlate,
+                              ),
                               decoration: const InputDecoration(
                                 hintText: 'Bagikan pengalaman bimbinganmu agar mahasiswa lain lebih mudah memilih mentor',
-                                hintStyle: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                                hintStyle: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.secondarySlate,
+                                ),
                                 border: InputBorder.none,
                                 counterText: '',
                               ),
@@ -643,7 +776,10 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                             alignment: Alignment.centerLeft,
                             child: const Text(
                               'Ulasan publik tampil di profil bimbingan Dimas Prasetyo.',
-                              style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.secondarySlate,
+                              ),
                             ),
                           ),
                         ],
@@ -661,7 +797,12 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
             right: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 14, bottom: 24),
+              padding: const EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 14,
+                bottom: 24,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -685,7 +826,9 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -703,7 +846,11 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                             ),
                           ),
                           SizedBox(width: 8),
-                          Icon(Icons.verified_rounded, color: Colors.white, size: 18),
+                          Icon(
+                            Icons.verified_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ],
                       ),
                     ),
@@ -712,11 +859,18 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Icon(Icons.help_outline_rounded, size: 14, color: AppColors.secondarySlate),
+                      Icon(
+                        Icons.help_outline_rounded,
+                        size: 14,
+                        color: AppColors.secondarySlate,
+                      ),
                       SizedBox(width: 4),
                       Text(
                         'Butuh bantuan? Laporkan kendala sesi',
-                        style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.secondarySlate,
+                        ),
                       ),
                     ],
                   ),
@@ -729,4 +883,3 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
     );
   }
 }
-

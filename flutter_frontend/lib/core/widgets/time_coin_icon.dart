@@ -85,14 +85,9 @@ class TimeCoinIcon extends StatelessWidget {
             )
           else
             // For tiny sizes (<20px, like in chips/pills), a clean spark/token
-            Icon(
-              Icons.token_rounded,
-              size: size * 0.60,
-              color: Colors.white,
-            ),
+            Icon(Icons.token_rounded, size: size * 0.60, color: Colors.white),
         ],
       ),
     );
   }
 }
-

@@ -35,10 +35,7 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
     final text = _noteController.text.trim();
     if (text.isNotEmpty) {
       setState(() {
-        _notes.add({
-          'sender': 'student',
-          'text': text,
-        });
+        _notes.add({'sender': 'student', 'text': text});
         _noteController.clear();
       });
     }
@@ -52,48 +49,63 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text(
           'Akhiri Sesi Bimbingan?',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkSlate,
+          ),
         ),
         content: const Text(
           'Sesi bimbingan 1-on-1 dengan Dimas Prasetyo telah selesai. Apakah kamu ingin melihat lembar Evaluasi & Hasil Bimbingan sekarang?',
-          style: TextStyle(fontSize: 13, color: AppColors.secondarySlate, height: 1.4),
+          style: TextStyle(
+            fontSize: 13,
+            color: AppColors.secondarySlate,
+            height: 1.4,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Tetap di Sesi', style: TextStyle(color: AppColors.secondarySlate)),
+            child: const Text(
+              'Tetap di Sesi',
+              style: TextStyle(color: AppColors.secondarySlate),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryNavy,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             onPressed: () {
               Navigator.pop(dialogContext); // Close dialog
-              Navigator.pushReplacementNamed(context, AppRoutes.selesaiBimbingan);
+              Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.selesaiBimbingan,
+              );
             },
-            child: const Text('Selesai & Evaluasi Bimbingan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Selesai & Evaluasi Bimbingan',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNavIcon({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildNavIcon({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         color: Colors.transparent,
-        child: Icon(
-          icon,
-          color: AppColors.secondarySlate,
-          size: 24,
-        ),
+        child: Icon(icon, color: AppColors.secondarySlate, size: 24),
       ),
     );
   }
@@ -112,7 +124,10 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                 children: [
                   // 1. Top Bar: Back, Title, Subtitle
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -120,7 +135,10 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                             if (Navigator.canPop(context)) {
                               Navigator.pop(context);
                             } else {
-                              Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+                              Navigator.pushReplacementNamed(
+                                context,
+                                AppRoutes.studentDashboard,
+                              );
                             }
                           },
                           child: Container(
@@ -131,7 +149,9 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -195,7 +215,10 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                             top: 14,
                             left: 14,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.4),
                                 borderRadius: BorderRadius.circular(10),
@@ -243,7 +266,9 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFF1E293B),
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                ),
                               ),
                               child: const Center(
                                 child: Text(
@@ -277,11 +302,15 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                                     width: 44,
                                     height: 44,
                                     decoration: BoxDecoration(
-                                      color: _isMicOn ? const Color(0xFF334155) : const Color(0xFFDC2626),
+                                      color: _isMicOn
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFDC2626),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
-                                      _isMicOn ? Icons.mic_rounded : Icons.mic_off_rounded,
+                                      _isMicOn
+                                          ? Icons.mic_rounded
+                                          : Icons.mic_off_rounded,
                                       color: Colors.white,
                                       size: 20,
                                     ),
@@ -299,11 +328,15 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                                     width: 44,
                                     height: 44,
                                     decoration: BoxDecoration(
-                                      color: _isVideoOn ? const Color(0xFF334155) : const Color(0xFFDC2626),
+                                      color: _isVideoOn
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFDC2626),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
-                                      _isVideoOn ? Icons.videocam_rounded : Icons.videocam_off_rounded,
+                                      _isVideoOn
+                                          ? Icons.videocam_rounded
+                                          : Icons.videocam_off_rounded,
                                       color: Colors.white,
                                       size: 20,
                                     ),
@@ -395,11 +428,15 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                                 children: [
                                   Text(
                                     'Sisa waktu sesi',
-                                    style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.secondarySlate,
+                                    ),
                                   ),
                                   SizedBox(height: 2),
                                   Row(
-                                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.baseline,
                                     textBaseline: TextBaseline.alphabetic,
                                     children: [
                                       Text(
@@ -425,7 +462,11 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                               const Spacer(),
                               const Row(
                                 children: [
-                                  Icon(Icons.toll_rounded, size: 16, color: AppColors.accentAmberGold),
+                                  Icon(
+                                    Icons.toll_rounded,
+                                    size: 16,
+                                    color: AppColors.accentAmberGold,
+                                  ),
                                   SizedBox(width: 4),
                                   Text(
                                     '30 TC',
@@ -476,20 +517,30 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                         ..._notes.map((note) {
                           final isMentor = note['sender'] == 'mentor';
                           return Align(
-                            alignment: isMentor ? Alignment.centerLeft : Alignment.centerRight,
+                            alignment: isMentor
+                                ? Alignment.centerLeft
+                                : Alignment.centerRight,
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               constraints: BoxConstraints(
-                                maxWidth: MediaQuery.of(context).size.width * 0.75,
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.75,
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                               decoration: BoxDecoration(
-                                color: isMentor ? Colors.white : AppColors.primaryNavy,
+                                color: isMentor
+                                    ? Colors.white
+                                    : AppColors.primaryNavy,
                                 borderRadius: BorderRadius.circular(18),
                                 boxShadow: isMentor
                                     ? [
                                         BoxShadow(
-                                          color: AppColors.darkSlate.withValues(alpha: 0.04),
+                                          color: AppColors.darkSlate.withValues(
+                                            alpha: 0.04,
+                                          ),
                                           blurRadius: 10,
                                           offset: const Offset(0, 3),
                                         ),
@@ -500,7 +551,9 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                                 note['text'],
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: isMentor ? AppColors.darkSlate : Colors.white,
+                                  color: isMentor
+                                      ? AppColors.darkSlate
+                                      : Colors.white,
                                   height: 1.4,
                                 ),
                               ),
@@ -515,18 +568,29 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                           children: [
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                  ),
                                 ),
                                 child: TextField(
                                   controller: _noteController,
-                                  style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.darkSlate,
+                                  ),
                                   decoration: const InputDecoration(
-                                    hintText: 'Tulis catatan atau pertanyaan...',
-                                    hintStyle: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                                    hintText:
+                                        'Tulis catatan atau pertanyaan...',
+                                    hintStyle: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
                                     border: InputBorder.none,
                                   ),
                                   onSubmitted: (_) => _sendNote(),
@@ -544,7 +608,11 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: const Center(
-                                  child: Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                                  child: Icon(
+                                    Icons.send_rounded,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
                                 ),
                               ),
                             ),
@@ -582,13 +650,20 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                   _buildNavIcon(
                     icon: Icons.explore_outlined,
                     onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.studentDashboard, (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.studentDashboard,
+                        (route) => false,
+                      );
                     },
                   ),
                   _buildNavIcon(
                     icon: Icons.assignment_outlined,
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.myProjects);
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.myProjects,
+                      );
                     },
                   ),
                   _buildNavIcon(
@@ -612,4 +687,3 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
     );
   }
 }
-

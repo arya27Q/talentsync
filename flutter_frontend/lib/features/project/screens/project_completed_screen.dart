@@ -12,7 +12,8 @@ class ProjectCompletedScreen extends StatefulWidget {
 class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
   int _userRating = 5;
   final TextEditingController _reviewController = TextEditingController(
-    text: 'Brief jelas, sangat suportif, dan persetujuan milestone tepat waktu.',
+    text:
+        'Brief jelas, sangat suportif, dan persetujuan milestone tepat waktu.',
   );
 
   @override
@@ -24,7 +25,9 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
   void _onFinish() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Proyek selesai! 40 TC telah ditambahkan ke Dompet Utama.'),
+        content: Text(
+          'Proyek selesai! 40 TC telah ditambahkan ke Dompet Utama.',
+        ),
         backgroundColor: AppColors.darkSlate,
         duration: Duration(seconds: 2),
       ),
@@ -90,7 +93,9 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
@@ -105,7 +110,10 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
@@ -131,7 +139,10 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(16),
@@ -271,7 +282,10 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                 ],
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.lightBlueSurface,
                                   borderRadius: BorderRadius.circular(8),
@@ -321,7 +335,9 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: AppColors.borderSlate),
+                                    border: Border.all(
+                                      color: AppColors.borderSlate,
+                                    ),
                                   ),
                                   child: const Icon(
                                     Icons.point_of_sale_rounded,
@@ -332,7 +348,8 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: const [
                                       Text(
                                         'Aplikasi Kasir Sederha...',
@@ -355,11 +372,16 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: AppColors.borderSlate),
+                                    border: Border.all(
+                                      color: AppColors.borderSlate,
+                                    ),
                                   ),
                                   child: const Row(
                                     children: [
@@ -393,7 +415,10 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                               _buildSkillBadge('SQLite'),
                               _buildSkillBadge('BLoC'),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFEF3C7),
                                   borderRadius: BorderRadius.circular(8),
@@ -457,7 +482,10 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFEF3C7),
                                   borderRadius: BorderRadius.circular(8),
@@ -493,7 +521,9 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                 decoration: BoxDecoration(
                                   color: AppColors.lightBlueSurface,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AppColors.borderSlate),
+                                  border: Border.all(
+                                    color: AppColors.borderSlate,
+                                  ),
                                 ),
                                 child: const Icon(
                                   Icons.storefront_rounded,
@@ -620,7 +650,8 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                 isDense: true,
                                 contentPadding: EdgeInsets.zero,
                                 border: InputBorder.none,
-                                hintText: 'Tulis timbal balik untuk mitra UMKM...',
+                                hintText:
+                                    'Tulis timbal balik untuk mitra UMKM...',
                                 hintStyle: TextStyle(
                                   fontSize: 13,
                                   color: AppColors.secondarySlate,
@@ -656,7 +687,9 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),

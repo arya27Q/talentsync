@@ -18,13 +18,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   );
   final TextEditingController _skillInputController = TextEditingController();
 
-  final List<String> _skills = [
-    'Flutter',
-    'Laravel',
-    'MySQL',
-    'Dart',
-    'Figma',
-  ];
+  final List<String> _skills = ['Flutter', 'Laravel', 'MySQL', 'Dart', 'Figma'];
 
   bool _isPublicProfile = true;
   bool _isOpenForProjects = true;
@@ -86,24 +80,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard),
+              onTap: () => Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.studentDashboard,
+              ),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.explore_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.explore_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.submission),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.submission),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.assignment_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.assignment_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.wallet),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.wallet),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             Container(
@@ -159,7 +170,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.05,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -183,7 +196,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       GestureDetector(
                         onTap: _saveProfile,
                         child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
                           child: Text(
                             'Simpan',
                             style: TextStyle(
@@ -216,7 +232,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     child: TextField(
                       controller: _linkedInController,
-                      style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.darkSlate,
+                      ),
                       decoration: const InputDecoration(
                         prefixIcon: Icon(
                           Icons.link_rounded,
@@ -224,7 +243,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           size: 20,
                         ),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                       ),
                     ),
                   ),
@@ -248,7 +270,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     child: TextField(
                       controller: _gitHubController,
-                      style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.darkSlate,
+                      ),
                       decoration: const InputDecoration(
                         prefixIcon: Icon(
                           Icons.code_rounded,
@@ -256,7 +281,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           size: 20,
                         ),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                       ),
                     ),
                   ),
@@ -306,7 +334,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           runSpacing: 8,
                           children: _skills.map((skill) {
                             return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(10),
@@ -343,21 +374,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           children: [
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                  ),
                                 ),
                                 child: TextField(
                                   controller: _skillInputController,
-                                  style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.darkSlate,
+                                  ),
                                   onSubmitted: (_) => _addSkill(),
                                   decoration: const InputDecoration(
                                     hintText: 'Tambah keahlian',
-                                    hintStyle: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+                                    hintStyle: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.secondarySlate,
+                                    ),
                                     border: InputBorder.none,
-                                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -510,7 +553,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),

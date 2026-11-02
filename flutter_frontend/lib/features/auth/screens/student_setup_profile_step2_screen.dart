@@ -6,10 +6,12 @@ class StudentSetupProfileStep2Screen extends StatefulWidget {
   const StudentSetupProfileStep2Screen({super.key});
 
   @override
-  State<StudentSetupProfileStep2Screen> createState() => _StudentSetupProfileStep2ScreenState();
+  State<StudentSetupProfileStep2Screen> createState() =>
+      _StudentSetupProfileStep2ScreenState();
 }
 
-class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep2Screen> {
+class _StudentSetupProfileStep2ScreenState
+    extends State<StudentSetupProfileStep2Screen> {
   final TextEditingController _bioController = TextEditingController(
     text: 'Mahasiswa Sistem Informasi yang suka membangun aplikasi mobile untuk usaha kecil.',
   );
@@ -59,7 +61,10 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Tambah Keahlian', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        title: const Text(
+          'Tambah Keahlian',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         content: TextField(
           controller: customController,
           autofocus: true,
@@ -72,12 +77,17 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal', style: TextStyle(color: AppColors.secondarySlate)),
+            child: const Text(
+              'Batal',
+              style: TextStyle(color: AppColors.secondarySlate),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryNavy,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             onPressed: () {
               final text = customController.text.trim();
@@ -86,7 +96,13 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
               }
               Navigator.pop(context);
             },
-            child: const Text('Tambah', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Tambah',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -102,7 +118,10 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -119,7 +138,9 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.06),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.06,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -222,7 +243,10 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
                                 decoration: BoxDecoration(
                                   color: AppColors.accentAmberGold,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: const Center(
                                   child: Icon(
@@ -258,7 +282,10 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
                               ),
                               const SizedBox(height: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFDCFCE7),
                                   borderRadius: BorderRadius.circular(8),
@@ -317,8 +344,12 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
                           height: 1.5,
                         ),
                         decoration: const InputDecoration(
-                          hintText: 'Tuliskan deskripsi ringkas tentang minatmu...',
-                          hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                          hintText:
+                              'Tuliskan deskripsi ringkas tentang minatmu...',
+                          hintStyle: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 13,
+                          ),
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
@@ -355,7 +386,10 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
                         children: [
                           ..._selectedSkills.map(
                             (skill) => Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.lightBlueSurface,
                                 borderRadius: BorderRadius.circular(10),
@@ -387,7 +421,10 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
                           GestureDetector(
                             onTap: _showAddCustomSkillDialog,
                             child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 8,
+                              ),
                               child: Text(
                                 'Tambah keahlian',
                                 style: TextStyle(
@@ -408,38 +445,45 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _suggestedSkills.map(
-                        (skill) => GestureDetector(
-                          onTap: () => _addSkill(skill),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.borderSlate),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.add_rounded,
-                                  size: 14,
-                                  color: Color(0xFF64748B),
+                      children: _suggestedSkills
+                          .map(
+                            (skill) => GestureDetector(
+                              onTap: () => _addSkill(skill),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  skill,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                decoration: BoxDecoration(
+                                  color: AppColors.cardSurface,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.borderSlate,
                                   ),
                                 ),
-                              ],
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.add_rounded,
+                                      size: 14,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      skill,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ).toList(),
+                          )
+                          .toList(),
                     ),
 
                     const SizedBox(height: 24),
@@ -450,10 +494,18 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
 
             // Bottom CTA Button: Finish Setup
             Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24, bottom: 28, top: 12),
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                bottom: 28,
+                top: 12,
+              ),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+                  Navigator.pushReplacementNamed(
+                    context,
+                    AppRoutes.studentDashboard,
+                  );
                 },
                 child: Container(
                   width: double.infinity,
@@ -488,4 +540,3 @@ class _StudentSetupProfileStep2ScreenState extends State<StudentSetupProfileStep
     );
   }
 }
-

@@ -23,7 +23,12 @@ class CaseStudyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMetric(IconData icon, Color iconColor, String label, String value) {
+  Widget _buildMetric(
+    IconData icon,
+    Color iconColor,
+    String label,
+    String value,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
@@ -92,11 +97,7 @@ class CaseStudyScreen extends StatelessWidget {
                   color: AppColors.lightBlueSurface,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color: AppColors.primaryNavy,
-                  size: 17,
-                ),
+                child: Icon(icon, color: AppColors.primaryNavy, size: 17),
               ),
               const SizedBox(width: 10),
               Text(
@@ -145,31 +146,53 @@ class CaseStudyScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard),
+              onTap: () => Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.studentDashboard,
+              ),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.explore_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.explore_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.submission),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.submission),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.assignment_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.assignment_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.wallet),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.wallet),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.person_outline_rounded, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
           ],
@@ -325,24 +348,21 @@ class CaseStudyScreen extends StatelessWidget {
                   _buildSectionCard(
                     icon: Icons.info_outline_rounded,
                     title: 'Problem',
-                    description:
-                        'Warung Pak Gito masih mencatat pesanan secara manual di buku, sehingga sering terjadi pesanan ganda saat jam ramai.',
+                    description: 'Warung Pak Gito masih mencatat pesanan secara manual di buku, sehingga sering terjadi pesanan ganda saat jam ramai.',
                   ),
 
                   // Solution Section
                   _buildSectionCard(
                     icon: Icons.lightbulb_outline_rounded,
                     title: 'Solution',
-                    description:
-                        'Membangun sistem reservasi sederhana dengan konfirmasi otomatis dan tampilan meja kosong secara real-time untuk kasir.',
+                    description: 'Membangun sistem reservasi sederhana dengan konfirmasi otomatis dan tampilan meja kosong secara real-time untuk kasir.',
                   ),
 
                   // Result Section
                   _buildSectionCard(
                     icon: Icons.trending_up_rounded,
                     title: 'Hasil',
-                    description:
-                        'Waktu tunggu pesanan berkurang hingga 45%, tidak ada lagi pesanan ganda yang terlewat, dan kepuasan pelanggan warung naik menjadi 5.0 bintang.',
+                    description: 'Waktu tunggu pesanan berkurang hingga 45%, tidak ada lagi pesanan ganda yang terlewat, dan kepuasan pelanggan warung naik menjadi 5.0 bintang.',
                   ),
 
                   // Testimonial Card (Pak Gito) — From User Screenshot

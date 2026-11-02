@@ -26,9 +26,7 @@ class StudentOnboardingScreen extends StatelessWidget {
                 color: iconBg,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Center(
-                child: Icon(icon, color: iconColor, size: 22),
-              ),
+              child: Center(child: Icon(icon, color: iconColor, size: 22)),
             ),
             const SizedBox(width: 16),
             // Text
@@ -80,12 +78,18 @@ class StudentOnboardingScreen extends StatelessWidget {
           children: [
             // Top Bar: Lewati Button
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 12.0,
+              ),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.pushReplacementNamed(context, AppRoutes.studentAuth);
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.studentAuth,
+                    );
                   },
                   child: const Text(
                     'Lewati',
@@ -124,7 +128,10 @@ class StudentOnboardingScreen extends StatelessWidget {
                         children: [
                           // Blue Balance Banner
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 18,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.primaryNavy,
                               borderRadius: BorderRadius.circular(18),
@@ -208,7 +215,9 @@ class StudentOnboardingScreen extends StatelessWidget {
 
                           // Timeline Steps
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0,
+                            ),
                             child: Column(
                               children: [
                                 _buildTimelineItem(
@@ -269,10 +278,18 @@ class StudentOnboardingScreen extends StatelessWidget {
 
             // Bottom CTA Button
             Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24, bottom: 28, top: 12),
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                bottom: 28,
+                top: 12,
+              ),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.pushReplacementNamed(context, AppRoutes.studentAuth);
+                  Navigator.pushReplacementNamed(
+                    context,
+                    AppRoutes.studentAuth,
+                  );
                 },
                 child: Container(
                   width: double.infinity,

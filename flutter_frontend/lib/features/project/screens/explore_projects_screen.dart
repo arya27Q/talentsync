@@ -41,7 +41,11 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.school_outlined, size: 14, color: AppColors.darkSlate),
+            const Icon(
+              Icons.school_outlined,
+              size: 14,
+              color: AppColors.darkSlate,
+            ),
             const SizedBox(width: 4),
             Text(
               text,
@@ -114,7 +118,11 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
-                  child: Icon(businessIcon, color: AppColors.primaryNavy, size: 22),
+                  child: Icon(
+                    businessIcon,
+                    color: AppColors.primaryNavy,
+                    size: 22,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -155,7 +163,10 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(10),
@@ -275,7 +286,10 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                   Navigator.pushNamed(context, AppRoutes.projectDetail);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primaryNavy,
                     borderRadius: BorderRadius.circular(12),
@@ -326,7 +340,10 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
             children: [
               // 1. Top Header Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -342,7 +359,9 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -436,17 +455,26 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                         ),
                         child: TextField(
                           controller: _searchController,
-                          style: const TextStyle(fontSize: 14, color: AppColors.darkSlate),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.darkSlate,
+                          ),
                           decoration: const InputDecoration(
                             hintText: 'Cari proyek web, desain, marketir',
-                            hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                            hintStyle: TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 13,
+                            ),
                             prefixIcon: Icon(
                               Icons.search_rounded,
                               color: AppColors.secondarySlate,
                               size: 20,
                             ),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
                           ),
                         ),
                       ),
@@ -528,20 +556,31 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                       },
                       child: Container(
                         margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primaryNavy : AppColors.cardSurface,
+                          color: isSelected
+                              ? AppColors.primaryNavy
+                              : AppColors.cardSurface,
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: isSelected ? AppColors.primaryNavy : AppColors.borderSlate,
+                            color: isSelected
+                                ? AppColors.primaryNavy
+                                : AppColors.borderSlate,
                           ),
                         ),
                         child: Text(
                           _categories[index],
                           style: TextStyle(
-                            color: isSelected ? Colors.white : AppColors.darkSlate,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.darkSlate,
                             fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
                           ),
                         ),
                       ),
@@ -559,7 +598,10 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.cardSurface,
                         borderRadius: BorderRadius.circular(12),
@@ -569,7 +611,10 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                         children: [
                           Text(
                             'Urutkan: ',
-                            style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondarySlate,
+                            ),
                           ),
                           Text(
                             'Rekomendasi',
@@ -628,8 +673,7 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                       businessName: 'Sambal Bu Rudi',
                       cluster: 'Klaster Kuliner',
                       title: 'Redesain Kemasan & Katalog Online',
-                      description:
-                          'Merancang ulang label kemasan sambal botol dan membuat katalog online sederhana yang bisa memamerkan produk UMKM...',
+                      description: 'Merancang ulang label kemasan sambal botol dan membuat katalog online sederhana yang bisa memamerkan produk UMKM...',
                       tcReward: '300',
                       tags: ['UI/UX Design', 'Figma'],
                       sksText: 'Konversi 2 SKS',
@@ -641,8 +685,7 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                       businessName: 'Batik Warisan Nusantara',
                       cluster: 'Klaster Fesyen',
                       title: 'Landing Page Pemesanan Batik Tulis',
-                      description:
-                          'Halaman pemesanan batik tulis custom dengan galeri motif, estimasi harga, dan formulir pesanan interaktif...',
+                      description: 'Halaman pemesanan batik tulis custom dengan galeri motif, estimasi harga, dan formulir pesanan interaktif...',
                       tcReward: '450',
                       tags: ['Frontend Web', 'React'],
                       sksText: 'Konversi 3 SKS',

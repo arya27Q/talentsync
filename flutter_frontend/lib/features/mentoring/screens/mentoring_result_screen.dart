@@ -69,19 +69,31 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 34),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  color: Color(0xFF16A34A),
+                  size: 34,
+                ),
               ),
             ),
             const SizedBox(height: 18),
             const Text(
               'Escrow Berhasil Dilepas!',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
               '30 TC telah ditransfer ke Dimas Prasetyo. Portofolio kamu kini berstatus Terverifikasi Siap Tender!',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: AppColors.secondarySlate, height: 1.4),
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.secondarySlate,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
             GestureDetector(
@@ -90,7 +102,11 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                 setState(() {
                   _isEscrowReleased = true;
                 });
-                Navigator.pushNamedAndRemoveUntil(context, AppRoutes.studentDashboard, (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.studentDashboard,
+                  (route) => false,
+                );
               },
               child: Container(
                 width: double.infinity,
@@ -102,7 +118,11 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                 child: const Center(
                   child: Text(
                     'Kembali ke Dashboard',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
@@ -152,7 +172,10 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                 ),
                 const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(6),
@@ -176,7 +199,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                 value: score / 100,
                 minHeight: 4,
                 backgroundColor: const Color(0xFFE2E8F0),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryNavy),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  AppColors.primaryNavy,
+                ),
               ),
             ),
           ],
@@ -187,7 +212,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final completedCount = _actionItems.where((item) => item['isCompleted'] == true).length;
+    final completedCount = _actionItems
+        .where((item) => item['isCompleted'] == true)
+        .length;
     final totalCount = _actionItems.length;
 
     return Scaffold(
@@ -202,7 +229,10 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                 children: [
                   // 1. Top Bar: Back, Title, Share & Download
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -215,7 +245,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -262,7 +294,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.05,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -285,7 +319,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.05,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -333,9 +369,17 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   child: Image.network(
                                     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                                     fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => const Center(
-                                      child: Text('DP', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryNavy)),
-                                    ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Center(
+                                              child: Text(
+                                                'DP',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColors.primaryNavy,
+                                                ),
+                                              ),
+                                            ),
                                   ),
                                 ),
                               ),
@@ -356,14 +400,23 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                         ),
                                         const SizedBox(width: 6),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFEFF6FF),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: const Text(
                                             'Verified Mentor',
-                                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.primaryNavy,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -371,16 +424,27 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                     const SizedBox(height: 2),
                                     const Text(
                                       'Senior Flutter Engineer',
-                                      style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
                                     const SizedBox(height: 3),
                                     const Row(
                                       children: [
-                                        Icon(Icons.folder_open_rounded, size: 13, color: AppColors.primaryNavy),
+                                        Icon(
+                                          Icons.folder_open_rounded,
+                                          size: 13,
+                                          color: AppColors.primaryNavy,
+                                        ),
                                         SizedBox(width: 4),
                                         Text(
                                           'Kurasi portofolio tender UMKM',
-                                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.darkSlate),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.darkSlate,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -398,7 +462,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFFBEB),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFFFEF3C7)),
+                              border: Border.all(
+                                color: const Color(0xFFFEF3C7),
+                              ),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,7 +486,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                       children: [
                                         const TextSpan(
                                           text: 'Escrow bimbingan: 30 TC. ',
-                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                         TextSpan(
                                           text: _isEscrowReleased
@@ -472,7 +540,10 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                               ),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFDCFCE7),
                                   borderRadius: BorderRadius.circular(8),
@@ -545,17 +616,27 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.shield_outlined, size: 14, color: Color(0xFF16A34A)),
+                                  Icon(
+                                    Icons.shield_outlined,
+                                    size: 14,
+                                    color: Color(0xFF16A34A),
+                                  ),
                                   SizedBox(width: 4),
                                   Text(
                                     'Standar kurasi siap tender',
-                                    style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.secondarySlate,
+                                    ),
                                   ),
                                 ],
                               ),
                               Text(
                                 'Terverifikasi 24 Jun 2025',
-                                style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.secondarySlate,
+                                ),
                               ),
                             ],
                           ),
@@ -585,7 +666,10 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             ),
                             Text(
                               '4 deliverable',
-                              style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondarySlate,
+                              ),
                             ),
                           ],
                         ),
@@ -601,7 +685,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.04),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.04,
+                                ),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -630,7 +716,8 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
@@ -645,14 +732,23 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                               ),
                                             ),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: const Color(0xFFFFF7ED),
-                                                borderRadius: BorderRadius.circular(6),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
                                               ),
                                               child: const Text(
                                                 'Siap tender',
-                                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFFEA580C),
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -660,7 +756,10 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                         const SizedBox(height: 2),
                                         const Text(
                                           'Case study dengan rubrik standar industri',
-                                          style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.secondarySlate,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -676,18 +775,30 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: () {
-                                        Navigator.pushNamed(context, AppRoutes.caseStudy);
+                                        Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.caseStudy,
+                                        );
                                       },
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 10,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: const Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.visibility_outlined, size: 16, color: AppColors.primaryNavy),
+                                            Icon(
+                                              Icons.visibility_outlined,
+                                              size: 16,
+                                              color: AppColors.primaryNavy,
+                                            ),
                                             SizedBox(width: 6),
                                             Text(
                                               'Lihat Portofolio',
@@ -705,15 +816,22 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFEFF6FF),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Icon(Icons.picture_as_pdf_outlined, size: 16, color: AppColors.primaryNavy),
+                                          Icon(
+                                            Icons.picture_as_pdf_outlined,
+                                            size: 16,
+                                            color: AppColors.primaryNavy,
+                                          ),
                                           SizedBox(width: 6),
                                           Text(
                                             'Ekspor PDF',
@@ -742,7 +860,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.04),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.04,
+                                ),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -771,7 +891,8 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Sertifikat kelulusan bimbingan',
@@ -784,7 +905,10 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                         SizedBox(height: 2),
                                         Text(
                                           'E-certificate resmi dengan tanda tangan digital Dimas Prasetyo',
-                                          style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.secondarySlate,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -796,15 +920,22 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                 children: [
                                   Expanded(
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFEFF6FF),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Icon(Icons.download_rounded, size: 16, color: AppColors.primaryNavy),
+                                          Icon(
+                                            Icons.download_rounded,
+                                            size: 16,
+                                            color: AppColors.primaryNavy,
+                                          ),
                                           SizedBox(width: 6),
                                           Text(
                                             'Unduh',
@@ -822,18 +953,30 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: () {
-                                        Navigator.pushNamed(context, AppRoutes.portfolio);
+                                        Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.portfolio,
+                                        );
                                       },
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 10,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: const Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.primaryNavy),
+                                            Icon(
+                                              Icons.add_circle_outline_rounded,
+                                              size: 16,
+                                              color: AppColors.primaryNavy,
+                                            ),
                                             SizedBox(width: 6),
                                             Text(
                                               'Tambah ke Profil',
@@ -863,7 +1006,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.04),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.04,
+                                ),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -892,7 +1037,8 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Showcase bukti proyek',
@@ -905,7 +1051,10 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                         SizedBox(height: 2),
                                         Text(
                                           'Implementasi live pada proyek UMKM',
-                                          style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.secondarySlate,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -915,11 +1064,16 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                               const SizedBox(height: 14),
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushNamed(context, AppRoutes.projectDetail);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.projectDetail,
+                                  );
                                 },
                                 child: Container(
                                   width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFEFF6FF),
                                     borderRadius: BorderRadius.circular(12),
@@ -927,7 +1081,11 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   child: const Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.launch_rounded, size: 16, color: AppColors.primaryNavy),
+                                      Icon(
+                                        Icons.launch_rounded,
+                                        size: 16,
+                                        color: AppColors.primaryNavy,
+                                      ),
                                       SizedBox(width: 6),
                                       Text(
                                         'Showcase',
@@ -954,7 +1112,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.04),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.04,
+                                ),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
@@ -983,7 +1143,8 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Materi & tugas lanjutan',
@@ -996,7 +1157,10 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                         SizedBox(height: 2),
                                         Text(
                                           'Materi sesi dan tugas yang perlu dikerjakan',
-                                          style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.secondarySlate,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -1008,15 +1172,22 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                 children: [
                                   Expanded(
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFEFF6FF),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: const Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Icon(Icons.menu_book_outlined, size: 16, color: AppColors.primaryNavy),
+                                          Icon(
+                                            Icons.menu_book_outlined,
+                                            size: 16,
+                                            color: AppColors.primaryNavy,
+                                          ),
                                           SizedBox(width: 6),
                                           Text(
                                             'Buka Materi',
@@ -1034,18 +1205,30 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: () {
-                                        Navigator.pushNamed(context, AppRoutes.mentorChat);
+                                        Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.mentorChat,
+                                        );
                                       },
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 10,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: const Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.chat_bubble_outline_rounded, size: 16, color: AppColors.primaryNavy),
+                                            Icon(
+                                              Icons.chat_bubble_outline_rounded,
+                                              size: 16,
+                                              color: AppColors.primaryNavy,
+                                            ),
                                             SizedBox(width: 6),
                                             Text(
                                               'Chat Mentor',
@@ -1078,7 +1261,11 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
-                              Icon(Icons.info_outline_rounded, size: 18, color: AppColors.secondarySlate),
+                              Icon(
+                                Icons.info_outline_rounded,
+                                size: 18,
+                                color: AppColors.secondarySlate,
+                              ),
                               SizedBox(width: 10),
                               Expanded(
                                 child: Text.rich(
@@ -1115,7 +1302,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             borderRadius: BorderRadius.circular(22),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.05,
+                                ),
                                 blurRadius: 16,
                                 offset: const Offset(0, 6),
                               ),
@@ -1125,7 +1314,8 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   const Text(
                                     'Daftar aksi perbaikan',
@@ -1151,10 +1341,15 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
                                 child: LinearProgressIndicator(
-                                  value: totalCount > 0 ? (completedCount / totalCount) : 0,
+                                  value: totalCount > 0
+                                      ? (completedCount / totalCount)
+                                      : 0,
                                   minHeight: 5,
                                   backgroundColor: const Color(0xFFE2E8F0),
-                                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryNavy),
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                        AppColors.primaryNavy,
+                                      ),
                                 ),
                               ),
 
@@ -1172,37 +1367,53 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   decoration: BoxDecoration(
                                     border: Border(
                                       bottom: BorderSide(
-                                        color: index == _actionItems.length - 1 ? Colors.transparent : const Color(0xFFF1F5F9),
+                                        color: index == _actionItems.length - 1
+                                            ? Colors.transparent
+                                            : const Color(0xFFF1F5F9),
                                       ),
                                     ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           GestureDetector(
                                             onTap: () {
                                               setState(() {
-                                                item['isCompleted'] = !isCompleted;
+                                                item['isCompleted'] =
+                                                    !isCompleted;
                                               });
                                             },
                                             child: Container(
                                               width: 22,
                                               height: 22,
-                                              margin: const EdgeInsets.only(top: 2),
+                                              margin: const EdgeInsets.only(
+                                                top: 2,
+                                              ),
                                               decoration: BoxDecoration(
-                                                color: isCompleted ? AppColors.primaryNavy : Colors.transparent,
-                                                borderRadius: BorderRadius.circular(6),
+                                                color: isCompleted
+                                                    ? AppColors.primaryNavy
+                                                    : Colors.transparent,
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
                                                 border: Border.all(
-                                                  color: isCompleted ? AppColors.primaryNavy : const Color(0xFFCBD5E1),
+                                                  color: isCompleted
+                                                      ? AppColors.primaryNavy
+                                                      : const Color(0xFFCBD5E1),
                                                   width: 1.5,
                                                 ),
                                               ),
                                               child: isCompleted
                                                   ? const Center(
-                                                      child: Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                                                      child: Icon(
+                                                        Icons.check_rounded,
+                                                        color: Colors.white,
+                                                        size: 16,
+                                                      ),
                                                     )
                                                   : null,
                                             ),
@@ -1212,19 +1423,28 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                             child: GestureDetector(
                                               onTap: () {
                                                 setState(() {
-                                                  item['isExpanded'] = !isExpanded;
+                                                  item['isExpanded'] =
+                                                      !isExpanded;
                                                 });
                                               },
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
                                                     item['title'] as String,
                                                     style: TextStyle(
                                                       fontSize: 13,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: isCompleted ? AppColors.secondarySlate : AppColors.darkSlate,
-                                                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: isCompleted
+                                                          ? AppColors
+                                                                .secondarySlate
+                                                          : AppColors.darkSlate,
+                                                      decoration: isCompleted
+                                                          ? TextDecoration
+                                                                .lineThrough
+                                                          : null,
                                                       height: 1.35,
                                                     ),
                                                   ),
@@ -1234,17 +1454,22 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                           ),
                                           const SizedBox(width: 8),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 7,
+                                              vertical: 3,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: item['tagBg'] as Color,
-                                              borderRadius: BorderRadius.circular(6),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
                                             ),
                                             child: Text(
                                               item['tag'] as String,
                                               style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
-                                                color: item['tagColor'] as Color,
+                                                color:
+                                                    item['tagColor'] as Color,
                                               ),
                                             ),
                                           ),
@@ -1252,11 +1477,16 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                           GestureDetector(
                                             onTap: () {
                                               setState(() {
-                                                item['isExpanded'] = !isExpanded;
+                                                item['isExpanded'] =
+                                                    !isExpanded;
                                               });
                                             },
                                             child: Icon(
-                                              isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                              isExpanded
+                                                  ? Icons
+                                                        .keyboard_arrow_up_rounded
+                                                  : Icons
+                                                        .keyboard_arrow_down_rounded,
                                               size: 18,
                                               color: AppColors.secondarySlate,
                                             ),
@@ -1268,7 +1498,10 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                       if (isExpanded) ...[
                                         const SizedBox(height: 8),
                                         Padding(
-                                          padding: const EdgeInsets.only(left: 34.0, right: 8.0),
+                                          padding: const EdgeInsets.only(
+                                            left: 34.0,
+                                            right: 8.0,
+                                          ),
                                           child: Text(
                                             item['detail'] as String,
                                             style: const TextStyle(
@@ -1319,7 +1552,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _isEscrowReleased ? 'Escrow Telah Dilepas' : 'Konfirmasi Selesai & Lepas Escrow',
+                      _isEscrowReleased
+                          ? 'Escrow Telah Dilepas'
+                          : 'Konfirmasi Selesai & Lepas Escrow',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -1327,7 +1562,11 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 18),
+                    const Icon(
+                      Icons.check_circle_outline_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ],
                 ),
               ),

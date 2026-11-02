@@ -8,6 +8,7 @@ class AppColors {
   static const Color canvasWhite = Color(0xFFF8FAFC);
   static const Color cardSurface = Colors.white;
   static const Color accentAmberGold = Color(0xFFF59E0B);
+  static const Color accentAmberDeep = Color(0xFFB45309);
   static const Color borderSlate = Color(0xFFE2E8F0);
   static const Color lightBlueSurface = Color(0xFFEFF6FF);
   static const Color successGreen = Color(0xFF10B981);
@@ -19,7 +20,7 @@ class AppColors {
   static const Color tertiaryCaramel = Color(0xFF8C5E3C);
   static const Color darkCharcoal = Color(0xFF2D2926);
   static const Color warmOffWhite = Color(0xFFF9F6F0);
-  
+
   static BoxDecoration floatingDecoration = BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(24),

@@ -6,7 +6,8 @@ class StudentSetupProfileScreen extends StatefulWidget {
   const StudentSetupProfileScreen({super.key});
 
   @override
-  State<StudentSetupProfileScreen> createState() => _StudentSetupProfileScreenState();
+  State<StudentSetupProfileScreen> createState() =>
+      _StudentSetupProfileScreenState();
 }
 
 class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
@@ -62,12 +63,19 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
                       univ,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: _selectedUniversity == univ ? FontWeight.bold : FontWeight.normal,
-                        color: _selectedUniversity == univ ? AppColors.primaryNavy : AppColors.darkSlate,
+                        fontWeight: _selectedUniversity == univ
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: _selectedUniversity == univ
+                            ? AppColors.primaryNavy
+                            : AppColors.darkSlate,
                       ),
                     ),
                     trailing: _selectedUniversity == univ
-                        ? const Icon(Icons.check_circle_rounded, color: AppColors.primaryNavy)
+                        ? const Icon(
+                            Icons.check_circle_rounded,
+                            color: AppColors.primaryNavy,
+                          )
                         : null,
                     onTap: () {
                       setState(() {
@@ -103,7 +111,9 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
     if (!_agreedToPrivacy) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Harap setujui Perjanjian Privasi Data terlebih dahulu.'),
+          content: Text(
+            'Harap setujui Perjanjian Privasi Data terlebih dahulu.',
+          ),
           backgroundColor: AppColors.darkSlate,
         ),
       );
@@ -122,7 +132,10 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -139,7 +152,9 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.06),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.06,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -221,7 +236,10 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
                     GestureDetector(
                       onTap: _showUniversityPicker,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 15,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.cardSurface,
                           borderRadius: BorderRadius.circular(16),
@@ -276,17 +294,26 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
                       child: TextField(
                         controller: _nimController,
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(fontSize: 14, color: AppColors.darkSlate),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.darkSlate,
+                        ),
                         decoration: const InputDecoration(
                           hintText: 'Contoh: 22050974012',
-                          hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                          hintStyle: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 14,
+                          ),
                           prefixIcon: Icon(
                             Icons.tag_rounded,
                             color: AppColors.secondarySlate,
                             size: 20,
                           ),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -307,7 +334,10 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
                       onTap: _simulateUploadKtm,
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 28,
+                          horizontal: 20,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.cardSurface,
                           borderRadius: BorderRadius.circular(20),
@@ -338,7 +368,8 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
                                     : Icon(
                                         _uploadedFileName != null
                                             ? Icons.check_circle_outline_rounded
-                                            : Icons.add_photo_alternate_outlined,
+                                            : Icons
+                                                  .add_photo_alternate_outlined,
                                         color: AppColors.primaryNavy,
                                         size: 26,
                                       ),
@@ -393,10 +424,14 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
                               width: 22,
                               height: 22,
                               decoration: BoxDecoration(
-                                color: _agreedToPrivacy ? AppColors.primaryNavy : Colors.transparent,
+                                color: _agreedToPrivacy
+                                    ? AppColors.primaryNavy
+                                    : Colors.transparent,
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: _agreedToPrivacy ? AppColors.primaryNavy : const Color(0xFFCBD5E1),
+                                  color: _agreedToPrivacy
+                                      ? AppColors.primaryNavy
+                                      : const Color(0xFFCBD5E1),
                                   width: 1.5,
                                 ),
                               ),
@@ -447,7 +482,12 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
 
             // Bottom CTA Button: Submit Verifikasi
             Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24, bottom: 28, top: 12),
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                bottom: 28,
+                top: 12,
+              ),
               child: GestureDetector(
                 onTap: _onSubmit,
                 child: Container(

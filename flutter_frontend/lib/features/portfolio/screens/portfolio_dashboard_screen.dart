@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
@@ -7,7 +8,8 @@ class PortfolioDashboardScreen extends StatefulWidget {
   const PortfolioDashboardScreen({super.key});
 
   @override
-  State<PortfolioDashboardScreen> createState() => _PortfolioDashboardScreenState();
+  State<PortfolioDashboardScreen> createState() =>
+      _PortfolioDashboardScreenState();
 }
 
 class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
@@ -78,7 +80,10 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
               ),
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.canvasWhite,
                   borderRadius: BorderRadius.circular(12),
@@ -86,7 +91,11 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.link_rounded, size: 18, color: AppColors.primaryNavy),
+                    Icon(
+                      Icons.link_rounded,
+                      size: 18,
+                      color: AppColors.primaryNavy,
+                    ),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -114,7 +123,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryNavy,
                   minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 onPressed: () {
                   Navigator.pop(ctx);
@@ -127,7 +138,10 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                 },
                 child: const Text(
                   'Salin Tautan CV',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -159,24 +173,41 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard),
+              onTap: () => Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.studentDashboard,
+              ),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.explore_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.explore_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.submission),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.submission),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.assignment_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.assignment_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.wallet),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.wallet),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             Container(
@@ -343,7 +374,11 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.star_rounded, size: 16, color: AppColors.accentAmberGold),
+                  const Icon(
+                    Icons.star_rounded,
+                    size: 16,
+                    color: AppColors.accentAmberGold,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     rating,
@@ -365,7 +400,10 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                 spacing: 8,
                 children: tags.map((t) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
@@ -432,7 +470,8 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
+                        onTap: () =>
+                            Navigator.pushNamed(context, AppRoutes.editProfile),
                         child: Container(
                           width: 44,
                           height: 44,
@@ -441,7 +480,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.05,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -560,15 +601,24 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.canvasWhite,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.borderSlate),
+                                border: Border.all(
+                                  color: AppColors.borderSlate,
+                                ),
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.business_center_rounded, size: 14, color: Color(0xFF0A66C2)),
+                                  Icon(
+                                    Icons.business_center_rounded,
+                                    size: 14,
+                                    color: Color(0xFF0A66C2),
+                                  ),
                                   SizedBox(width: 6),
                                   Text(
                                     'arya-pratama',
@@ -583,15 +633,24 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                             ),
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.canvasWhite,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.borderSlate),
+                                border: Border.all(
+                                  color: AppColors.borderSlate,
+                                ),
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.terminal_rounded, size: 14, color: AppColors.darkSlate),
+                                  Icon(
+                                    Icons.terminal_rounded,
+                                    size: 14,
+                                    color: AppColors.darkSlate,
+                                  ),
                                   SizedBox(width: 6),
                                   Text(
                                     'aryapratama',
@@ -610,7 +669,10 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
 
                         // Stats Summary Row
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.canvasWhite,
                             borderRadius: BorderRadius.circular(16),
@@ -640,14 +702,23 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                   ],
                                 ),
                               ),
-                              Container(width: 1, height: 28, color: AppColors.borderSlate),
+                              Container(
+                                width: 1,
+                                height: 28,
+                                color: AppColors.borderSlate,
+                              ),
                               Expanded(
                                 child: Column(
                                   children: const [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.star_rounded, size: 16, color: AppColors.accentAmberGold),
+                                        Icon(
+                                          Icons.star_rounded,
+                                          size: 16,
+                                          color: AppColors.accentAmberGold,
+                                        ),
                                         SizedBox(width: 4),
                                         Text(
                                           '4.9',
@@ -670,7 +741,11 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                   ],
                                 ),
                               ),
-                              Container(width: 1, height: 28, color: AppColors.borderSlate),
+                              Container(
+                                width: 1,
+                                height: 28,
+                                color: AppColors.borderSlate,
+                              ),
                               Expanded(
                                 child: Column(
                                   children: const [
@@ -705,19 +780,30 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                               child: OutlinedButton(
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: AppColors.darkSlate,
-                                  side: const BorderSide(color: AppColors.borderSlate),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  side: const BorderSide(
+                                    color: AppColors.borderSlate,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                 ),
                                 onPressed: () {
-                                  Navigator.pushNamed(context, AppRoutes.editProfile);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.editProfile,
+                                  );
                                 },
                                 child: const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.edit_outlined, size: 15, color: AppColors.darkSlate),
+                                    Icon(
+                                      Icons.edit_outlined,
+                                      size: 15,
+                                      color: AppColors.darkSlate,
+                                    ),
                                     SizedBox(width: 6),
                                     Text(
                                       'Edit Profil',
@@ -737,7 +823,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                   backgroundColor: AppColors.primaryNavy,
                                   foregroundColor: Colors.white,
                                   elevation: 0,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
                                   ),
@@ -773,7 +861,10 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.pushNamed(context, AppRoutes.certificates);
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.certificates,
+                            );
                           },
                           child: Container(
                             padding: const EdgeInsets.all(16),
@@ -783,7 +874,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                               border: Border.all(color: AppColors.borderSlate),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.03),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.03,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 3),
                                 ),
@@ -832,7 +925,10 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.pushNamed(context, AppRoutes.bookingSession);
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.bookingSession,
+                            );
                           },
                           child: Container(
                             padding: const EdgeInsets.all(16),
@@ -842,7 +938,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                               border: Border.all(color: AppColors.borderSlate),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.03),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.03,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 3),
                                 ),
@@ -941,7 +1039,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                   ? const SizedBox(
                                       width: 18,
                                       height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
                                     )
                                   : const Icon(
                                       Icons.north_east_rounded,
@@ -963,7 +1063,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                 child: SizedBox(
                                   height: 8,
                                   child: DecoratedBox(
-                                    decoration: BoxDecoration(color: AppColors.primaryNavy),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryNavy,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -973,7 +1075,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                 child: SizedBox(
                                   height: 8,
                                   child: DecoratedBox(
-                                    decoration: BoxDecoration(color: AppColors.secondarySlate),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.secondarySlate,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -983,7 +1087,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                 child: SizedBox(
                                   height: 8,
                                   child: DecoratedBox(
-                                    decoration: BoxDecoration(color: AppColors.accentAmberGold),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.accentAmberGold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -997,16 +1103,25 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                           children: [
                             _buildLegendItem('Dart 52%', AppColors.primaryNavy),
                             const SizedBox(width: 14),
-                            _buildLegendItem('PHP 31%', AppColors.secondarySlate),
+                            _buildLegendItem(
+                              'PHP 31%',
+                              AppColors.secondarySlate,
+                            ),
                             const SizedBox(width: 14),
-                            _buildLegendItem('JavaScript 17%', AppColors.accentAmberGold),
+                            _buildLegendItem(
+                              'JavaScript 17%',
+                              AppColors.accentAmberGold,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
 
                         // 3 Stats Grid
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(14),
@@ -1036,7 +1151,11 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                   ],
                                 ),
                               ),
-                              Container(width: 1, height: 24, color: AppColors.borderSlate),
+                              Container(
+                                width: 1,
+                                height: 24,
+                                color: AppColors.borderSlate,
+                              ),
                               Expanded(
                                 child: Column(
                                   children: const [
@@ -1059,7 +1178,11 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                   ],
                                 ),
                               ),
-                              Container(width: 1, height: 24, color: AppColors.borderSlate),
+                              Container(
+                                width: 1,
+                                height: 24,
+                                color: AppColors.borderSlate,
+                              ),
                               Expanded(
                                 child: Column(
                                   children: const [
@@ -1124,7 +1247,8 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
+                        onTap: () =>
+                            Navigator.pushNamed(context, AppRoutes.editProfile),
                         child: const Text(
                           'Kelola',
                           style: TextStyle(
@@ -1267,7 +1391,9 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                             onTap: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Unggah portofolio Figma untuk verifikasi.'),
+                                  content: Text(
+                                    'Unggah portofolio Figma untuk verifikasi.',
+                                  ),
                                   backgroundColor: AppColors.darkSlate,
                                 ),
                               );
@@ -1300,7 +1426,8 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.myProjects),
+                        onTap: () =>
+                            Navigator.pushNamed(context, AppRoutes.myProjects),
                         child: const Text(
                           'Semua',
                           style: TextStyle(
@@ -1355,9 +1482,7 @@ class RadarChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _RadarChartPainter(),
-    );
+    return CustomPaint(painter: _RadarChartPainter());
   }
 }
 

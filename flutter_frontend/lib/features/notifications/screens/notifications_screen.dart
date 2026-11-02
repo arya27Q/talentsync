@@ -144,11 +144,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
-                child: Icon(
-                  item.icon,
-                  color: item.iconColor,
-                  size: 24,
-                ),
+                child: Icon(item.icon, color: item.iconColor, size: 24),
               ),
             ),
             const SizedBox(width: 14),
@@ -208,20 +204,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildNavIcon({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildNavIcon({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         color: Colors.transparent,
-        child: Icon(
-          icon,
-          color: AppColors.secondarySlate,
-          size: 24,
-        ),
+        child: Icon(icon, color: AppColors.secondarySlate, size: 24),
       ),
     );
   }
@@ -238,7 +227,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               children: [
                 // Top App Bar
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 16.0,
+                  ),
                   child: Row(
                     children: [
                       // Back Button
@@ -247,7 +239,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           if (Navigator.canPop(context)) {
                             Navigator.pop(context);
                           } else {
-                            Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+                            Navigator.pushReplacementNamed(
+                              context,
+                              AppRoutes.studentDashboard,
+                            );
                           }
                         },
                         child: Container(
@@ -258,7 +253,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.05,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -301,7 +298,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 // Notifications List
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.only(left: 24, right: 24, top: 8, bottom: 120),
+                    padding: const EdgeInsets.only(
+                      left: 24,
+                      right: 24,
+                      top: 8,
+                      bottom: 120,
+                    ),
                     itemCount: _notifications.length,
                     itemBuilder: (context, index) {
                       return _buildNotificationCard(_notifications[index]);
@@ -336,13 +338,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   _buildNavIcon(
                     icon: Icons.explore_outlined,
                     onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.studentDashboard, (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.studentDashboard,
+                        (route) => false,
+                      );
                     },
                   ),
                   _buildNavIcon(
                     icon: Icons.assignment_outlined,
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.myProjects);
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.myProjects,
+                      );
                     },
                   ),
                   _buildNavIcon(

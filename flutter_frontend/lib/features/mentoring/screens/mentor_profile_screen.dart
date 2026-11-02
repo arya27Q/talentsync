@@ -11,9 +11,12 @@ class MentorProfileScreen extends StatefulWidget {
 
 class _MentorProfileScreenState extends State<MentorProfileScreen> {
   bool _isBookmarked = false;
-  int _selectedDateIndex = 0; // 0: Besok, 25 Jun, 1: Kam, 26 Jun, 2: Jum, 27 Jun
-  int _selectedTimeIndex = 2; // 0: 14.00, 1: 16.30 (penuh), 2: 19.00 (terpilih), 3: 20.30
-  int _selectedTopicIndex = 0; // 0: Kurasi tender, 1: Review UX, 2: Simulasi pitching
+  int _selectedDateIndex =
+      0; // 0: Besok, 25 Jun, 1: Kam, 26 Jun, 2: Jum, 27 Jun
+  int _selectedTimeIndex =
+      2; // 0: 14.00, 1: 16.30 (penuh), 2: 19.00 (terpilih), 3: 20.30
+  int _selectedTopicIndex =
+      0; // 0: Kurasi tender, 1: Review UX, 2: Simulasi pitching
 
   final List<String> _dates = ['Besok, 25 Jun', 'Kam, 26 Jun', 'Jum, 27 Jun'];
 
@@ -142,7 +145,10 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                 children: [
                   // 1. Top Bar: Back, Title, Chat, Bookmark
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -155,7 +161,9 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -195,7 +203,9 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -218,7 +228,11 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                             });
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(_isBookmarked ? 'Mentor disimpan ke favorit' : 'Mentor dihapus dari favorit'),
+                                content: Text(
+                                  _isBookmarked
+                                      ? 'Mentor disimpan ke favorit'
+                                      : 'Mentor dihapus dari favorit',
+                                ),
                                 duration: const Duration(seconds: 1),
                                 backgroundColor: AppColors.darkSlate,
                               ),
@@ -232,7 +246,9 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -240,8 +256,12 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                             ),
                             child: Center(
                               child: Icon(
-                                _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                                color: _isBookmarked ? AppColors.primaryNavy : AppColors.darkSlate,
+                                _isBookmarked
+                                    ? Icons.bookmark_rounded
+                                    : Icons.bookmark_border_rounded,
+                                color: _isBookmarked
+                                    ? AppColors.primaryNavy
+                                    : AppColors.darkSlate,
                                 size: 20,
                               ),
                             ),
@@ -285,16 +305,21 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                       child: Image.network(
                                         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => const Center(
-                                          child: Text(
-                                            'DP',
-                                            style: TextStyle(
-                                              color: AppColors.primaryNavy,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 22,
+                                        errorBuilder:
+                                            (
+                                              context,
+                                              error,
+                                              stackTrace,
+                                            ) => const Center(
+                                              child: Text(
+                                                'DP',
+                                                style: TextStyle(
+                                                  color: AppColors.primaryNavy,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 22,
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
                                       ),
                                     ),
                                   ),
@@ -334,10 +359,15 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                           ),
                                         ),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFFEF3C7),
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: const Text(
                                             'Top Mentor',
@@ -520,7 +550,11 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                               ),
                               Row(
                                 children: [
-                                  Icon(Icons.videocam_outlined, size: 16, color: AppColors.secondarySlate),
+                                  Icon(
+                                    Icons.videocam_outlined,
+                                    size: 16,
+                                    color: AppColors.secondarySlate,
+                                  ),
                                   SizedBox(width: 4),
                                   Text(
                                     '1-on-1 Meet',
@@ -548,22 +582,38 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.access_time_rounded, size: 14, color: AppColors.darkSlate),
+                                  Icon(
+                                    Icons.access_time_rounded,
+                                    size: 14,
+                                    color: AppColors.darkSlate,
+                                  ),
                                   SizedBox(width: 6),
                                   Text(
                                     '60 menit',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
+                                    ),
                                   ),
                                 ],
                               ),
                               SizedBox(width: 20),
                               Row(
                                 children: [
-                                  Icon(Icons.translate_rounded, size: 14, color: AppColors.darkSlate),
+                                  Icon(
+                                    Icons.translate_rounded,
+                                    size: 14,
+                                    color: AppColors.darkSlate,
+                                  ),
                                   SizedBox(width: 6),
                                   Text(
                                     'Bahasa Indonesia & Inggris',
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -594,7 +644,8 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                         _buildDeliverableItem(
                           icon: Icons.assignment_turned_in_outlined,
                           title: 'Audit file & case study PDF',
-                          subtitle: 'Penilaian siap tender dengan standar industri',
+                          subtitle:
+                              'Penilaian siap tender dengan standar industri',
                         ),
                         _buildDeliverableItem(
                           icon: Icons.forum_outlined,
@@ -658,18 +709,27 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                   });
                                 },
                                 child: Container(
-                                  margin: EdgeInsets.only(right: index == _dates.length - 1 ? 0 : 8),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  margin: EdgeInsets.only(
+                                    right: index == _dates.length - 1 ? 0 : 8,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.primaryNavy : AppColors.cardSurface,
+                                    color: isSelected
+                                        ? AppColors.primaryNavy
+                                        : AppColors.cardSurface,
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
-                                      color: isSelected ? AppColors.primaryNavy : const Color(0xFFE2E8F0),
+                                      color: isSelected
+                                          ? AppColors.primaryNavy
+                                          : const Color(0xFFE2E8F0),
                                     ),
                                     boxShadow: isSelected
                                         ? [
                                             BoxShadow(
-                                              color: AppColors.primaryNavy.withValues(alpha: 0.2),
+                                              color: AppColors.primaryNavy
+                                                  .withValues(alpha: 0.2),
                                               blurRadius: 8,
                                               offset: const Offset(0, 3),
                                             ),
@@ -682,7 +742,9 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: isSelected ? Colors.white : AppColors.darkSlate,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.darkSlate,
                                       ),
                                     ),
                                   ),
@@ -698,12 +760,13 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 2.8,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                          ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 2.8,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                              ),
                           itemCount: _timeSlots.length,
                           itemBuilder: (context, index) {
                             final slot = _timeSlots[index];
@@ -719,36 +782,53 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                       });
                                     },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isFull
                                       ? const Color(0xFFF1F5F9)
-                                      : (isSelected ? const Color(0xFFEFF6FF) : AppColors.cardSurface),
+                                      : (isSelected
+                                            ? const Color(0xFFEFF6FF)
+                                            : AppColors.cardSurface),
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
                                     color: isFull
                                         ? Colors.transparent
-                                        : (isSelected ? AppColors.primaryNavy : const Color(0xFFE2E8F0)),
+                                        : (isSelected
+                                              ? AppColors.primaryNavy
+                                              : const Color(0xFFE2E8F0)),
                                     width: isSelected ? 1.5 : 1,
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       slot['time'] as String,
                                       style: TextStyle(
                                         fontSize: 12,
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                        color: isFull ? const Color(0xFF94A3B8) : AppColors.darkSlate,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
+                                        color: isFull
+                                            ? const Color(0xFF94A3B8)
+                                            : AppColors.darkSlate,
                                       ),
                                     ),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: isFull
                                             ? const Color(0xFFCBD5E1)
-                                            : (isSelected ? AppColors.primaryNavy : const Color(0xFFF1F5F9)),
+                                            : (isSelected
+                                                  ? AppColors.primaryNavy
+                                                  : const Color(0xFFF1F5F9)),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
@@ -758,7 +838,9 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                           fontWeight: FontWeight.bold,
                                           color: isFull
                                               ? Colors.white
-                                              : (isSelected ? Colors.white : AppColors.secondarySlate),
+                                              : (isSelected
+                                                    ? Colors.white
+                                                    : AppColors.secondarySlate),
                                         ),
                                       ),
                                     ),
@@ -807,12 +889,16 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                 color: AppColors.cardSurface,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: isSelected ? AppColors.primaryNavy : const Color(0xFFE2E8F0),
+                                  color: isSelected
+                                      ? AppColors.primaryNavy
+                                      : const Color(0xFFE2E8F0),
                                   width: isSelected ? 1.5 : 1,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.darkSlate.withValues(alpha: 0.03),
+                                    color: AppColors.darkSlate.withValues(
+                                      alpha: 0.03,
+                                    ),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -828,7 +914,9 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: isSelected ? AppColors.primaryNavy : const Color(0xFF94A3B8),
+                                        color: isSelected
+                                            ? AppColors.primaryNavy
+                                            : const Color(0xFF94A3B8),
                                         width: 2,
                                       ),
                                     ),
@@ -848,14 +936,17 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           topic['title']!,
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
-                                            color: isSelected ? AppColors.primaryNavy : AppColors.darkSlate,
+                                            color: isSelected
+                                                ? AppColors.primaryNavy
+                                                : AppColors.darkSlate,
                                           ),
                                         ),
                                         const SizedBox(height: 3),
@@ -889,7 +980,12 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
             right: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 28),
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 16,
+                bottom: 28,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -908,7 +1004,10 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                     children: [
                       Text(
                         '${_dates[_selectedDateIndex]} · ${_timeSlots[_selectedTimeIndex]['time'].split(' ')[0]}',
-                        style: const TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.secondarySlate,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       const Text(
@@ -927,13 +1026,18 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                       Navigator.pushNamed(context, AppRoutes.bookingSession);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 15),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 15,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primaryNavy,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -950,7 +1054,11 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                             ),
                           ),
                           SizedBox(width: 6),
-                          Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 16),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                         ],
                       ),
                     ),

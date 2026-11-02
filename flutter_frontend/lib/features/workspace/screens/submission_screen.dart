@@ -11,9 +11,10 @@ class SubmissionScreen extends StatefulWidget {
 
 class _SubmissionScreenState extends State<SubmissionScreen> {
   int _selectedFormatIndex = 0; // 0: Tautan, 1: File, 2: Catatan
-  final TextEditingController _deliverableInputController = TextEditingController(
-    text: 'https://drive.google.com/drive/folders/kasir-tokobusri-v2',
-  );
+  final TextEditingController _deliverableInputController =
+      TextEditingController(
+        text: 'https://drive.google.com/drive/folders/kasir-tokobusri-v2',
+      );
 
   final List<String> _attachedLinks = [
     'https://github.com/aryapratama/kasir-toko-busri',
@@ -46,7 +47,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
 
   void _showAddStageDialog() {
     final TextEditingController stageNameController = TextEditingController();
-    final TextEditingController stageTcController = TextEditingController(text: '15');
+    final TextEditingController stageTcController = TextEditingController(
+      text: '15',
+    );
 
     showDialog(
       context: context,
@@ -55,7 +58,11 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Tambah Tahapan Baru',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkSlate,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -70,8 +77,13 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
               controller: stageNameController,
               decoration: InputDecoration(
                 labelText: 'Nama Tahap (misal: Slicing UI, UAT)',
-                labelStyle: const TextStyle(fontSize: 13, color: AppColors.secondarySlate),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.secondarySlate,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -80,8 +92,13 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'Nilai TimeCoin (TC)',
-                labelStyle: const TextStyle(fontSize: 13, color: AppColors.secondarySlate),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.secondarySlate,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -89,23 +106,36 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.secondarySlate)),
+            child: const Text(
+              'Batal',
+              style: TextStyle(color: AppColors.secondarySlate),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryNavy,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             onPressed: () {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Tahap baru berhasil diajukan ke pemilik UMKM.'),
+                  content: Text(
+                    'Tahap baru berhasil diajukan ke pemilik UMKM.',
+                  ),
                   backgroundColor: AppColors.darkSlate,
                 ),
               );
             },
-            child: const Text('Tambah Tahap', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Tambah Tahap',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -209,7 +239,10 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                       ),
                       onPressed: () {
                         Navigator.pop(ctx);
-                        Navigator.pushNamed(context, AppRoutes.projectCompleted);
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.projectCompleted,
+                        );
                       },
                       child: const Text(
                         'Lihat Status Akhir',
@@ -241,7 +274,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
           decoration: BoxDecoration(
             color: isSelected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
-            border: isSelected ? Border.all(color: const Color(0xFFE2E8F0)) : null,
+            border: isSelected
+                ? Border.all(color: const Color(0xFFE2E8F0))
+                : null,
             boxShadow: isSelected
                 ? [
                     BoxShadow(
@@ -258,7 +293,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
               Icon(
                 icon,
                 size: 15,
-                color: isSelected ? AppColors.darkSlate : AppColors.secondarySlate,
+                color: isSelected
+                    ? AppColors.darkSlate
+                    : AppColors.secondarySlate,
               ),
               const SizedBox(width: 6),
               Text(
@@ -266,7 +303,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? AppColors.darkSlate : AppColors.secondarySlate,
+                  color: isSelected
+                      ? AppColors.darkSlate
+                      : AppColors.secondarySlate,
                 ),
               ),
             ],
@@ -384,10 +423,17 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard),
+              onTap: () => Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.studentDashboard,
+              ),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.explore_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.explore_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             Container(
@@ -412,17 +458,27 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.wallet),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.wallet),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.person_outline_rounded, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
           ],
@@ -457,7 +513,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.05,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -479,7 +537,10 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.workspaceKanban),
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.workspaceKanban,
+                        ),
                         child: Container(
                           width: 44,
                           height: 44,
@@ -488,7 +549,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                color: AppColors.darkSlate.withValues(
+                                  alpha: 0.05,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -648,7 +711,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                           child: LinearProgressIndicator(
                             value: _isSubmitted ? 0.66 : 0.33,
                             backgroundColor: const Color(0xFFE2E8F0),
-                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryNavy),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              AppColors.primaryNavy,
+                            ),
                             minHeight: 6,
                           ),
                         ),
@@ -710,7 +775,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -809,31 +876,49 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                 shape: BoxShape.circle,
                               ),
                               child: const Center(
-                                child: Icon(Icons.check_rounded, size: 16, color: Color(0xFF16A34A)),
+                                child: Icon(
+                                  Icons.check_rounded,
+                                  size: 16,
+                                  color: Color(0xFF16A34A),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
                                 'Tahap 1',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.secondarySlate),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.secondarySlate,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFDCFCE7),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
                                 'Selesai · 30 TC',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF16A34A),
+                                ),
                               ),
                             ),
                           ],
@@ -841,12 +926,19 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                         const SizedBox(height: 12),
                         const Text(
                           'Desain alur kasir & prototipe',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         const Text(
                           'Tautan prototipe Figma dan rancangan alur kasir.',
-                          style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         // Export handoff attachment box (From User Screenshot)
@@ -859,7 +951,11 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                           ),
                           child: const Row(
                             children: [
-                              Icon(Icons.folder_zip_outlined, color: AppColors.primaryNavy, size: 22),
+                              Icon(
+                                Icons.folder_zip_outlined,
+                                color: AppColors.primaryNavy,
+                                size: 22,
+                              ),
                               SizedBox(width: 10),
                               Expanded(
                                 child: Column(
@@ -867,16 +963,27 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                   children: [
                                     Text(
                                       'Export handoff',
-                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
+                                      ),
                                     ),
                                     Text(
                                       'Screens-v1.zip · 12,4 MB',
-                                      style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 18),
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color: Color(0xFF16A34A),
+                                size: 18,
+                              ),
                             ],
                           ),
                         ),
@@ -891,7 +998,10 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.primaryNavy, width: 1.5),
+                      border: Border.all(
+                        color: AppColors.primaryNavy,
+                        width: 1.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.primaryNavy.withValues(alpha: 0.06),
@@ -916,36 +1026,58 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                               child: const Center(
                                 child: Text(
                                   '2',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
                                 'Tahap 2',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.secondarySlate),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.secondarySlate,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFFEF3C7),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
                                 'Siap diisi · 50 TC',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFB45309)),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFB45309),
+                                ),
                               ),
                             ),
                             const Spacer(),
-                            const Icon(Icons.delete_outline_rounded, color: AppColors.secondarySlate, size: 20),
+                            const Icon(
+                              Icons.delete_outline_rounded,
+                              color: AppColors.secondarySlate,
+                              size: 20,
+                            ),
                           ],
                         ),
 
@@ -953,12 +1085,19 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
 
                         const Text(
                           'Fitur stok & transaksi',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         const Text(
                           'Form stok, transaksi, dan database lokal',
-                          style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                          ),
                         ),
 
                         const SizedBox(height: 16),
@@ -966,7 +1105,11 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                         // Section: Pilih format deliverable yang ingin diserahkan
                         const Text(
                           'Pilih format deliverable yang ingin diserahkan',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
                         const SizedBox(height: 10),
 
@@ -980,8 +1123,16 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                           child: Row(
                             children: [
                               _buildFormatTab(0, Icons.link_rounded, 'Tautan'),
-                              _buildFormatTab(1, Icons.folder_open_rounded, 'File'),
-                              _buildFormatTab(2, Icons.description_outlined, 'Catatan'),
+                              _buildFormatTab(
+                                1,
+                                Icons.folder_open_rounded,
+                                'File',
+                              ),
+                              _buildFormatTab(
+                                2,
+                                Icons.description_outlined,
+                                'Catatan',
+                              ),
                             ],
                           ),
                         ),
@@ -990,7 +1141,10 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
 
                         // Input Field
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(12),
@@ -998,12 +1152,20 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                           ),
                           child: TextField(
                             controller: _deliverableInputController,
-                            style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.darkSlate,
+                            ),
                             decoration: const InputDecoration(
                               hintText: 'https://drive.google.com/... atau figma.com/',
-                              hintStyle: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                              hintStyle: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondarySlate,
+                              ),
                               border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(vertical: 10),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 10,
+                              ),
                             ),
                           ),
                         ),
@@ -1023,7 +1185,11 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_rounded, size: 18, color: AppColors.darkSlate),
+                                Icon(
+                                  Icons.add_rounded,
+                                  size: 18,
+                                  color: AppColors.darkSlate,
+                                ),
                                 SizedBox(width: 6),
                                 Text(
                                   'Lampirkan',
@@ -1047,18 +1213,28 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
+                                ),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.link_rounded, size: 16, color: AppColors.primaryNavy),
+                                  const Icon(
+                                    Icons.link_rounded,
+                                    size: 16,
+                                    color: AppColors.primaryNavy,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       link,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 12, color: AppColors.primaryNavy, fontWeight: FontWeight.w600),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.primaryNavy,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1100,47 +1276,76 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                               child: const Center(
                                 child: Text(
                                   '3',
-                                  style: TextStyle(color: AppColors.secondarySlate, fontWeight: FontWeight.bold, fontSize: 14),
+                                  style: TextStyle(
+                                    color: AppColors.secondarySlate,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
                                 'Tahap 3',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.secondarySlate),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.secondarySlate,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 6),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
                                 'Terkunci · 40 TC',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.secondarySlate),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.secondarySlate,
+                                ),
                               ),
                             ),
                             const Spacer(),
-                            const Icon(Icons.delete_outline_rounded, color: Color(0xFFCBD5E1), size: 20),
+                            const Icon(
+                              Icons.delete_outline_rounded,
+                              color: Color(0xFFCBD5E1),
+                              size: 20,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 12),
                         const Text(
                           'Rekap laba & serah terima',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         const Text(
                           'Laporan mingguan, APK, dan dokumentasi',
-                          style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                          ),
                         ),
                       ],
                     ),
@@ -1189,16 +1394,25 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                         GestureDetector(
                           onTap: _showAddStageDialog,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.add_rounded, size: 18, color: AppColors.darkSlate),
+                                Icon(
+                                  Icons.add_rounded,
+                                  size: 18,
+                                  color: AppColors.darkSlate,
+                                ),
                                 SizedBox(width: 6),
                                 Text(
                                   'Tambah tahap baru',
@@ -1232,7 +1446,11 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.chat_bubble_outline_rounded, color: AppColors.darkSlate, size: 18),
+                          Icon(
+                            Icons.chat_bubble_outline_rounded,
+                            color: AppColors.darkSlate,
+                            size: 18,
+                          ),
                           SizedBox(width: 8),
                           Text(
                             'Buka Ruang Obrolan UMKM',
@@ -1254,7 +1472,11 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: const [
-                        Icon(Icons.help_outline_rounded, size: 15, color: AppColors.secondarySlate),
+                        Icon(
+                          Icons.help_outline_rounded,
+                          size: 15,
+                          color: AppColors.secondarySlate,
+                        ),
                         SizedBox(width: 6),
                         Text(
                           'Butuh bantuan / ajukan resolusi escrow',
@@ -1309,11 +1531,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                       ),
                     ),
                     SizedBox(width: 8),
-                    Icon(
-                      Icons.send_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    ),
+                    Icon(Icons.send_rounded, color: Colors.white, size: 16),
                   ],
                 ),
               ),

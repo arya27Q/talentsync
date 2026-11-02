@@ -99,7 +99,11 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
                       color: AppColors.lightBlueSurface,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(item.icon, color: AppColors.primaryNavy, size: 28),
+                    child: Icon(
+                      item.icon,
+                      color: AppColors.primaryNavy,
+                      size: 28,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -116,7 +120,10 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
                         ),
                         Text(
                           item.provider,
-                          style: const TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                          ),
                         ),
                       ],
                     ),
@@ -134,14 +141,28 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Biaya Penukaran:', style: TextStyle(fontSize: 13, color: AppColors.secondarySlate)),
+                    const Text(
+                      'Biaya Penukaran:',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
                     Row(
                       children: [
-                        const Icon(Icons.toll_rounded, color: AppColors.accentAmberGold, size: 16),
+                        const Icon(
+                          Icons.toll_rounded,
+                          color: AppColors.accentAmberGold,
+                          size: 16,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${item.tcPrice} TC',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.darkSlate),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
                       ],
                     ),
@@ -153,7 +174,9 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryNavy,
                   minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 onPressed: () {
                   if (_userTcBalance >= item.tcPrice) {
@@ -162,16 +185,28 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
                     });
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Voucher "${item.title.replaceAll('\n', ' ')}" berhasil ditukar!')),
+                      SnackBar(
+                        content: Text(
+                          'Voucher "${item.title.replaceAll('\n', ' ')}" berhasil ditukar!',
+                        ),
+                      ),
                     );
                   } else {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Saldo TimeCoin tidak mencukupi.')),
+                      const SnackBar(
+                        content: Text('Saldo TimeCoin tidak mencukupi.'),
+                      ),
                     );
                   }
                 },
-                child: const Text('Tukarkan Reward Sekarang', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Tukarkan Reward Sekarang',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
@@ -209,11 +244,7 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
                 color: AppColors.lightBlueSurface,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                item.icon,
-                color: AppColors.primaryNavy,
-                size: 22,
-              ),
+              child: Icon(item.icon, color: AppColors.primaryNavy, size: 22),
             ),
             const SizedBox(height: 12),
             // Title & Provider
@@ -291,17 +322,29 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard),
+              onTap: () => Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.studentDashboard,
+              ),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.explore_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.explore_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.submission),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.submission),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.assignment_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.assignment_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             Container(
@@ -312,7 +355,11 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 18),
+                  Icon(
+                    Icons.account_balance_wallet_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Wallet',
@@ -326,10 +373,15 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.person_outline_rounded, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
           ],
@@ -379,7 +431,10 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
@@ -413,12 +468,13 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: _rewards.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
-                      childAspectRatio: 0.88,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 14,
+                          mainAxisSpacing: 14,
+                          childAspectRatio: 0.88,
+                        ),
                     itemBuilder: (context, index) {
                       return _buildRewardCard(_rewards[index]);
                     },

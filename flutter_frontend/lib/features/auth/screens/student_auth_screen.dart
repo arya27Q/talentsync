@@ -106,10 +106,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
               const SizedBox(height: 6),
               const Text(
                 'Gunakan email kampus agar verifikasi lebih cepat.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.secondarySlate,
-                ),
+                style: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
               ),
 
               const SizedBox(height: 28),
@@ -133,17 +130,26 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                 child: TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(fontSize: 14, color: AppColors.darkSlate),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.darkSlate,
+                  ),
                   decoration: const InputDecoration(
                     hintText: 'nama@mhs.unesa.ac.id',
-                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                    hintStyle: TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 14,
+                    ),
                     prefixIcon: Icon(
                       Icons.mail_outline_rounded,
                       color: AppColors.secondarySlate,
                       size: 20,
                     ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                 ),
               ),
@@ -169,10 +175,16 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                 child: TextField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-                  style: const TextStyle(fontSize: 14, color: AppColors.darkSlate),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.darkSlate,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Minimal 8 karakter',
-                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 14,
+                    ),
                     prefixIcon: const Icon(
                       Icons.lock_outline_rounded,
                       color: AppColors.secondarySlate,
@@ -185,13 +197,18 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                         });
                       },
                       child: Icon(
-                        _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                         color: AppColors.secondarySlate,
                         size: 20,
                       ),
                     ),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                 ),
               ),
@@ -219,7 +236,10 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
               // Primary CTA: Sign In
               GestureDetector(
                 onTap: () {
-                  Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+                  Navigator.pushReplacementNamed(
+                    context,
+                    AppRoutes.studentDashboard,
+                  );
                 },
                 child: Container(
                   width: double.infinity,

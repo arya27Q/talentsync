@@ -61,25 +61,41 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: Icon(Icons.check_rounded, color: Color(0xFF16A34A), size: 34),
+                child: Icon(
+                  Icons.check_rounded,
+                  color: Color(0xFF16A34A),
+                  size: 34,
+                ),
               ),
             ),
             const SizedBox(height: 18),
             const Text(
               'Mode Mentor Aktif!',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
               'Selamat Arya, profilmu kini terdaftar sebagai Peer Mentor TalentSync. Kamu siap membuka layanan bimbingan dan menerima TimeCoin!',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: AppColors.secondarySlate, height: 1.4),
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.secondarySlate,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () {
                 Navigator.pop(dialogCtx);
-                Navigator.pushNamedAndRemoveUntil(context, AppRoutes.mentorDashboard, (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.mentorDashboard,
+                  (route) => false,
+                );
               },
               child: Container(
                 width: double.infinity,
@@ -91,7 +107,11 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                 child: const Center(
                   child: Text(
                     'Masuk Dashboard Mentor',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
@@ -117,7 +137,11 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
               shape: BoxShape.circle,
             ),
             child: const Center(
-              child: Icon(Icons.check_rounded, color: Color(0xFF16A34A), size: 14),
+              child: Icon(
+                Icons.check_rounded,
+                color: Color(0xFF16A34A),
+                size: 14,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -163,7 +187,10 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                 children: [
                   // 1. Top App Bar
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -176,7 +203,9 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -206,7 +235,10 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                             SizedBox(height: 2),
                             Text(
                               'Jadi peer mentor TalentSync',
-                              style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondarySlate,
+                              ),
                             ),
                           ],
                         ),
@@ -224,7 +256,9 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
@@ -233,7 +267,11 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
-                          Icon(Icons.school_rounded, color: AppColors.accentAmberGold, size: 28),
+                          Icon(
+                            Icons.school_rounded,
+                            color: AppColors.accentAmberGold,
+                            size: 28,
+                          ),
                           SizedBox(height: 14),
                           Text(
                             'Ajarkan yang sudah kamu kuasai.',
@@ -288,10 +326,22 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _buildChecklistRow('KTM terverifikasi', 'Universitas Negeri Surabaya'),
-                          _buildChecklistRow('Portofolio resmi', '2 sertifikat · 1 proyek nyata terverifikasi'),
-                          _buildChecklistRow('Rating minimal 4.5', 'Rating kamu 4.9 dari 4 proyek UMKM'),
-                          _buildChecklistRow('Tanpa sengketa escrow', 'Riwayat kerja bersih'),
+                          _buildChecklistRow(
+                            'KTM terverifikasi',
+                            'Universitas Negeri Surabaya',
+                          ),
+                          _buildChecklistRow(
+                            'Portofolio resmi',
+                            '2 sertifikat · 1 proyek nyata terverifikasi',
+                          ),
+                          _buildChecklistRow(
+                            'Rating minimal 4.5',
+                            'Rating kamu 4.9 dari 4 proyek UMKM',
+                          ),
+                          _buildChecklistRow(
+                            'Tanpa sengketa escrow',
+                            'Riwayat kerja bersih',
+                          ),
                         ],
                       ),
                     ),
@@ -320,12 +370,19 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                         children: [
                           const Text(
                             'Lampirkan bukti portofolio resmi',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           const Text(
                             'Pilih minimal satu. Dicek tim kurasi dalam 1x24 jam.',
-                            style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondarySlate,
+                            ),
                           ),
                           const SizedBox(height: 16),
 
@@ -341,7 +398,9 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                                 color: const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: isSelected ? AppColors.primaryNavy : const Color(0xFFE2E8F0),
+                                  color: isSelected
+                                      ? AppColors.primaryNavy
+                                      : const Color(0xFFE2E8F0),
                                   width: isSelected ? 1.5 : 1,
                                 ),
                               ),
@@ -357,16 +416,24 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                                       width: 22,
                                       height: 22,
                                       decoration: BoxDecoration(
-                                        color: isSelected ? AppColors.primaryNavy : Colors.white,
+                                        color: isSelected
+                                            ? AppColors.primaryNavy
+                                            : Colors.white,
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(
-                                          color: isSelected ? AppColors.primaryNavy : const Color(0xFFCBD5E1),
+                                          color: isSelected
+                                              ? AppColors.primaryNavy
+                                              : const Color(0xFFCBD5E1),
                                           width: 1.5,
                                         ),
                                       ),
                                       child: isSelected
                                           ? const Center(
-                                              child: Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                                              child: Icon(
+                                                Icons.check_rounded,
+                                                color: Colors.white,
+                                                size: 16,
+                                              ),
                                             )
                                           : null,
                                     ),
@@ -379,21 +446,33 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                                       color: proof['iconBg'] as Color,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: Icon(proof['icon'] as IconData, color: proof['iconColor'] as Color, size: 18),
+                                    child: Icon(
+                                      proof['icon'] as IconData,
+                                      color: proof['iconColor'] as Color,
+                                      size: 18,
+                                    ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           proof['title'] as String,
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.darkSlate,
+                                          ),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
                                           proof['subtitle'] as String,
-                                          style: const TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.secondarySlate,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -418,12 +497,20 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                             ),
                             child: Row(
                               children: const [
-                                Icon(Icons.upload_file_rounded, color: AppColors.primaryNavy, size: 20),
+                                Icon(
+                                  Icons.upload_file_rounded,
+                                  color: AppColors.primaryNavy,
+                                  size: 20,
+                                ),
                                 SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
                                     'Unggah sertifikat eksternal (Dicoding, BNSP, Google)',
-                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.darkSlate),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.darkSlate,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -457,7 +544,11 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                         children: [
                           const Text(
                             'Keahlian yang akan diajarkan',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
                           ),
                           const SizedBox(height: 12),
                           Wrap(
@@ -474,12 +565,19 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                                   });
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.primaryNavy : Colors.white,
+                                    color: isSelected
+                                        ? AppColors.primaryNavy
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: isSelected ? AppColors.primaryNavy : const Color(0xFFCBD5E1),
+                                      color: isSelected
+                                          ? AppColors.primaryNavy
+                                          : const Color(0xFFCBD5E1),
                                     ),
                                   ),
                                   child: Text(
@@ -487,7 +585,9 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : AppColors.darkSlate,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.darkSlate,
                                     ),
                                   ),
                                 ),
@@ -497,7 +597,10 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                           const SizedBox(height: 10),
                           const Text(
                             'Hanya keahlian terverifikasi yang bisa diajarkan.',
-                            style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.secondarySlate,
+                            ),
                           ),
                         ],
                       ),
@@ -514,7 +617,12 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
             right: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 14, bottom: 24),
+              padding: const EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 14,
+                bottom: 24,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -553,7 +661,11 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                         ),
                       ),
                       SizedBox(width: 8),
-                      Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 20),
+                      Icon(
+                        Icons.swap_horiz_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),

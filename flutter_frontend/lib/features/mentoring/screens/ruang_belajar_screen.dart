@@ -25,7 +25,9 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
   }
 
   void _showSubmitTaskModal(String taskTitle) {
-    final TextEditingController urlController = TextEditingController(text: 'https://github.com/aryapratama/kasir-tokobusri/pull/4');
+    final TextEditingController urlController = TextEditingController(
+      text: 'https://github.com/aryapratama/kasir-tokobusri/pull/4',
+    );
     final TextEditingController notesController = TextEditingController();
 
     showModalBottomSheet(
@@ -57,18 +59,35 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
               const SizedBox(height: 18),
               Text(
                 'Kirim Tugas',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 taskTitle,
-                style: const TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.secondarySlate,
+                ),
               ),
               const SizedBox(height: 16),
-              const Text('Tautan PR / Komit GitHub', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkSlate)),
+              const Text(
+                'Tautan PR / Komit GitHub',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
+              ),
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
@@ -76,15 +95,31 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 ),
                 child: TextField(
                   controller: urlController,
-                  style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
-                  decoration: const InputDecoration(border: InputBorder.none, hintText: 'https://github.com/...'),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.darkSlate,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'https://github.com/...',
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
-              const Text('Catatan untuk Mentor (opsional)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkSlate)),
+              const Text(
+                'Catatan untuk Mentor (opsional)',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
+              ),
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
@@ -93,8 +128,14 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 child: TextField(
                   controller: notesController,
                   maxLines: 2,
-                  style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
-                  decoration: const InputDecoration(border: InputBorder.none, hintText: 'Jelaskan pendekatan arsitektur yang kamu buat'),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.darkSlate,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Jelaskan pendekatan arsitektur yang kamu buat',
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -103,7 +144,9 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Tugas berhasil dikirim ke Dimas Prasetyo untuk direview.'),
+                      content: Text(
+                        'Tugas berhasil dikirim ke Dimas Prasetyo untuk direview.',
+                      ),
                       backgroundColor: AppColors.primaryNavy,
                     ),
                   );
@@ -116,7 +159,14 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Center(
-                    child: Text('Kirim Hasil Pengerjaan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    child: Text(
+                      'Kirim Hasil Pengerjaan',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -156,7 +206,11 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
-                  child: Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFDC2626), size: 22),
+                  child: Icon(
+                    Icons.picture_as_pdf_rounded,
+                    color: Color(0xFFDC2626),
+                    size: 22,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -175,21 +229,35 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     SizedBox(height: 2),
                     Text(
                       'Contoh pemisahan data, domain, dan presentation per fitur.',
-                      style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.secondarySlate,
+                      ),
                     ),
                     SizedBox(height: 4),
                     Text(
                       'PDF · 2,4 MB  |  Dibagikan 8 Jul',
-                      style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF94A3B8),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.download_rounded, color: AppColors.primaryNavy, size: 22),
+                icon: const Icon(
+                  Icons.download_rounded,
+                  color: AppColors.primaryNavy,
+                  size: 22,
+                ),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Mengunduh panduan struktur folder...'), duration: Duration(seconds: 1)),
+                    const SnackBar(
+                      content: Text('Mengunduh panduan struktur folder...'),
+                      duration: Duration(seconds: 1),
+                    ),
                   );
                 },
               ),
@@ -222,7 +290,11 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
-                  child: Icon(Icons.play_circle_outline_rounded, color: AppColors.primaryNavy, size: 22),
+                  child: Icon(
+                    Icons.play_circle_outline_rounded,
+                    color: AppColors.primaryNavy,
+                    size: 22,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -243,14 +315,21 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFF7ED),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
                             'Baru',
-                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFEA580C),
+                            ),
                           ),
                         ),
                       ],
@@ -258,21 +337,35 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     const SizedBox(height: 2),
                     const Text(
                       'Live coding 25 menit memindahkan logika stok ke Cubit.',
-                      style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.secondarySlate,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     const Text(
                       'Video · 25 mnt  |  Dibagikan 8 Jul',
-                      style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF94A3B8),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.launch_rounded, color: AppColors.primaryNavy, size: 20),
+                icon: const Icon(
+                  Icons.launch_rounded,
+                  color: AppColors.primaryNavy,
+                  size: 20,
+                ),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Membuka video rekaman sesi...'), duration: Duration(seconds: 1)),
+                    const SnackBar(
+                      content: Text('Membuka video rekaman sesi...'),
+                      duration: Duration(seconds: 1),
+                    ),
                   );
                 },
               ),
@@ -305,7 +398,11 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
-                  child: Icon(Icons.link_rounded, color: AppColors.darkSlate, size: 22),
+                  child: Icon(
+                    Icons.link_rounded,
+                    color: AppColors.darkSlate,
+                    size: 22,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -326,14 +423,21 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFF7ED),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
                             'Baru',
-                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFEA580C),
+                            ),
                           ),
                         ),
                       ],
@@ -341,21 +445,35 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     const SizedBox(height: 2),
                     const Text(
                       'Template GitHub dengan unit test dan dependency injection.',
-                      style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.secondarySlate,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     const Text(
                       'github.com  |  Dibagikan 9 Jul',
-                      style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF94A3B8),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.launch_rounded, color: AppColors.primaryNavy, size: 20),
+                icon: const Icon(
+                  Icons.launch_rounded,
+                  color: AppColors.primaryNavy,
+                  size: 20,
+                ),
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Membuka repositori GitHub...'), duration: Duration(seconds: 1)),
+                    const SnackBar(
+                      content: Text('Membuka repositori GitHub...'),
+                      duration: Duration(seconds: 1),
+                    ),
                   );
                 },
               ),
@@ -397,25 +515,38 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF7ED),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
                         children: const [
-                          Icon(Icons.access_time_rounded, size: 11, color: Color(0xFFEA580C)),
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 11,
+                            color: Color(0xFFEA580C),
+                          ),
                           SizedBox(width: 4),
                           Text(
                             'Perlu dikerjakan',
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFEA580C),
+                            ),
                           ),
                         ],
                       ),
                     ),
                     const Spacer(),
                     Icon(
-                      _expandedTaskIndex == 0 ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                      _expandedTaskIndex == 0
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
                       color: AppColors.secondarySlate,
                     ),
                   ],
@@ -424,16 +555,28 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
               const SizedBox(height: 10),
               const Text(
                 'Refactor repository stok barang',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
               ),
               const SizedBox(height: 4),
               Row(
                 children: const [
-                  Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFFDC2626)),
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: 12,
+                    color: Color(0xFFDC2626),
+                  ),
                   SizedBox(width: 6),
                   Text(
                     'Tenggat 14 Jul · 2 hari lagi',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFDC2626)),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFDC2626),
+                    ),
                   ),
                 ],
               ),
@@ -445,16 +588,25 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 ),
                 const Text(
                   'Instruksi mentor',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   'Pindahkan query SQLite ke StockRepository dan panggil dari StockCubit. Sertakan link commit.',
-                  style: TextStyle(fontSize: 12, color: AppColors.secondarySlate, height: 1.45),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.secondarySlate,
+                    height: 1.45,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 GestureDetector(
-                  onTap: () => _showSubmitTaskModal('Refactor repository stok barang'),
+                  onTap: () =>
+                      _showSubmitTaskModal('Refactor repository stok barang'),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -474,10 +626,18 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                       children: [
                         Text(
                           'Kerjakan & Kirim',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
                         ),
                         SizedBox(width: 6),
-                        Icon(Icons.upload_rounded, color: Colors.white, size: 16),
+                        Icon(
+                          Icons.upload_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ],
                     ),
                   ),
@@ -514,25 +674,38 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF7ED),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
                         children: const [
-                          Icon(Icons.access_time_rounded, size: 11, color: Color(0xFFEA580C)),
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 11,
+                            color: Color(0xFFEA580C),
+                          ),
                           SizedBox(width: 4),
                           Text(
                             'Perlu dikerjakan',
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFEA580C)),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFEA580C),
+                            ),
                           ),
                         ],
                       ),
                     ),
                     const Spacer(),
                     Icon(
-                      _expandedTaskIndex == 1 ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                      _expandedTaskIndex == 1
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
                       color: AppColors.secondarySlate,
                     ),
                   ],
@@ -541,16 +714,27 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
               const SizedBox(height: 10),
               const Text(
                 'Tulis 5 unit test untuk perhitungan laba',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
               ),
               const SizedBox(height: 4),
               Row(
                 children: const [
-                  Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.secondarySlate),
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: 12,
+                    color: AppColors.secondarySlate,
+                  ),
                   SizedBox(width: 6),
                   Text(
                     'Tenggat 18 Jul · 6 hari lagi',
-                    style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.secondarySlate,
+                    ),
                   ),
                 ],
               ),
@@ -562,16 +746,26 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 ),
                 const Text(
                   'Instruksi mentor',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   'Gunakan mockito / mocktail untuk test ProfitCalculator. Pastikan edge case 0 nominal tercover.',
-                  style: TextStyle(fontSize: 12, color: AppColors.secondarySlate, height: 1.45),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.secondarySlate,
+                    height: 1.45,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 GestureDetector(
-                  onTap: () => _showSubmitTaskModal('Tulis 5 unit test untuk perhitungan laba'),
+                  onTap: () => _showSubmitTaskModal(
+                    'Tulis 5 unit test untuk perhitungan laba',
+                  ),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -580,7 +774,14 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Center(
-                      child: Text('Kerjakan & Kirim', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                      child: Text(
+                        'Kerjakan & Kirim',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -614,11 +815,19 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 ),
                 child: Row(
                   children: const [
-                    Icon(Icons.check_circle_outline_rounded, size: 11, color: Color(0xFF16A34A)),
+                    Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 11,
+                      color: Color(0xFF16A34A),
+                    ),
                     SizedBox(width: 4),
                     Text(
                       'Dinilai',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF16A34A),
+                      ),
                     ),
                   ],
                 ),
@@ -630,16 +839,26 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 children: const [
                   Text(
                     '90',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF16A34A),
+                    ),
                   ),
                   Text(
                     ' /100',
-                    style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.secondarySlate,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(width: 6),
-              const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.secondarySlate),
+              const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppColors.secondarySlate,
+              ),
             ],
           ),
         ),
@@ -662,12 +881,20 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
-              Icon(Icons.rocket_launch_outlined, color: AppColors.primaryNavy, size: 20),
+              Icon(
+                Icons.rocket_launch_outlined,
+                color: AppColors.primaryNavy,
+                size: 20,
+              ),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Proyek nyata dari mentor. Brief asli dari jaringan klien mentor. Hasil yang diverifikasi mentor otomatis masuk portofolio dan CV.',
-                  style: TextStyle(fontSize: 12, color: AppColors.primaryNavy, height: 1.45),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primaryNavy,
+                    height: 1.45,
+                  ),
                 ),
               ),
             ],
@@ -696,35 +923,57 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFDCFCE7),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
                       children: const [
-                        Icon(Icons.verified_rounded, size: 11, color: Color(0xFF16A34A)),
+                        Icon(
+                          Icons.verified_rounded,
+                          size: 11,
+                          color: Color(0xFF16A34A),
+                        ),
                         SizedBox(width: 4),
                         Text(
                           'Terverifikasi mentor',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF16A34A),
+                          ),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFEF3C7),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
                       children: const [
-                        Icon(Icons.toll_rounded, size: 12, color: AppColors.accentAmberGold),
+                        Icon(
+                          Icons.toll_rounded,
+                          size: 12,
+                          color: AppColors.accentAmberGold,
+                        ),
                         SizedBox(width: 4),
                         Text(
                           '40 TC',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFD97706),
+                          ),
                         ),
                       ],
                     ),
@@ -734,7 +983,11 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
               const SizedBox(height: 12),
               const Text(
                 'Modul offline-sync aplikasi koperasi',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
               ),
               const SizedBox(height: 2),
               const Text(
@@ -744,7 +997,11 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Membangun modul sinkronisasi data penjualan saat koneksi putus, dipakai 40 pedagang setiap hari.',
-                style: TextStyle(fontSize: 12, color: AppColors.secondarySlate, height: 1.45),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.secondarySlate,
+                  height: 1.45,
+                ),
               ),
               const SizedBox(height: 12),
 
@@ -759,14 +1016,20 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                         value: 0.92,
                         minHeight: 5,
                         backgroundColor: Color(0xFFE2E8F0),
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF10B981),
+                        ),
                       ),
                     ),
                   ),
                   SizedBox(width: 12),
                   Text(
                     'Skor 92',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF10B981),
+                    ),
                   ),
                 ],
               ),
@@ -775,14 +1038,24 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('10 Jun – 28 Jun 2025', style: TextStyle(fontSize: 11, color: AppColors.secondarySlate)),
+                  const Text(
+                    '10 Jun – 28 Jun 2025',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.secondarySlate,
+                    ),
+                  ),
                   GestureDetector(
                     onTap: () {
                       Navigator.pushNamed(context, AppRoutes.projectDetail);
                     },
                     child: const Text(
                       'Lihat hasil proyek >',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryNavy,
+                      ),
                     ),
                   ),
                 ],
@@ -813,35 +1086,57 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
                       children: const [
-                        Icon(Icons.bolt_rounded, size: 12, color: AppColors.primaryNavy),
+                        Icon(
+                          Icons.bolt_rounded,
+                          size: 12,
+                          color: AppColors.primaryNavy,
+                        ),
                         SizedBox(width: 4),
                         Text(
                           'Dikerjakan',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryNavy,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFEF3C7),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
                       children: const [
-                        Icon(Icons.toll_rounded, size: 12, color: AppColors.accentAmberGold),
+                        Icon(
+                          Icons.toll_rounded,
+                          size: 12,
+                          color: AppColors.accentAmberGold,
+                        ),
                         SizedBox(width: 4),
                         Text(
                           '30 TC',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFD97706),
+                          ),
                         ),
                       ],
                     ),
@@ -851,7 +1146,11 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
               const SizedBox(height: 12),
               const Text(
                 'Code review & refactor fitur laporan',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
               ),
               const SizedBox(height: 2),
               const Text(
@@ -861,7 +1160,11 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Merapikan fitur laporan bulanan pada repo produksi dengan pendampingan langsung mentor.',
-                style: TextStyle(fontSize: 12, color: AppColors.secondarySlate, height: 1.45),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.secondarySlate,
+                  height: 1.45,
+                ),
               ),
             ],
           ),
@@ -895,11 +1198,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 shape: BoxShape.circle,
               ),
             ),
-            Container(
-              width: 2,
-              height: 120,
-              color: const Color(0xFFE2E8F0),
-            ),
+            Container(width: 2, height: 120, color: const Color(0xFFE2E8F0)),
           ],
         ),
         const SizedBox(width: 14),
@@ -928,11 +1227,18 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   children: [
                     Text(
                       date,
-                      style: const TextStyle(fontSize: 11, color: AppColors.secondarySlate, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.secondarySlate,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     if (badgeText != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: badgeBg ?? const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(6),
@@ -960,7 +1266,12 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 const SizedBox(height: 12),
                 if (isScheduled)
                   GestureDetector(
-                    onTap: onAction ?? () => Navigator.pushNamed(context, AppRoutes.mentoringSession),
+                    onTap:
+                        onAction ??
+                        () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.mentoringSession,
+                        ),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -973,17 +1284,30 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                         children: [
                           Text(
                             'Masuk Ruang Sesi',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                           SizedBox(width: 6),
-                          Icon(Icons.videocam_outlined, color: Colors.white, size: 16),
+                          Icon(
+                            Icons.videocam_outlined,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                         ],
                       ),
                     ),
                   )
                 else
                   GestureDetector(
-                    onTap: onAction ?? () => Navigator.pushNamed(context, AppRoutes.mentoringResult),
+                    onTap:
+                        onAction ??
+                        () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.mentoringResult,
+                        ),
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -995,7 +1319,11 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.insights_rounded, size: 15, color: AppColors.primaryNavy),
+                          Icon(
+                            Icons.insights_rounded,
+                            size: 15,
+                            color: AppColors.primaryNavy,
+                          ),
                           SizedBox(width: 6),
                           Text(
                             'Lihat Hasil Bimbingan',
@@ -1050,9 +1378,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   color: iconBg,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Center(
-                  child: Icon(icon, color: iconColor, size: 22),
-                ),
+                child: Center(child: Icon(icon, color: iconColor, size: 22)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1070,7 +1396,10 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.secondarySlate,
+                      ),
                     ),
                   ],
                 ),
@@ -1094,11 +1423,19 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.visibility_outlined, size: 15, color: AppColors.primaryNavy),
+                        Icon(
+                          Icons.visibility_outlined,
+                          size: 15,
+                          color: AppColors.primaryNavy,
+                        ),
                         SizedBox(width: 6),
                         Text(
                           'Lihat',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryNavy,
+                          ),
                         ),
                       ],
                     ),
@@ -1116,11 +1453,19 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.download_rounded, size: 15, color: AppColors.primaryNavy),
+                      Icon(
+                        Icons.download_rounded,
+                        size: 15,
+                        color: AppColors.primaryNavy,
+                      ),
                       SizedBox(width: 6),
                       Text(
                         'Unduh',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryNavy),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryNavy,
+                        ),
                       ),
                     ],
                   ),
@@ -1224,20 +1569,13 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
     );
   }
 
-  Widget _buildNavIcon({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildNavIcon({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         color: Colors.transparent,
-        child: Icon(
-          icon,
-          color: AppColors.secondarySlate,
-          size: 24,
-        ),
+        child: Icon(icon, color: AppColors.secondarySlate, size: 24),
       ),
     );
   }
@@ -1256,7 +1594,10 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 children: [
                   // 1. Top Bar: Back, Title, Subtitle, Chat Button
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -1269,7 +1610,9 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -1320,7 +1663,9 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -1370,9 +1715,16 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                                       child: Image.network(
                                         'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
                                         fit: BoxFit.cover,
-                                        errorBuilder: (ctx, err, stack) => const Center(
-                                          child: Text('DP', style: TextStyle(color: AppColors.primaryNavy, fontWeight: FontWeight.bold)),
-                                        ),
+                                        errorBuilder: (ctx, err, stack) =>
+                                            const Center(
+                                              child: Text(
+                                                'DP',
+                                                style: TextStyle(
+                                                  color: AppColors.primaryNavy,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
                                       ),
                                     ),
                                   ),
@@ -1401,7 +1753,10 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                                   children: const [
                                     Text(
                                       'Topik bimbingan',
-                                      style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
                                     SizedBox(height: 2),
                                     Text(
@@ -1423,19 +1778,27 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                             children: const [
                               Expanded(
                                 child: ClipRRect(
-                                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(4),
+                                  ),
                                   child: LinearProgressIndicator(
                                     value: 0.33,
                                     minHeight: 5,
                                     backgroundColor: Color(0xFFE2E8F0),
-                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryNavy),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.primaryNavy,
+                                    ),
                                   ),
                                 ),
                               ),
                               SizedBox(width: 12),
                               Text(
                                 '1/3 tugas',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
                               ),
                             ],
                           ),
@@ -1467,14 +1830,19 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                                 });
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? AppColors.primaryNavy : Colors.transparent,
+                                  color: isSelected
+                                      ? AppColors.primaryNavy
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: AppColors.primaryNavy.withValues(alpha: 0.2),
+                                            color: AppColors.primaryNavy
+                                                .withValues(alpha: 0.2),
                                             blurRadius: 8,
                                             offset: const Offset(0, 3),
                                           ),
@@ -1486,8 +1854,12 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                                     _tabs[index],
                                     style: TextStyle(
                                       fontSize: 12,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                      color: isSelected ? Colors.white : AppColors.secondarySlate,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.w500,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.secondarySlate,
                                     ),
                                   ),
                                 ),
@@ -1507,10 +1879,10 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     child: _selectedTab == 0
                         ? _buildMateriTab()
                         : _selectedTab == 1
-                            ? _buildTugasTab()
-                            : _selectedTab == 2
-                                ? _buildProyekTab()
-                                : _buildHasilTab(),
+                        ? _buildTugasTab()
+                        : _selectedTab == 2
+                        ? _buildProyekTab()
+                        : _buildHasilTab(),
                   ),
                 ],
               ),
@@ -1541,13 +1913,20 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   _buildNavIcon(
                     icon: Icons.explore_outlined,
                     onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.studentDashboard, (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.studentDashboard,
+                        (route) => false,
+                      );
                     },
                   ),
                   _buildNavIcon(
                     icon: Icons.assignment_outlined,
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.myProjects);
+                      Navigator.pushReplacementNamed(
+                        context,
+                        AppRoutes.myProjects,
+                      );
                     },
                   ),
                   _buildNavIcon(
@@ -1571,4 +1950,3 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
     );
   }
 }
-

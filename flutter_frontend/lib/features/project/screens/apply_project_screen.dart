@@ -11,8 +11,7 @@ class ApplyProjectScreen extends StatefulWidget {
 
 class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
   final TextEditingController _coverLetterController = TextEditingController(
-    text:
-        'Yth. Sambal Bu Rudi, perkenalkan saya mahasiswa Sistem Informasi dengan pengalaman relevan dalam perancangan desain kemasan dan branding digital...',
+    text: 'Yth. Sambal Bu Rudi, perkenalkan saya mahasiswa Sistem Informasi dengan pengalaman relevan dalam perancangan desain kemasan dan branding digital...',
   );
   final TextEditingController _externalPortfolioController =
       TextEditingController();
@@ -46,7 +45,8 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'Harap centang persetujuan komitmen profesional terlebih dahulu.'),
+            'Harap centang persetujuan komitmen profesional terlebih dahulu.',
+          ),
           backgroundColor: AppColors.darkSlate,
         ),
       );
@@ -69,31 +69,41 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: Icon(Icons.check_rounded,
-                    color: Color(0xFF16A34A), size: 32),
+                child: Icon(
+                  Icons.check_rounded,
+                  color: Color(0xFF16A34A),
+                  size: 32,
+                ),
               ),
             ),
             const SizedBox(height: 18),
             const Text(
               'Lamaran Terkirim!',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkSlate),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
               'Lamaran Anda telah diteruskan ke Sambal Bu Rudi. Silakan pantau status seleksi di My Tasks.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 13, color: AppColors.secondarySlate, height: 1.4),
+                fontSize: 13,
+                color: AppColors.secondarySlate,
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () {
                 Navigator.pop(context); // Close dialog
                 Navigator.pushNamedAndRemoveUntil(
-                    context, AppRoutes.studentDashboard, (route) => false);
+                  context,
+                  AppRoutes.studentDashboard,
+                  (route) => false,
+                );
               },
               child: Container(
                 width: double.infinity,
@@ -106,9 +116,10 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                   child: Text(
                     'Buka Dashboard',
                     style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
@@ -203,8 +214,11 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
               ),
               child: isSelected
                   ? const Center(
-                      child: Icon(Icons.check_rounded,
-                          size: 14, color: Colors.white),
+                      child: Icon(
+                        Icons.check_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
                     )
                   : null,
             ),
@@ -234,7 +248,9 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
             color: isSelected ? AppColors.primaryNavy : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? AppColors.primaryNavy : const Color(0xFFE2E8F0),
+              color: isSelected
+                  ? AppColors.primaryNavy
+                  : const Color(0xFFE2E8F0),
             ),
             boxShadow: isSelected
                 ? [
@@ -291,8 +307,10 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -309,8 +327,9 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.darkSlate
-                                      .withValues(alpha: 0.05),
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   blurRadius: 10,
                                   offset: const Offset(0, 2),
                                 ),
@@ -369,9 +388,11 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                                     fit: BoxFit.cover,
                                     errorBuilder:
                                         (context, error, stackTrace) =>
-                                            const Icon(Icons.storefront_rounded,
-                                                size: 20,
-                                                color: AppColors.primaryNavy),
+                                            const Icon(
+                                              Icons.storefront_rounded,
+                                              size: 20,
+                                              color: AppColors.primaryNavy,
+                                            ),
                                   ),
                                 ),
                               ),
@@ -402,7 +423,9 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                               const Spacer(),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFEF3C7),
                                   borderRadius: BorderRadius.circular(8),
@@ -516,7 +539,9 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.lightBlueSurface,
                                   borderRadius: BorderRadius.circular(6),
@@ -619,7 +644,9 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFEF3C7),
                                   borderRadius: BorderRadius.circular(8),
@@ -692,7 +719,9 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                               GestureDetector(
                                 onTap: () {
                                   Navigator.pushNamed(
-                                      context, AppRoutes.findMentors);
+                                    context,
+                                    AppRoutes.findMentors,
+                                  );
                                 },
                                 child: const Row(
                                   children: [
@@ -721,8 +750,11 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                           // External Portfolio Input (Tautan portofolio luar opsional)
                           const Row(
                             children: [
-                              Icon(Icons.link_rounded,
-                                  size: 16, color: AppColors.darkSlate),
+                              Icon(
+                                Icons.link_rounded,
+                                size: 16,
+                                color: AppColors.darkSlate,
+                              ),
                               SizedBox(width: 6),
                               Text(
                                 'Tautan portofolio luar (opsional)',
@@ -737,7 +769,9 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                           const SizedBox(height: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 4),
+                              horizontal: 14,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.canvasWhite,
                               borderRadius: BorderRadius.circular(12),
@@ -746,16 +780,20 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                             child: TextField(
                               controller: _externalPortfolioController,
                               style: const TextStyle(
-                                  fontSize: 13, color: AppColors.darkSlate),
+                                fontSize: 13,
+                                color: AppColors.darkSlate,
+                              ),
                               decoration: const InputDecoration(
                                 hintText: 'https://figma.com/@username',
                                 hintStyle: TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.secondarySlate),
+                                  fontSize: 13,
+                                  color: AppColors.secondarySlate,
+                                ),
                                 border: InputBorder.none,
                                 isDense: true,
-                                contentPadding:
-                                    EdgeInsets.symmetric(vertical: 10),
+                                contentPadding: EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
                               ),
                             ),
                           ),
@@ -828,16 +866,23 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                           // Estimation Box
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.access_time_rounded,
-                                    size: 15, color: AppColors.secondarySlate),
+                                const Icon(
+                                  Icons.access_time_rounded,
+                                  size: 15,
+                                  color: AppColors.secondarySlate,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: FittedBox(
@@ -935,8 +980,9 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.darkSlate
-                                  .withValues(alpha: 0.03),
+                              color: AppColors.darkSlate.withValues(
+                                alpha: 0.03,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
                             ),
@@ -963,8 +1009,11 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                               ),
                               child: _isCommitted
                                   ? const Center(
-                                      child: Icon(Icons.check_rounded,
-                                          size: 13, color: Colors.white),
+                                      child: Icon(
+                                        Icons.check_rounded,
+                                        size: 13,
+                                        color: Colors.white,
+                                      ),
                                     )
                                   : null,
                             ),
@@ -994,7 +1043,11 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
             // Bottom CTA Button: Kirim Lamaran (300 TC)
             Padding(
               padding: const EdgeInsets.only(
-                  left: 24, right: 24, bottom: 28, top: 12),
+                left: 24,
+                right: 24,
+                bottom: 28,
+                top: 12,
+              ),
               child: GestureDetector(
                 onTap: _submitApplication,
                 child: Container(
@@ -1023,11 +1076,7 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                         ),
                       ),
                       SizedBox(width: 8),
-                      Icon(
-                        Icons.send_rounded,
-                        color: Colors.white,
-                        size: 16,
-                      ),
+                      Icon(Icons.send_rounded, color: Colors.white, size: 16),
                     ],
                   ),
                 ),

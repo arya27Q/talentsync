@@ -159,7 +159,10 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
             // Scrollable Menu List
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 6,
+                ),
                 children: [
                   // Student Profile Card
                   Container(
@@ -187,7 +190,9 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                                 color: const Color(0xFFE0E7FF),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: AppColors.primaryNavy.withValues(alpha: 0.3),
+                                  color: AppColors.primaryNavy.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   width: 2,
                                 ),
                               ),
@@ -235,7 +240,9 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFFEF3C7),
                                 borderRadius: BorderRadius.circular(8),
@@ -263,7 +270,9 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFDCFCE7),
                                 borderRadius: BorderRadius.circular(8),
@@ -304,8 +313,9 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primaryNavy
-                                      .withValues(alpha: 0.2),
+                                  color: AppColors.primaryNavy.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
                                 ),
@@ -345,7 +355,9 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                     iconColor: const Color(0xFF2563EB),
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFDCFCE7),
                         borderRadius: BorderRadius.circular(8),
@@ -359,8 +371,8 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                         ),
                       ),
                     ),
-                    onTap: () => Navigator.pushNamed(
-                        context, AppRoutes.switchToMentor),
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.switchToMentor),
                   ),
 
                   // Section 2: Mentoring & Bimbingan
@@ -423,7 +435,9 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                     subtitle: 'Ulasan bintang 5.0 dari Pak Gito & 40 TC',
                     iconColor: const Color(0xFF10B981),
                     onTap: () => Navigator.pushNamed(
-                        context, AppRoutes.projectCompleted),
+                      context,
+                      AppRoutes.projectCompleted,
+                    ),
                   ),
                   _buildMenuItem(
                     icon: Icons.workspace_premium_outlined,
@@ -448,8 +462,7 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                     title: 'Dompet TimeCoin',
                     subtitle: 'Saldo 240 TC · Escrow aman',
                     iconColor: AppColors.accentAmberGold,
-                    onTap: () =>
-                        Navigator.pushNamed(context, AppRoutes.wallet),
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.wallet),
                   ),
                   _buildMenuItem(
                     icon: Icons.military_tech_outlined,
