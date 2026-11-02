@@ -97,6 +97,95 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     );
   }
 
+  Widget _buildMilestoneItem({
+    required int number,
+    required String title,
+    required String subtitle,
+    required int tc,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              color: AppColors.primaryNavy,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '$number',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.secondarySlate,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF3C7),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.toll_rounded,
+                  color: AppColors.accentAmberGold,
+                  size: 14,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '$tc TC',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,17 +194,65 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         child: Stack(
           children: [
             SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 110),
+              padding: const EdgeInsets.only(bottom: 100),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Top Header Bar
+                    // 1. Top Header Row: Back button, Title, Bookmark, Share
                     Row(
                       children: [
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppColors.cardSurface,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.keyboard_arrow_left_rounded,
+                                color: AppColors.darkSlate,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Text(
+                            'Detail Proyek UMKM',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                        ),
+                        // Bookmark Button
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isBookmarked = !_isBookmarked;
+                            });
+                          },
                           child: Container(
                             width: 44,
                             height: 44,
@@ -130,72 +267,54 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 ),
                               ],
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Icon(
-                                Icons.keyboard_arrow_left_rounded,
-                                size: 24,
-                                color: AppColors.darkSlate,
+                                _isBookmarked
+                                    ? Icons.bookmark_rounded
+                                    : Icons.bookmark_border_rounded,
+                                color: _isBookmarked
+                                    ? AppColors.primaryNavy
+                                    : AppColors.darkSlate,
+                                size: 20,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Text(
-                            'Detail Proyek UMKM',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isBookmarked = !_isBookmarked;
-                            });
-                          },
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.borderSlate),
-                            ),
-                            child: Icon(
-                              _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-                              size: 20,
-                              color: _isBookmarked ? AppColors.primaryNavy : AppColors.darkSlate,
-                            ),
-                          ),
-                        ),
                         const SizedBox(width: 8),
+                        // Share Button
                         Container(
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
                             color: AppColors.cardSurface,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppColors.borderSlate),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                          child: const Icon(
-                            Icons.share_outlined,
-                            size: 20,
-                            color: AppColors.darkSlate,
+                          child: const Center(
+                            child: Icon(
+                              Icons.share_outlined,
+                              color: AppColors.darkSlate,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
 
-                    // 2. Verified Tag
+                    // 2. Verified Badge Pill
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.lightBlueSurface,
                         borderRadius: BorderRadius.circular(8),
@@ -205,14 +324,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         children: [
                           Icon(
                             Icons.verified_rounded,
-                            color: AppColors.primaryNavy,
                             size: 14,
+                            color: AppColors.primaryNavy,
                           ),
-                          SizedBox(width: 5),
+                          SizedBox(width: 6),
                           Text(
                             'Proyek Terverifikasi',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primaryNavy,
                             ),
@@ -221,17 +340,18 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // 3. Main Project Header Card
+                    // 3. Main Project Info Card
                     Container(
+                      width: double.infinity,
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.04),
+                            color: AppColors.darkSlate.withValues(alpha: 0.05),
                             blurRadius: 16,
                             offset: const Offset(0, 4),
                           ),
@@ -240,25 +360,27 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Business Info Row
+                          // Business Info Row: Logo, Name, Category, Expiry
                           Row(
                             children: [
-                              Container(
-                                width: 46,
-                                height: 46,
-                                decoration: BoxDecoration(
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  width: 48,
+                                  height: 48,
                                   color: AppColors.lightBlueSurface,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.restaurant_rounded,
-                                    color: AppColors.primaryNavy,
-                                    size: 24,
+                                  child: Image.network(
+                                    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(
+                                      Icons.storefront_rounded,
+                                      color: AppColors.primaryNavy,
+                                    ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 14),
                               const Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +388,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     Text(
                                       'Sambal Bu Rudi',
                                       style: TextStyle(
-                                        fontSize: 15,
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.darkSlate,
                                       ),
@@ -282,18 +404,26 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                   ],
                                 ),
                               ),
-                              const Text(
-                                '3 hari tersisa',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondarySlate,
-                                  fontWeight: FontWeight.w500,
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: AppColors.canvasWhite,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.borderSlate),
+                                ),
+                                child: const Text(
+                                  '3 hari tersisa',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.darkSlate,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 18),
 
                           // Project Title
                           const Text(
@@ -306,21 +436,20 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
 
-                          // Division Info
                           const Row(
                             children: [
                               Icon(
-                                Icons.storefront_outlined,
-                                size: 16,
+                                Icons.business_center_outlined,
+                                size: 14,
                                 color: AppColors.secondarySlate,
                               ),
                               SizedBox(width: 6),
                               Text(
                                 'Divisi Branding & Pemasaran',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 12,
                                   color: AppColors.secondarySlate,
                                 ),
                               ),
@@ -329,7 +458,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
                           const SizedBox(height: 20),
 
-                          // 3 Info Boxes
+                          // 3 Metric Info Boxes (Imbalan, Durasi, Metode)
                           Row(
                             children: [
                               _buildInfoBox(
@@ -361,7 +490,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 valueWidget: const Text(
                                   '2 Minggu',
                                   style: TextStyle(
-                                    fontSize: 15,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.darkSlate,
                                   ),
@@ -374,7 +503,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 valueWidget: const Text(
                                   'Hybrid',
                                   style: TextStyle(
-                                    fontSize: 15,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.darkSlate,
                                   ),
@@ -421,7 +550,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           ),
                           const SizedBox(height: 12),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.cardSurface,
                               borderRadius: BorderRadius.circular(8),
@@ -430,7 +562,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.school_outlined, size: 14, color: AppColors.darkSlate),
+                                Icon(
+                                  Icons.school_outlined,
+                                  size: 14,
+                                  color: AppColors.darkSlate,
+                                ),
                                 SizedBox(width: 6),
                                 Text(
                                   'Konversi 2 SKS',
@@ -479,9 +615,198 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _buildChecklistItem('Label kemasan 4 varian rasa siap cetak'),
-                          _buildChecklistItem('Template feed Instagram untuk peluncuran'),
-                          _buildChecklistItem('File master Figma & aset resolusi tinggi'),
+                          _buildChecklistItem(
+                            'Label kemasan 4 varian rasa siap cetak',
+                          ),
+                          _buildChecklistItem(
+                            'Template feed Instagram untuk peluncuran',
+                          ),
+                          _buildChecklistItem(
+                            'File master Figma & aset resolusi tinggi',
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Section: Suasana mitra (From User Screenshot)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: const [
+                              Text(
+                                'Suasana mitra',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on_outlined,
+                                    size: 15,
+                                    color: AppColors.secondarySlate,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Rungkut, Surabaya',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Stack(
+                              children: [
+                                Image.network(
+                                  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (ctx, err, stack) => Container(
+                                    height: 180,
+                                    width: double.infinity,
+                                    color: const Color(0xFFF1F5F9),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.storefront_rounded,
+                                        size: 48,
+                                        color: AppColors.secondarySlate,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.bottomCenter,
+                                        end: Alignment.topCenter,
+                                        colors: [
+                                          Colors.black.withValues(alpha: 0.8),
+                                          Colors.transparent,
+                                        ],
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Dapur produksi sambal rumahan',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // 6. Section: Tahapan & milestone (New from User Screenshot)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Tahapan & milestone',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
+                              ),
+                              Text(
+                                '3 tahap escrow',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryNavy,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _buildMilestoneItem(
+                            number: 1,
+                            title: 'Riset & moodboard',
+                            subtitle: 'Wawancara pemilik dan arah visual kemasan · Hari ke-3',
+                            tc: 75,
+                          ),
+                          _buildMilestoneItem(
+                            number: 2,
+                            title: 'Desain label final',
+                            subtitle: 'Tiga varian label siap cetak · Hari ke-9',
+                            tc: 125,
+                          ),
+                          _buildMilestoneItem(
+                            number: 3,
+                            title: 'Katalog online',
+                            subtitle: 'Katalog digital dan serah terima file · Hari ke-14',
+                            tc: 100,
+                          ),
+                          const SizedBox(height: 8),
+                          const Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.shield_outlined,
+                                size: 16,
+                                color: AppColors.primaryNavy,
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Dana ditahan aman di Smart Escrow dan dicairkan per tahap setelah UMKM menyetujui hasil.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.secondarySlate,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -496,7 +821,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               right: 0,
               bottom: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.cardSurface,
                   boxShadow: [
@@ -515,7 +843,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         Navigator.pushNamed(context, AppRoutes.workspaceChat);
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.cardSurface,
                           borderRadius: BorderRadius.circular(14),
@@ -556,7 +887,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                                color: AppColors.primaryNavy.withValues(
+                                  alpha: 0.25,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -573,9 +906,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(width: 6),
+                              SizedBox(width: 8),
                               Icon(
-                                Icons.arrow_forward_rounded,
+                                Icons.send_rounded,
                                 color: Colors.white,
                                 size: 16,
                               ),

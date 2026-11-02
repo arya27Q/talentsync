@@ -88,7 +88,7 @@ class CaseStudyScreen extends StatelessWidget {
               Container(
                 width: 32,
                 height: 32,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.lightBlueSurface,
                   shape: BoxShape.circle,
                 ),
@@ -222,7 +222,10 @@ class CaseStudyScreen extends StatelessWidget {
                       GestureDetector(
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Mengunduh Case Study PDF...')),
+                            const SnackBar(
+                              content: Text('Mengunduh Case Study PDF...'),
+                              backgroundColor: AppColors.darkSlate,
+                            ),
                           );
                         },
                         child: Container(
@@ -340,6 +343,104 @@ class CaseStudyScreen extends StatelessWidget {
                     title: 'Hasil',
                     description:
                         'Waktu tunggu pesanan berkurang hingga 45%, tidak ada lagi pesanan ganda yang terlewat, dan kepuasan pelanggan warung naik menjadi 5.0 bintang.',
+                  ),
+
+                  // Testimonial Card (Pak Gito) — From User Screenshot
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.borderSlate),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.darkSlate.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF9A4B1A),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'PG',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'Pak Gito',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Pemilik usaha',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              children: const [
+                                Icon(
+                                  Icons.star_rounded,
+                                  size: 18,
+                                  color: AppColors.accentAmberGold,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  '5.0',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkSlate,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        const Text(
+                          '"Arya cepat paham kebutuhan warung kecil seperti kami. Sistemnya mudah dipakai karyawan."',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.darkSlate,
+                            height: 1.5,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

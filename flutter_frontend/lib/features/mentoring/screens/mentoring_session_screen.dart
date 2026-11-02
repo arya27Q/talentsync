@@ -71,9 +71,9 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
             ),
             onPressed: () {
               Navigator.pop(dialogContext); // Close dialog
-              Navigator.pushReplacementNamed(context, AppRoutes.mentoringResult);
+              Navigator.pushReplacementNamed(context, AppRoutes.selesaiBimbingan);
             },
-            child: const Text('Lihat Hasil Bimbingan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text('Selesai & Evaluasi Bimbingan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

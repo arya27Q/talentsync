@@ -11,6 +11,33 @@ class MentorProfileScreen extends StatefulWidget {
 
 class _MentorProfileScreenState extends State<MentorProfileScreen> {
   bool _isBookmarked = false;
+  int _selectedDateIndex = 0; // 0: Besok, 25 Jun, 1: Kam, 26 Jun, 2: Jum, 27 Jun
+  int _selectedTimeIndex = 2; // 0: 14.00, 1: 16.30 (penuh), 2: 19.00 (terpilih), 3: 20.30
+  int _selectedTopicIndex = 0; // 0: Kurasi tender, 1: Review UX, 2: Simulasi pitching
+
+  final List<String> _dates = ['Besok, 25 Jun', 'Kam, 26 Jun', 'Jum, 27 Jun'];
+
+  final List<Map<String, dynamic>> _timeSlots = [
+    {'time': '14.00 – 15.00', 'badge': 'Siang', 'isFull': false},
+    {'time': '16.30 – 17.30', 'badge': 'Penuh', 'isFull': true},
+    {'time': '19.00 – 20.00', 'badge': 'Terpilih', 'isFull': false},
+    {'time': '20.30 – 21.30', 'badge': 'Malam', 'isFull': false},
+  ];
+
+  final List<Map<String, String>> _topics = [
+    {
+      'title': 'Kurasi portofolio tender UMKM',
+      'desc': 'Bedah case study, rubrik evaluasi UMKM, dan checklist dokumen tender.',
+    },
+    {
+      'title': 'Review alur UX & arsitektur informasi',
+      'desc': 'Bedah usability, navigasi aplikasi kasir, dan penyesuaian flow transaksi.',
+    },
+    {
+      'title': 'Simulasi pitching & negosiasi',
+      'desc': 'Latihan presentasi proposal, penetapan estimasi waktu, dan komitmen deliverable.',
+    },
+  ];
 
   Widget _buildCheckChip(String label) {
     return Container(
@@ -189,6 +216,13 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                             setState(() {
                               _isBookmarked = !_isBookmarked;
                             });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(_isBookmarked ? 'Mentor disimpan ke favorit' : 'Mentor dihapus dari favorit'),
+                                duration: const Duration(seconds: 1),
+                                backgroundColor: AppColors.darkSlate,
+                              ),
+                            );
                           },
                           child: Container(
                             width: 44,
@@ -206,8 +240,8 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                             ),
                             child: Center(
                               child: Icon(
-                                _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-                                color: _isBookmarked ? AppColors.accentAmberGold : AppColors.darkSlate,
+                                _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                                color: _isBookmarked ? AppColors.primaryNavy : AppColors.darkSlate,
                                 size: 20,
                               ),
                             ),
@@ -217,14 +251,14 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                     ),
                   ),
 
-                  // 2. Profile Header Card
+                  // 2. Mentor Info Card
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Container(
-                      padding: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.darkSlate.withValues(alpha: 0.05),
@@ -542,7 +576,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
 
                   const SizedBox(height: 18),
 
-                  // 5. Deliverable yang didapat
+                  // 5. Deliverable yang didapat (4 Items from User Screenshot)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
@@ -563,15 +597,284 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                           subtitle: 'Penilaian siap tender dengan standar industri',
                         ),
                         _buildDeliverableItem(
+                          icon: Icons.forum_outlined,
+                          title: 'Simulasi tanya-jawab klien UMKM',
+                          subtitle: 'Persiapan pitching dan mitigasi revisi saat wawancara',
+                        ),
+                        _buildDeliverableItem(
                           icon: Icons.verified_outlined,
-                          title: 'Badge Rekomendasi Kerja (Endorse)',
+                          title: 'Lencana "Mentor Verified" di profil',
                           subtitle: 'Tertera di profil mahasiswa untuk dilihat mitra UMKM',
                         ),
                         _buildDeliverableItem(
                           icon: Icons.video_library_outlined,
-                          title: 'Rekaman video sesi & rangkuman Notion',
+                          title: 'Rekaman sesi & action plan Notion',
                           subtitle: 'Akses selamanya untuk bahan referensi pengerjaan',
                         ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // 6. Pilih Jadwal Bimbingan Section (From User Screenshot)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: const [
+                            Text(
+                              'Pilih jadwal bimbingan',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.darkSlate,
+                              ),
+                            ),
+                            Text(
+                              'Zona waktu WIB',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.secondarySlate,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Date Selector Row
+                        Row(
+                          children: List.generate(_dates.length, (index) {
+                            final isSelected = _selectedDateIndex == index;
+                            return Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedDateIndex = index;
+                                  });
+                                },
+                                child: Container(
+                                  margin: EdgeInsets.only(right: index == _dates.length - 1 ? 0 : 8),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? AppColors.primaryNavy : AppColors.cardSurface,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: isSelected ? AppColors.primaryNavy : const Color(0xFFE2E8F0),
+                                    ),
+                                    boxShadow: isSelected
+                                        ? [
+                                            BoxShadow(
+                                              color: AppColors.primaryNavy.withValues(alpha: 0.2),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      _dates[index],
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected ? Colors.white : AppColors.darkSlate,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Time Slots 2x2 Grid
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 2.8,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                          ),
+                          itemCount: _timeSlots.length,
+                          itemBuilder: (context, index) {
+                            final slot = _timeSlots[index];
+                            final isFull = slot['isFull'] as bool;
+                            final isSelected = _selectedTimeIndex == index;
+
+                            return GestureDetector(
+                              onTap: isFull
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _selectedTimeIndex = index;
+                                      });
+                                    },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isFull
+                                      ? const Color(0xFFF1F5F9)
+                                      : (isSelected ? const Color(0xFFEFF6FF) : AppColors.cardSurface),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: isFull
+                                        ? Colors.transparent
+                                        : (isSelected ? AppColors.primaryNavy : const Color(0xFFE2E8F0)),
+                                    width: isSelected ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      slot['time'] as String,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                        color: isFull ? const Color(0xFF94A3B8) : AppColors.darkSlate,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isFull
+                                            ? const Color(0xFFCBD5E1)
+                                            : (isSelected ? AppColors.primaryNavy : const Color(0xFFF1F5F9)),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        slot['badge'] as String,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: isFull
+                                              ? Colors.white
+                                              : (isSelected ? Colors.white : AppColors.secondarySlate),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // 7. Topik Fokus Sesi Section (From User Screenshot)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Topik fokus sesi',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        ...List.generate(_topics.length, (index) {
+                          final topic = _topics[index];
+                          final isSelected = _selectedTopicIndex == index;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedTopicIndex = index;
+                              });
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.cardSurface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isSelected ? AppColors.primaryNavy : const Color(0xFFE2E8F0),
+                                  width: isSelected ? 1.5 : 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.darkSlate.withValues(alpha: 0.03),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 20,
+                                    height: 20,
+                                    margin: const EdgeInsets.only(top: 2),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isSelected ? AppColors.primaryNavy : const Color(0xFF94A3B8),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: isSelected
+                                        ? Center(
+                                            child: Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: const BoxDecoration(
+                                                color: AppColors.primaryNavy,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          topic['title']!,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected ? AppColors.primaryNavy : AppColors.darkSlate,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          topic['desc']!,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.secondarySlate,
+                                            height: 1.35,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
                       ],
                     ),
                   ),
@@ -599,16 +902,16 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
               ),
               child: Row(
                 children: [
-                  const Column(
+                  Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Besok, 25 Jun · 19.00 – 20.00',
-                        style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                        '${_dates[_selectedDateIndex]} · ${_timeSlots[_selectedTimeIndex]['time'].split(' ')[0]}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.secondarySlate),
                       ),
-                      SizedBox(height: 2),
-                      Text(
+                      const SizedBox(height: 2),
+                      const Text(
                         '30 TC',
                         style: TextStyle(
                           fontSize: 22,

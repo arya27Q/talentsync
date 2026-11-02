@@ -2,10 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 
-class BookingSessionScreen extends StatelessWidget {
+class BookingSessionScreen extends StatefulWidget {
   const BookingSessionScreen({super.key});
 
-  void _confirmBooking(BuildContext context) {
+  @override
+  State<BookingSessionScreen> createState() => _BookingSessionScreenState();
+}
+
+class _BookingSessionScreenState extends State<BookingSessionScreen> {
+  bool _isAgreed = true;
+  final TextEditingController _materialsController = TextEditingController();
+
+  @override
+  void dispose() {
+    _materialsController.dispose();
+    super.dispose();
+  }
+
+  void _confirmBooking() {
+    if (!_isAgreed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Harap setujui ketentuan bimbingan & kebijakan reschedule.'),
+          backgroundColor: Color(0xFFDC2626),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -48,6 +73,13 @@ class BookingSessionScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.primaryNavy,
                   borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: const Center(
                   child: Text(
@@ -102,6 +134,44 @@ class BookingSessionScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildEscrowBullet({
+    required String title,
+    required String desc,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(
+          Icons.check_circle_rounded,
+          color: AppColors.primaryNavy,
+          size: 18,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.secondarySlate,
+                height: 1.45,
+              ),
+              children: [
+                TextSpan(
+                  text: title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                TextSpan(text: desc),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -162,8 +232,9 @@ class BookingSessionScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.lock_rounded, size: 12, color: Color(0xFF16A34A)),
+                          Icon(Icons.shield_outlined, size: 13, color: Color(0xFF16A34A)),
                           SizedBox(width: 4),
                           Text(
                             'Aman',
@@ -180,58 +251,27 @@ class BookingSessionScreen extends StatelessWidget {
                 ),
               ),
 
-              // 2. Progress Escrow Card (Langkah 3 dari 3)
+              // 2. Security Banner
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.cardSurface,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.darkSlate.withValues(alpha: 0.04),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryNavy,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.shield_outlined,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
+                      const Icon(Icons.lock_rounded, size: 16, color: AppColors.secondarySlate),
+                      const SizedBox(width: 8),
                       const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'LANGKAH 3 DARI 3',
+                              'Transaksi Terenkripsi & Terlindungi',
                               style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                                color: AppColors.secondarySlate,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Penahanan saldo escrow aman',
-                              style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.darkSlate,
                               ),
@@ -263,7 +303,7 @@ class BookingSessionScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
+                    color: AppColors.cardSurface,
                     borderRadius: BorderRadius.circular(22),
                     boxShadow: [
                       BoxShadow(
@@ -483,27 +523,56 @@ class BookingSessionScreen extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // 5. Escrow Guarantee Info Box
+              // 5. Bahan & Catatan Bimbingan (Opsional) Input Box
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    color: AppColors.cardSurface,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.05),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
-                  child: const Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.verified_user_outlined, size: 20, color: AppColors.primaryNavy),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Sistem escrow terlindungi 100%',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkSlate,
+                      Row(
+                        children: [
+                          const Icon(Icons.link_rounded, size: 20, color: AppColors.primaryNavy),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Bahan bimbingan (opsional)',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.darkSlate),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Tautan Figma, link repositori GitHub, atau pertanyaan problem yang ingin dikurasi',
+                        style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: TextField(
+                          controller: _materialsController,
+                          maxLines: 2,
+                          style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                          decoration: const InputDecoration(
+                            hintText: 'https://figma.com/file/... atau tulis catatan pertanyaan',
+                            hintStyle: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                            border: InputBorder.none,
                           ),
                         ),
                       ),
@@ -512,24 +581,156 @@ class BookingSessionScreen extends StatelessWidget {
                 ),
               ),
 
+              const SizedBox(height: 14),
+
+              // 6. Escrow Guarantee Full Card (Image 10: Sistem escrow terlindungi 100%)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardSurface,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.04),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.shield_outlined, size: 20, color: AppColors.primaryNavy),
+                          SizedBox(width: 10),
+                          Text(
+                            'Sistem escrow terlindungi 100%',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      _buildEscrowBullet(
+                        title: 'Bukan transfer langsung: ',
+                        desc: '30 TC disimpan sementara di brankas TalentSync, belum diserahkan ke mentor.',
+                      ),
+                      const SizedBox(height: 10),
+                      _buildEscrowBullet(
+                        title: 'Pelepasan usai selesai: ',
+                        desc: 'Dana baru cair setelah sesi usai dan kamu mengonfirmasi kepuasan.',
+                      ),
+                      const SizedBox(height: 10),
+                      _buildEscrowBullet(
+                        title: '100% refund otomatis: ',
+                        desc: 'Koin kembali penuh jika mentor berhalangan atau tidak hadir.',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // 7. Reschedule & Terms Checkbox Card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardSurface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: _isAgreed ? AppColors.primaryNavy.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        _isAgreed = !_isAgreed;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Checkbox(
+                            value: _isAgreed,
+                            activeColor: AppColors.primaryNavy,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                            onChanged: (val) {
+                              setState(() {
+                                _isAgreed = val ?? false;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Saya menyetujui ketentuan bimbingan & kebijakan reschedule',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                'Penjadwalan ulang gratis bila diajukan maksimal 3 jam sebelum sesi.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.secondarySlate,
+                                  height: 1.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 20),
 
-              // 6. Action Button: Konfirmasi & Tahan 30 TC
+              // 8. Action Button: Konfirmasi & Tahan 30 TC
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   children: [
                     GestureDetector(
-                      onTap: () => _confirmBooking(context),
+                      onTap: _confirmBooking,
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryNavy,
+                          color: _isAgreed ? AppColors.primaryNavy : const Color(0xFF94A3B8),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                              color: (_isAgreed ? AppColors.primaryNavy : Colors.transparent).withValues(alpha: 0.25),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),

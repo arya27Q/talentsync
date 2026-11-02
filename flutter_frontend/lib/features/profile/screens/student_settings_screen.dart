@@ -10,182 +10,504 @@ class StudentSettingsScreen extends StatefulWidget {
 }
 
 class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
-  bool _isMentorMode = false;
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 10, top: 20),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: AppColors.secondarySlate,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
 
-  Widget _buildMenuItem(IconData icon, String title, {Widget? trailing, VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+  Widget _buildMenuItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    Widget? trailing,
+    Color iconColor = AppColors.primaryNavy,
+    Color titleColor = AppColors.darkSlate,
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.darkBrown.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          )
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: AppColors.darkBrown, size: 24),
-              const SizedBox(width: 16),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.darkBrown, fontSize: 16)),
-            ],
+            color: AppColors.darkSlate.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          trailing ?? const Icon(Icons.chevron_right_rounded, color: Colors.grey),
         ],
       ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: titleColor,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.secondarySlate,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                trailing ??
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Color(0xFF94A3B8),
+                      size: 20,
+                    ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          // Header
-          const Padding(
-            padding: EdgeInsets.all(24.0),
-            child: Row(
-              children: [
-                Text(
-                  'Settings',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.darkBrown),
-                ),
-              ],
-            ),
-          ),
-          
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(left: 24, right: 24, bottom: 120),
-              children: [
-                // Profile Card
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.darkBrown.withValues(alpha: 0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      )
+    return Scaffold(
+      backgroundColor: AppColors.canvasWhite,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Top App Bar Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: const Icon(
+                      Icons.settings_outlined,
+                      color: AppColors.darkSlate,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pengaturan & Akun',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                      Text(
+                        'Kelola profil, peran, dan navigasi modul',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.secondarySlate,
+                        ),
+                      ),
                     ],
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 4),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF388E3C).withValues(alpha: 0.2),
-                              blurRadius: 15,
-                              offset: const Offset(0, 5),
-                            )
-                          ],
+                ],
+              ),
+            ),
+
+            // Scrollable Menu List
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                children: [
+                  // Student Profile Card
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardSurface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.darkSlate.withValues(alpha: 0.04),
+                          blurRadius: 14,
+                          offset: const Offset(0, 4),
                         ),
-                        child: const Icon(Icons.person_rounded, color: Color(0xFF388E3C), size: 40),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
                           children: [
-                            const Text('Arya', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.darkBrown)),
-                            const SizedBox(height: 4),
-                            const Text('Information Systems', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                            const SizedBox(height: 12),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              width: 56,
+                              height: 56,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFFF3E0),
-                                borderRadius: BorderRadius.circular(12),
+                                color: const Color(0xFFE0E7FF),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.primaryNavy.withValues(alpha: 0.3),
+                                  width: 2,
+                                ),
                               ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
+                              child: const Center(
+                                child: Text(
+                                  'AP',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryNavy,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.workspace_premium_rounded, color: Color(0xFFF57C00), size: 14),
-                                  SizedBox(width: 4),
-                                  Text('Top Talent', style: TextStyle(color: Color(0xFFF57C00), fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text(
+                                    'Arya Pratama Yudhistira',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
+                                    ),
+                                  ),
+                                  SizedBox(height: 3),
+                                  Text(
+                                    'S1 Sistem Informasi · UNESA',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                
-                const SizedBox(height: 24),
-                GestureDetector(
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.portfolio),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkBrown,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkBrown.withValues(alpha: 0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        )
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.auto_awesome_mosaic_rounded, color: Colors.white, size: 20),
-                        SizedBox(width: 8),
-                        Text('View Public Portfolio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                      ],
-                    ),
-                  ),
-                ),
+                        const SizedBox(height: 14),
 
-                const SizedBox(height: 32),
-                
-                // Switch Mode
-                _buildMenuItem(
-                  Icons.switch_account_rounded,
-                  'Switch to Mentor Mode',
-                  trailing: Switch(
-                    value: _isMentorMode,
-                    activeThumbColor: AppColors.primaryTan,
-                    onChanged: (val) {
-                      setState(() {
-                        _isMentorMode = val;
-                      });
+                        // Badges Row
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.star_rounded,
+                                    color: AppColors.accentAmberGold,
+                                    size: 14,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Top Talent · 4.9',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF92400E),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFDCFCE7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.verified_user_rounded,
+                                    color: Color(0xFF16A34A),
+                                    size: 14,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'KTM Terverifikasi',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF166534),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Public Portfolio Button
+                        GestureDetector(
+                          onTap: () =>
+                              Navigator.pushNamed(context, AppRoutes.portfolio),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryNavy,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primaryNavy
+                                      .withValues(alpha: 0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.visibility_outlined,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Buka Portofolio Publik',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Section 1: Peran & Mode Akun
+                  _buildSectionHeader('PERAN & MODE AKUN'),
+                  _buildMenuItem(
+                    icon: Icons.swap_horiz_rounded,
+                    title: 'Switch to Mentor (Peer Mentor)',
+                    subtitle: 'Buka kelas bimbingan & peroleh TimeCoin',
+                    iconColor: const Color(0xFF2563EB),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Tersedia',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF16A34A),
+                        ),
+                      ),
+                    ),
+                    onTap: () => Navigator.pushNamed(
+                        context, AppRoutes.switchToMentor),
+                  ),
+
+                  // Section 2: Mentoring & Bimbingan
+                  _buildSectionHeader('MENTORING & BIMBINGAN'),
+                  _buildMenuItem(
+                    icon: Icons.people_alt_rounded,
+                    title: 'Mentor Saya',
+                    subtitle: 'Sesi aktif, materi, dan tugas bimbingan',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.myMentors),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.menu_book_rounded,
+                    title: 'Ruang Belajar Mentor',
+                    subtitle: 'Materi, tugas, proyek, dan riwayat hasil',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.ruangBelajar),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.history_edu_rounded,
+                    title: 'Log Bimbingan',
+                    subtitle: 'Riwayat sesi 1-on-1, catatan mentor, & TC',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.logBimbingan),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.insights_rounded,
+                    title: 'Hasil & Action Plan Bimbingan',
+                    subtitle: 'Skor evaluasi 88/100 & rekomendasi kerja',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.mentoringResult),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.person_search_rounded,
+                    title: 'Cari & Booking Mentor',
+                    subtitle: 'Eksplorasi mentor terverifikasi industri',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.findMentors),
+                  ),
+
+                  // Section 3: Proyek & Portofolio
+                  _buildSectionHeader('PROYEK & PORTOFOLIO'),
+                  _buildMenuItem(
+                    icon: Icons.assignment_outlined,
+                    title: 'Proyek Saya',
+                    subtitle: 'Kasir Toko Bu Sri · Tahap 2 Aktif',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.myProjects),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.checklist_rounded,
+                    title: 'Status Proyek & Milestone',
+                    subtitle: 'Kelola serah terima deliverable & escrow',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.submission),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.task_alt_rounded,
+                    title: 'Hasil Proyek Selesai',
+                    subtitle: 'Ulasan bintang 5.0 dari Pak Gito & 40 TC',
+                    iconColor: const Color(0xFF10B981),
+                    onTap: () => Navigator.pushNamed(
+                        context, AppRoutes.projectCompleted),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.workspace_premium_outlined,
+                    title: 'Sertifikat & Rekomendasi',
+                    subtitle: 'Badge rekomendasi kerja & bukti kelulusan',
+                    iconColor: AppColors.accentAmberGold,
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.certificates),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.folder_special_outlined,
+                    title: 'Studi Kasus Proyek',
+                    subtitle: 'Dokumentasi visual UI/UX & problem solving',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.caseStudy),
+                  ),
+
+                  // Section 4: Finansial & TimeCoin
+                  _buildSectionHeader('FINANSIAL & TIMECOIN'),
+                  _buildMenuItem(
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: 'Dompet TimeCoin',
+                    subtitle: 'Saldo 240 TC · Escrow aman',
+                    iconColor: AppColors.accentAmberGold,
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.wallet),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.military_tech_outlined,
+                    title: 'Reward Hub & Misi',
+                    subtitle: 'Klaim bonus reputasi & achievement',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.rewardHub),
+                  ),
+
+                  // Section 5: Pengaturan & Bantuan
+                  _buildSectionHeader('PENGATURAN & BANTUAN'),
+                  _buildMenuItem(
+                    icon: Icons.person_outline_rounded,
+                    title: 'Edit Profil Mahasiswa',
+                    subtitle: 'Biodata, semester, & keahlian teknis',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.editProfile),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.lock_outline_rounded,
+                    title: 'Privasi & Keamanan',
+                    subtitle: 'PIN dompet, kata sandi, & data pribadi',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.privacySecurity),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.help_outline_rounded,
+                    title: 'Pusat Bantuan & Resolusi',
+                    subtitle: 'FAQ, panduan escrow, & layanan CS',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.helpSupport),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.logout_rounded,
+                    title: 'Ganti Peran / Keluar Akun',
+                    subtitle: 'Kembali ke layar pemilihan peran awal',
+                    iconColor: const Color(0xFFEF4444),
+                    titleColor: const Color(0xFFDC2626),
+                    trailing: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Color(0xFFEF4444),
+                      size: 20,
+                    ),
+                    onTap: () {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.roleSelection,
+                        (route) => false,
+                      );
                     },
                   ),
-                ),
-                
-                _buildMenuItem(Icons.edit_rounded, 'Edit Profile', onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile)),
-                _buildMenuItem(Icons.security_rounded, 'Privacy & Security', onTap: () => Navigator.pushNamed(context, AppRoutes.privacySecurity)),
-                _buildMenuItem(Icons.help_outline_rounded, 'Help & Support', onTap: () => Navigator.pushNamed(context, AppRoutes.helpSupport)),
-                _buildMenuItem(Icons.logout_rounded, 'Logout', onTap: () => Navigator.pushNamedAndRemoveUntil(context, AppRoutes.roleSelection, (route) => false)),
-              ],
+
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

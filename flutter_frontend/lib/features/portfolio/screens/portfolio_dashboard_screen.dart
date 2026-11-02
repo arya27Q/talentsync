@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
@@ -24,6 +25,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Repository GitHub berhasil disinkronkan.'),
+            backgroundColor: AppColors.darkSlate,
             duration: Duration(seconds: 2),
           ),
         );
@@ -117,10 +119,16 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                 onPressed: () {
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Tautan CV berhasil disalin ke clipboard!')),
+                    const SnackBar(
+                      content: Text('Tautan CV berhasil disalin ke clipboard!'),
+                      backgroundColor: AppColors.darkSlate,
+                    ),
                   );
                 },
-                child: const Text('Salin Tautan CV', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Salin Tautan CV',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -198,6 +206,207 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
     );
   }
 
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.secondarySlate,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerifiedSkillItem({
+    required Widget leadingIconWidget,
+    required String title,
+    required String subtitle,
+    Widget? trailingWidget,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          leadingIconWidget,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.secondarySlate,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          trailingWidget ??
+              const Icon(
+                Icons.verified_rounded,
+                color: AppColors.primaryNavy,
+                size: 20,
+              ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProjectCard({
+    required String title,
+    required String subtitle,
+    required String rating,
+    required List<String> tags,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.darkSlate.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.check_circle_outline_rounded,
+                    color: Color(0xFF16A34A),
+                    size: 24,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.star_rounded, size: 16, color: AppColors.accentAmberGold),
+                  const SizedBox(width: 4),
+                  Text(
+                    rating,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkSlate,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Wrap(
+                spacing: 8,
+                children: tags.map((t) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      t,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryNavy,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(
+                    Icons.check_circle_rounded,
+                    size: 14,
+                    color: Color(0xFF16A34A),
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    'Divalidasi UMKM',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF16A34A),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -210,7 +419,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Bar
+                  // Header Bar: My Portfolio & Settings
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -223,19 +432,25 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+                        onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
                         child: Container(
-                          width: 40,
-                          height: 40,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.borderSlate),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: const Icon(
                             Icons.settings_outlined,
                             color: AppColors.darkSlate,
-                            size: 20,
+                            size: 22,
                           ),
                         ),
                       ),
@@ -243,7 +458,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  // Profile Header Card
+                  // 1. Profile Header Card (Top Card)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -300,7 +515,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                       ),
                                       SizedBox(width: 6),
                                       Icon(
-                                        Icons.verified,
+                                        Icons.verified_rounded,
                                         color: AppColors.primaryNavy,
                                         size: 18,
                                       ),
@@ -551,7 +766,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Quick Cards Grid (Sertifikat & Log Bimbingan)
+                  // 2. Quick Cards Grid (Sertifikat & Log Bimbingan)
                   Row(
                     children: [
                       // Sertifikat Card
@@ -675,7 +890,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // GitHub Sync Card
+                  // 3. GitHub Integration Card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
@@ -697,11 +912,11 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
+                              width: 36,
+                              height: 36,
+                              decoration: const BoxDecoration(
                                 color: AppColors.canvasWhite,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.borderSlate),
+                                shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.terminal_rounded,
@@ -709,50 +924,30 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                 size: 20,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text(
-                                    'Sinkronisasi GitHub',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.darkSlate,
-                                    ),
-                                  ),
-                                  Text(
-                                    '@aryapratama · 12 repo · baru saja',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Text(
+                                '@aryapratama · 12 repo · baru saja',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
                               ),
                             ),
                             GestureDetector(
                               onTap: _syncGitHub,
-                              child: Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: AppColors.canvasWhite,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AppColors.borderSlate),
-                                ),
-                                child: _isSyncing
-                                    ? const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : const Icon(
-                                        Icons.sync_rounded,
-                                        color: AppColors.darkSlate,
-                                        size: 18,
-                                      ),
-                              ),
+                              child: _isSyncing
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(
+                                      Icons.north_east_rounded,
+                                      size: 16,
+                                      color: AppColors.secondarySlate,
+                                    ),
                             ),
                           ],
                         ),
@@ -807,15 +1002,99 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                             _buildLegendItem('JavaScript 17%', AppColors.accentAmberGold),
                           ],
                         ),
+                        const SizedBox(height: 16),
+
+                        // 3 Stats Grid
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  children: const [
+                                    Text(
+                                      '12',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Repositori',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.secondarySlate,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(width: 1, height: 24, color: AppColors.borderSlate),
+                              Expanded(
+                                child: Column(
+                                  children: const [
+                                    Text(
+                                      '284',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Commit 2025',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.secondarySlate,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(width: 1, height: 24, color: AppColors.borderSlate),
+                              Expanded(
+                                child: Column(
+                                  children: const [
+                                    Text(
+                                      '3',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Repo disematkan',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.secondarySlate,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(height: 12),
-                        const Divider(color: AppColors.borderSlate, height: 1),
-                        const SizedBox(height: 10),
 
                         // Disconnect Link
                         GestureDetector(
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Koneksi GitHub tetap aktif.')),
+                              const SnackBar(
+                                content: Text('Koneksi GitHub tetap aktif.'),
+                                backgroundColor: AppColors.darkSlate,
+                              ),
                             );
                           },
                           child: const Text(
@@ -830,6 +1109,234 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 22),
+
+                  // 4. Section Header: Keahlian terverifikasi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Keahlian terverifikasi',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
+                        child: const Text(
+                          'Kelola',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryNavy,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Card Keahlian terverifikasi (Radar Chart + Skill List)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.borderSlate),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.darkSlate.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Custom Radar Chart Widget
+                        const SizedBox(
+                          height: 240,
+                          width: double.infinity,
+                          child: RadarChartWidget(),
+                        ),
+                        const SizedBox(height: 16),
+                        const Divider(color: AppColors.borderSlate, height: 1),
+                        const SizedBox(height: 8),
+
+                        // Skill 1: Flutter · Mahir
+                        _buildVerifiedSkillItem(
+                          leadingIconWidget: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFEF3C7),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.military_tech_rounded,
+                              color: AppColors.accentAmberGold,
+                              size: 22,
+                            ),
+                          ),
+                          title: 'Flutter · Mahir',
+                          subtitle: 'Endorse Dimas Prasetyo · 2 proyek',
+                        ),
+                        const Divider(color: Color(0xFFF1F5F9), height: 1),
+
+                        // Skill 2: Laravel · Menengah
+                        _buildVerifiedSkillItem(
+                          leadingIconWidget: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFDCFCE7),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check_circle_outline_rounded,
+                              color: Color(0xFF16A34A),
+                              size: 22,
+                            ),
+                          ),
+                          title: 'Laravel · Menengah',
+                          subtitle: 'Divalidasi 2 proyek UMKM',
+                        ),
+                        const Divider(color: Color(0xFFF1F5F9), height: 1),
+
+                        // Skill 3: MySQL · Menengah
+                        _buildVerifiedSkillItem(
+                          leadingIconWidget: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFDCFCE7),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check_circle_outline_rounded,
+                              color: Color(0xFF16A34A),
+                              size: 22,
+                            ),
+                          ),
+                          title: 'MySQL · Menengah',
+                          subtitle: 'Divalidasi Warung Pak Gito',
+                        ),
+                        const Divider(color: Color(0xFFF1F5F9), height: 1),
+
+                        // Skill 4: Dart · Mahir
+                        _buildVerifiedSkillItem(
+                          leadingIconWidget: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEFF6FF),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.code_rounded,
+                              color: AppColors.primaryNavy,
+                              size: 20,
+                            ),
+                          ),
+                          title: 'Dart · Mahir',
+                          subtitle: '7 repositori di GitHub',
+                        ),
+                        const Divider(color: Color(0xFFF1F5F9), height: 1),
+
+                        // Skill 5: Figma · Dasar (Belum ada bukti)
+                        _buildVerifiedSkillItem(
+                          leadingIconWidget: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF1F5F9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.help_outline_rounded,
+                              color: AppColors.secondarySlate,
+                              size: 20,
+                            ),
+                          ),
+                          title: 'Figma · Dasar',
+                          subtitle: 'Belum ada bukti terverifikasi',
+                          trailingWidget: GestureDetector(
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Unggah portofolio Figma untuk verifikasi.'),
+                                  backgroundColor: AppColors.darkSlate,
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'Verifikasi',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryNavy,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 5. Section Header: Proyek terverifikasi
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Proyek terverifikasi',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(context, AppRoutes.myProjects),
+                        child: const Text(
+                          'Semua',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryNavy,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Project Card 1: Sistem reservasi meja
+                  _buildProjectCard(
+                    title: 'Sistem reservasi meja',
+                    subtitle: 'Warung Pak Gito · 3 minggu',
+                    rating: '5.0',
+                    tags: ['Laravel', 'MySQL'],
+                  ),
+
+                  // Project Card 2: Katalog digital produk
+                  _buildProjectCard(
+                    title: 'Katalog digital produk',
+                    subtitle: 'Kerajinan Anyam Ayu · 2 minggu',
+                    rating: '4.8',
+                    tags: ['Flutter', 'Firebase'],
+                  ),
+
+                  // Project Card 3: Landing page promo
+                  _buildProjectCard(
+                    title: 'Landing page promo',
+                    subtitle: 'Laundry Bersih · 6 hari',
+                    rating: '4.9',
+                    tags: ['Figma', 'HTML'],
+                  ),
                 ],
               ),
             ),
@@ -841,26 +1348,161 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
       ),
     );
   }
+}
 
-  Widget _buildLegendItem(String label, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.secondarySlate,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+class RadarChartWidget extends StatelessWidget {
+  const RadarChartWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _RadarChartPainter(),
     );
   }
+}
+
+class _RadarChartPainter extends CustomPainter {
+  final List<String> labels = [
+    'Flutter',
+    'Laravel',
+    'UI Design',
+    'Database',
+    'Komunikasi',
+    'Testing',
+  ];
+
+  // Normalized values (0.0 to 1.0)
+  final List<double> values = [
+    0.92, // Flutter
+    0.70, // Laravel
+    0.65, // UI Design
+    0.75, // Database
+    0.88, // Komunikasi
+    0.60, // Testing
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width / 2 - 45, size.height / 2 - 35);
+    final count = labels.length;
+
+    // Grid paint
+    final gridPaint = Paint()
+      ..color = const Color(0xFFE2E8F0)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    // Concentric Web Polygons
+    const int rings = 3;
+    for (int r = 1; r <= rings; r++) {
+      final ringRadius = radius * (r / rings);
+      final ringPath = Path();
+      for (int i = 0; i < count; i++) {
+        final angle = -math.pi / 2 + i * (2 * math.pi / count);
+        final x = center.dx + ringRadius * math.cos(angle);
+        final y = center.dy + ringRadius * math.sin(angle);
+        if (i == 0) {
+          ringPath.moveTo(x, y);
+        } else {
+          ringPath.lineTo(x, y);
+        }
+      }
+      ringPath.close();
+      canvas.drawPath(ringPath, gridPaint);
+    }
+
+    // Radial Spokes
+    for (int i = 0; i < count; i++) {
+      final angle = -math.pi / 2 + i * (2 * math.pi / count);
+      final x = center.dx + radius * math.cos(angle);
+      final y = center.dy + radius * math.sin(angle);
+      canvas.drawLine(center, Offset(x, y), gridPaint);
+    }
+
+    // Shaded Value Polygon
+    final valuePath = Path();
+    final List<Offset> valuePoints = [];
+
+    for (int i = 0; i < count; i++) {
+      final angle = -math.pi / 2 + i * (2 * math.pi / count);
+      final valRadius = radius * values[i];
+      final x = center.dx + valRadius * math.cos(angle);
+      final y = center.dy + valRadius * math.sin(angle);
+      final pt = Offset(x, y);
+      valuePoints.add(pt);
+      if (i == 0) {
+        valuePath.moveTo(x, y);
+      } else {
+        valuePath.lineTo(x, y);
+      }
+    }
+    valuePath.close();
+
+    // Fill paint
+    final fillPaint = Paint()
+      ..color = AppColors.primaryNavy.withValues(alpha: 0.15)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(valuePath, fillPaint);
+
+    // Stroke paint
+    final strokePaint = Paint()
+      ..color = AppColors.primaryNavy
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    canvas.drawPath(valuePath, strokePaint);
+
+    // Vertex dots
+    final dotPaint = Paint()
+      ..color = AppColors.primaryNavy
+      ..style = PaintingStyle.fill;
+    final dotBorderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    for (final pt in valuePoints) {
+      canvas.drawCircle(pt, 4.5, dotPaint);
+      canvas.drawCircle(pt, 4.5, dotBorderPaint);
+    }
+
+    // Text labels around vertices
+    for (int i = 0; i < count; i++) {
+      final angle = -math.pi / 2 + i * (2 * math.pi / count);
+      final labelRadius = radius + 18;
+      final lx = center.dx + labelRadius * math.cos(angle);
+      final ly = center.dy + labelRadius * math.sin(angle);
+
+      final textSpan = TextSpan(
+        text: labels[i],
+        style: const TextStyle(
+          color: AppColors.darkSlate,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+      final tp = TextPainter(
+        text: textSpan,
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      );
+      tp.layout();
+
+      // Adjust offset based on position relative to center
+      double ox = lx - tp.width / 2;
+      double oy = ly - tp.height / 2;
+
+      // Small adjustment for vertical edges
+      if (i == 0) {
+        oy -= 4; // Top
+      } else if (i == 3) {
+        oy += 4; // Bottom
+      }
+
+      tp.paint(canvas, Offset(ox, oy));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

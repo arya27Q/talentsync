@@ -10,81 +10,58 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _nameController = TextEditingController(text: 'Arya Pratama');
-  final TextEditingController _headlineController = TextEditingController(text: 'Flutter Developer');
-  final TextEditingController _bioController = TextEditingController(
-    text: 'Mahasiswa Sistem Informasi yang suka membangun aplikasi mobile untuk usaha kecil.',
-  );
   final TextEditingController _linkedInController = TextEditingController(
-    text: 'https://linkedin.com/in/arya-pratama',
+    text: 'linkedin.com/in/arya-pratama',
   );
   final TextEditingController _gitHubController = TextEditingController(
-    text: 'https://github.com/aryapratama',
+    text: 'aryapratama',
   );
+  final TextEditingController _skillInputController = TextEditingController();
+
+  final List<String> _skills = [
+    'Flutter',
+    'Laravel',
+    'MySQL',
+    'Dart',
+    'Figma',
+  ];
+
+  bool _isPublicProfile = true;
+  bool _isOpenForProjects = true;
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _headlineController.dispose();
-    _bioController.dispose();
     _linkedInController.dispose();
     _gitHubController.dispose();
+    _skillInputController.dispose();
     super.dispose();
+  }
+
+  void _addSkill() {
+    final text = _skillInputController.text.trim();
+    if (text.isNotEmpty && !_skills.contains(text)) {
+      setState(() {
+        _skills.add(text);
+        _skillInputController.clear();
+      });
+    }
+  }
+
+  void _removeSkill(String skill) {
+    setState(() {
+      _skills.remove(skill);
+    });
   }
 
   void _saveProfile() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Perubahan profil berhasil disimpan!'),
+        backgroundColor: AppColors.darkSlate,
         duration: Duration(seconds: 2),
       ),
     );
     Navigator.pop(context);
-  }
-
-  Widget _buildFormField({
-    required String label,
-    required TextEditingController controller,
-    required IconData prefixIcon,
-    int maxLines = 1,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: AppColors.darkSlate,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.borderSlate),
-          ),
-          child: TextField(
-            controller: controller,
-            maxLines: maxLines,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.darkSlate,
-            ),
-            decoration: InputDecoration(
-              icon: Icon(prefixIcon, color: AppColors.secondarySlate, size: 20),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: maxLines > 1 ? 12 : 14),
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-      ],
-    );
   }
 
   Widget _buildBottomNavFloating(BuildContext context) {
@@ -164,23 +141,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 150),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // App Bar
+                  // App Bar Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: Container(
-                          width: 40,
-                          height: 40,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.borderSlate),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: const Icon(
                             Icons.keyboard_arrow_left_rounded,
@@ -204,7 +187,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           child: Text(
                             'Simpan',
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primaryNavy,
                             ),
@@ -215,65 +198,77 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Avatar with Camera Badge
-                  Center(
-                    child: Column(
-                      children: [
-                        Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            Container(
-                              width: 88,
-                              height: 88,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryNavy,
-                                borderRadius: BorderRadius.circular(26),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'A',
-                                  style: TextStyle(
-                                    fontSize: 38,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: AppColors.accentAmberGold,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'Ketuk ikon kamera untuk mengganti foto',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.secondarySlate,
-                          ),
-                        ),
-                      ],
+                  // LinkedIn Field
+                  const Text(
+                    'LinkedIn',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkSlate,
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // Section: Informasi dasar
+                  const SizedBox(height: 8),
                   Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.borderSlate),
+                    ),
+                    child: TextField(
+                      controller: _linkedInController,
+                      style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(
+                          Icons.link_rounded,
+                          color: AppColors.secondarySlate,
+                          size: 20,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Username GitHub Field
+                  const Text(
+                    'Username GitHub',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkSlate,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.borderSlate),
+                    ),
+                    child: TextField(
+                      controller: _gitHubController,
+                      style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(
+                          Icons.code_rounded,
+                          color: AppColors.secondarySlate,
+                          size: 20,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+
+                  // Card Keahlian
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: AppColors.borderSlate),
                       boxShadow: [
                         BoxShadow(
@@ -287,107 +282,250 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Informasi dasar',
+                          'Keahlian',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.darkSlate,
                           ),
                         ),
-                        const SizedBox(height: 16),
-
-                        // Nama Lengkap
-                        _buildFormField(
-                          label: 'Nama lengkap',
-                          controller: _nameController,
-                          prefixIcon: Icons.person_outline_rounded,
-                        ),
-
-                        // Headline
-                        _buildFormField(
-                          label: 'Headline',
-                          controller: _headlineController,
-                          prefixIcon: Icons.badge_outlined,
-                        ),
-
-                        // Bio
-                        _buildFormField(
-                          label: 'Bio',
-                          controller: _bioController,
-                          prefixIcon: Icons.notes_rounded,
-                          maxLines: 3,
-                        ),
-
-                        // Locked Campus Card
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: AppColors.canvasWhite,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.borderSlate),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Keahlian jadi terverifikasi setelah divalidasi proyek, mentor, atau GitHub.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                            height: 1.4,
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Skill Chips List
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _skills.map((skill) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    skill,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryNavy,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: () => _removeSkill(skill),
+                                    child: const Icon(
+                                      Icons.close_rounded,
+                                      size: 15,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Input Tambah Keahlian + Button
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14),
                                 decoration: BoxDecoration(
-                                  color: AppColors.lightBlueSurface,
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
                                 ),
-                                child: const Icon(
-                                  Icons.school_outlined,
+                                child: TextField(
+                                  controller: _skillInputController,
+                                  style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                                  onSubmitted: (_) => _addSkill(),
+                                  decoration: const InputDecoration(
+                                    hintText: 'Tambah keahlian',
+                                    hintStyle: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            GestureDetector(
+                              onTap: _addSkill,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
                                   color: AppColors.primaryNavy,
-                                  size: 22,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.add_rounded,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text(
-                                      'Universitas Negeri Surabaya',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'S1 Sistem Informasi · NIM terverifikasi',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(
-                                Icons.lock_outline_rounded,
-                                color: AppColors.secondarySlate,
-                                size: 18,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // LinkedIn
-                        _buildFormField(
-                          label: 'LinkedIn',
-                          controller: _linkedInController,
-                          prefixIcon: Icons.business_center_outlined,
-                        ),
-
-                        // GitHub
-                        _buildFormField(
-                          label: 'GitHub',
-                          controller: _gitHubController,
-                          prefixIcon: Icons.terminal_rounded,
+                            ),
+                          ],
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Card Toggles (Profil publik & Terbuka untuk proyek)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.borderSlate),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.darkSlate.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Toggle 1: Profil publik
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'Profil publik',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'UMKM dan rekruter bisa melihat CV lewat link',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _isPublicProfile,
+                              activeThumbColor: Colors.white,
+                              activeTrackColor: AppColors.primaryNavy,
+                              inactiveThumbColor: Colors.white,
+                              inactiveTrackColor: const Color(0xFFE2E8F0),
+                              onChanged: (val) {
+                                setState(() {
+                                  _isPublicProfile = val;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Divider(color: AppColors.borderSlate, height: 1),
+                        const SizedBox(height: 12),
+
+                        // Toggle 2: Terbuka untuk proyek
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'Terbuka untuk proyek',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Tampilkan status siap kerja di profil',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: _isOpenForProjects,
+                              activeThumbColor: Colors.white,
+                              activeTrackColor: AppColors.primaryNavy,
+                              inactiveThumbColor: Colors.white,
+                              inactiveTrackColor: const Color(0xFFE2E8F0),
+                              onChanged: (val) {
+                                setState(() {
+                                  _isOpenForProjects = val;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Button Simpan Perubahan
+                  GestureDetector(
+                    onTap: _saveProfile,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryNavy,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Simpan Perubahan',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],

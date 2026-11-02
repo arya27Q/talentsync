@@ -12,6 +12,46 @@ class MentoringResultScreen extends StatefulWidget {
 class _MentoringResultScreenState extends State<MentoringResultScreen> {
   bool _isEscrowReleased = false;
 
+  // Action Items Checklist State
+  final List<Map<String, dynamic>> _actionItems = [
+    {
+      'title': 'Rapikan spacing & auto-layout pada 6 layar checkout',
+      'tag': 'Selesai',
+      'tagColor': const Color(0xFF16A34A),
+      'tagBg': const Color(0xFFDCFCE7),
+      'isCompleted': true,
+      'isExpanded': false,
+      'detail': 'Pastikan margin horizontal konsisten 24px dan skala tipografi mengikuti standar Plus Jakarta Sans.',
+    },
+    {
+      'title': 'Tambahkan metrik estimasi peningkatan konversi UMKM',
+      'tag': 'Prioritas tinggi',
+      'tagColor': const Color(0xFFDC2626),
+      'tagBg': const Color(0xFFFEE2E2),
+      'isCompleted': false,
+      'isExpanded': true, // Expanded by default according to Figma
+      'detail': 'Sertakan kalkulasi perkiraan kenaikan transaksi berdasarkan benchmark lokal.',
+    },
+    {
+      'title': 'Seragamkan ikon sesuai Material Rounded',
+      'tag': 'Konsistensi',
+      'tagColor': AppColors.secondarySlate,
+      'tagBg': const Color(0xFFF1F5F9),
+      'isCompleted': false,
+      'isExpanded': false,
+      'detail': 'Gunakan 100% native Material Icons Rounded (Icons.<name>_rounded) tanpa emoji atau stiker 3D.',
+    },
+    {
+      'title': 'Ekspor PDF portofolio 1 lembar untuk lampiran tender',
+      'tag': 'Siap kirim',
+      'tagColor': AppColors.secondarySlate,
+      'tagBg': const Color(0xFFF1F5F9),
+      'isCompleted': false,
+      'isExpanded': false,
+      'detail': 'Format ringkas satu halaman berisi problem, wireframe, solusi, dan hasil validasi UMKM.',
+    },
+  ];
+
   void _releaseEscrow() {
     showDialog(
       context: context,
@@ -147,6 +187,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final completedCount = _actionItems.where((item) => item['isCompleted'] == true).length;
+    final totalCount = _actionItems.length;
+
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
       body: Stack(
@@ -157,19 +200,13 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Top App Bar: Back, Title & Subtitle, Share & Download Icons
+                  // 1. Top Bar: Back, Title, Share & Download
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap: () {
-                            if (Navigator.canPop(context)) {
-                              Navigator.pop(context);
-                            } else {
-                              Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
-                            }
-                          },
+                          onTap: () => Navigator.pop(context),
                           child: Container(
                             width: 44,
                             height: 44,
@@ -508,7 +545,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.check_circle_outline_rounded, size: 14, color: Color(0xFF16A34A)),
+                                  Icon(Icons.shield_outlined, size: 14, color: Color(0xFF16A34A)),
                                   SizedBox(width: 4),
                                   Text(
                                     'Standar kurasi siap tender',
@@ -529,7 +566,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
 
                   const SizedBox(height: 20),
 
-                  // 4. Luaran & Hasil Bimbingan Section
+                  // 4. Luaran & Hasil Bimbingan Section (4 Deliverable from User Screenshots 2 & 3)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
@@ -557,6 +594,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
 
                         // Deliverable Card 1: Portofolio terverifikasi mentor
                         Container(
+                          margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: AppColors.cardSurface,
@@ -638,7 +676,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: () {
-                                        Navigator.pushNamed(context, AppRoutes.portfolio);
+                                        Navigator.pushNamed(context, AppRoutes.caseStudy);
                                       },
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -695,10 +733,9 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 12),
-
                         // Deliverable Card 2: Sertifikat Kelulusan
                         Container(
+                          margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: AppColors.cardSurface,
@@ -711,44 +748,541 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                               ),
                             ],
                           ),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.workspace_premium_outlined,
-                                    color: AppColors.primaryNavy,
-                                    size: 22,
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.workspace_premium_outlined,
+                                        color: AppColors.primaryNavy,
+                                        size: 22,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Sertifikat kelulusan bimbingan',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.darkSlate,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'E-certificate resmi dengan tanda tangan digital Dimas Prasetyo',
+                                          style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFF6FF),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.download_rounded, size: 16, color: AppColors.primaryNavy),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            'Unduh',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.primaryNavy,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.pushNamed(context, AppRoutes.portfolio);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFEFF6FF),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: const Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.add_circle_outline_rounded, size: 16, color: AppColors.primaryNavy),
+                                            SizedBox(width: 6),
+                                            Text(
+                                              'Tambah ke Profil',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.primaryNavy,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Deliverable Card 3: Showcase bukti proyek (From User Screenshot 3)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardSurface,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.darkSlate.withValues(alpha: 0.04),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.storefront_outlined,
+                                        color: AppColors.primaryNavy,
+                                        size: 22,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Showcase bukti proyek',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.darkSlate,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'Implementasi live pada proyek UMKM',
+                                          style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(context, AppRoutes.projectDetail);
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.launch_rounded, size: 16, color: AppColors.primaryNavy),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'Showcase',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryNavy,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              const Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Sertifikat kelulusan bimbingan',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
+                            ],
+                          ),
+                        ),
+
+                        // Deliverable Card 4: Materi & tugas lanjutan (From User Screenshot 3)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardSurface,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.darkSlate.withValues(alpha: 0.04),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.menu_book_rounded,
+                                        color: AppColors.primaryNavy,
+                                        size: 22,
                                       ),
                                     ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'E-certificate resmi dengan tanda tangan digital',
-                                      style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Materi & tugas lanjutan',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.darkSlate,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'Materi sesi dan tugas yang perlu dikerjakan',
+                                          style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFF6FF),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.menu_book_outlined, size: 16, color: AppColors.primaryNavy),
+                                          SizedBox(width: 6),
+                                          Text(
+                                            'Buka Materi',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.primaryNavy,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.pushNamed(context, AppRoutes.mentorChat);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 10),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFEFF6FF),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: const Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.chat_bubble_outline_rounded, size: 16, color: AppColors.primaryNavy),
+                                            SizedBox(width: 6),
+                                            Text(
+                                              'Chat Mentor',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.primaryNavy,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // 5. Informasi Rekaman Box (From User Screenshot 3 & 4)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 20),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Icon(Icons.info_outline_rounded, size: 18, color: AppColors.secondarySlate),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: Text.rich(
+                                  TextSpan(
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.secondarySlate,
+                                      height: 1.45,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: 'Informasi rekaman: ',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.darkSlate,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: 'sesi 1-on-1 tidak disimpan di cloud TalentSync. Kamu boleh merekam mandiri untuk keperluan review pribadi.',
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+
+                        // 6. Section: Daftar Aksi Perbaikan (From User Screenshot 4)
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardSurface,
+                            borderRadius: BorderRadius.circular(22),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Daftar aksi perbaikan',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
+                                    ),
+                                  ),
+                                  Text(
+                                    '$completedCount dari $totalCount selesai',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primaryNavy,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+
+                              // Progress bar
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: totalCount > 0 ? (completedCount / totalCount) : 0,
+                                  minHeight: 5,
+                                  backgroundColor: const Color(0xFFE2E8F0),
+                                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryNavy),
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Checklist items
+                              ...List.generate(_actionItems.length, (index) {
+                                final item = _actionItems[index];
+                                final isCompleted = item['isCompleted'] as bool;
+                                final isExpanded = item['isExpanded'] as bool;
+
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: index == _actionItems.length - 1 ? Colors.transparent : const Color(0xFFF1F5F9),
+                                      ),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                item['isCompleted'] = !isCompleted;
+                                              });
+                                            },
+                                            child: Container(
+                                              width: 22,
+                                              height: 22,
+                                              margin: const EdgeInsets.only(top: 2),
+                                              decoration: BoxDecoration(
+                                                color: isCompleted ? AppColors.primaryNavy : Colors.transparent,
+                                                borderRadius: BorderRadius.circular(6),
+                                                border: Border.all(
+                                                  color: isCompleted ? AppColors.primaryNavy : const Color(0xFFCBD5E1),
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              child: isCompleted
+                                                  ? const Center(
+                                                      child: Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                                                    )
+                                                  : null,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                setState(() {
+                                                  item['isExpanded'] = !isExpanded;
+                                                });
+                                              },
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    item['title'] as String,
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: isCompleted ? AppColors.secondarySlate : AppColors.darkSlate,
+                                                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                                                      height: 1.35,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: item['tagBg'] as Color,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              item['tag'] as String,
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: item['tagColor'] as Color,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                item['isExpanded'] = !isExpanded;
+                                              });
+                                            },
+                                            child: Icon(
+                                              isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                              size: 18,
+                                              color: AppColors.secondarySlate,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      // Expanded explanation body
+                                      if (isExpanded) ...[
+                                        const SizedBox(height: 8),
+                                        Padding(
+                                          padding: const EdgeInsets.only(left: 34.0, right: 8.0),
+                                          child: Text(
+                                            item['detail'] as String,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.secondarySlate,
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                );
+                              }),
                             ],
                           ),
                         ),
@@ -804,4 +1338,3 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
     );
   }
 }
-

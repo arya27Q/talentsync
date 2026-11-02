@@ -31,12 +31,17 @@ import 'package:flutter_frontend/features/mentoring/screens/mentor_profile_scree
 import 'package:flutter_frontend/features/mentoring/screens/mentor_chat_screen.dart';
 import 'package:flutter_frontend/features/mentoring/screens/booking_session_screen.dart';
 import 'package:flutter_frontend/features/mentoring/screens/mentoring_session_screen.dart';
+import 'package:flutter_frontend/features/mentoring/screens/selesai_bimbingan_screen.dart';
 import 'package:flutter_frontend/features/mentoring/screens/mentoring_result_screen.dart';
+import 'package:flutter_frontend/features/mentoring/screens/my_mentors_screen.dart';
+import 'package:flutter_frontend/features/mentoring/screens/log_bimbingan_screen.dart';
+import 'package:flutter_frontend/features/mentoring/screens/ruang_belajar_screen.dart';
 import 'package:flutter_frontend/features/wallet/screens/reward_hub_screen.dart';
 import 'package:flutter_frontend/features/profile/screens/student_settings_screen.dart';
 import 'package:flutter_frontend/features/profile/screens/edit_profile_screen.dart';
 import 'package:flutter_frontend/features/profile/screens/privacy_security_screen.dart';
 import 'package:flutter_frontend/features/profile/screens/help_support_screen.dart';
+import 'package:flutter_frontend/features/profile/screens/switch_to_mentor_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_main_layout.dart';
 
 class AppRoutes {
@@ -70,16 +75,21 @@ class AppRoutes {
   static const String caseStudy = '/portfolio/case-study';
   static const String wallet = '/wallet';
   static const String findMentors = '/mentors';
+  static const String myMentors = '/mentors/my-mentors';
   static const String mentorProfile = '/mentors/profile';
   static const String mentorChat = '/mentors/chat';
   static const String bookingSession = '/mentors/booking';
   static const String mentoringSession = '/mentoring/session';
+  static const String selesaiBimbingan = '/mentoring/selesai';
   static const String mentoringResult = '/mentoring/result';
+  static const String logBimbingan = '/mentoring/log';
+  static const String ruangBelajar = '/mentoring/ruang-belajar';
   static const String rewardHub = '/wallet/rewards';
   static const String settings = '/settings';
   static const String editProfile = '/settings/edit-profile';
   static const String privacySecurity = '/settings/privacy-security';
   static const String helpSupport = '/settings/help-support';
+  static const String switchToMentor = '/profile/switch-to-mentor';
 
   // Define Route Map
   static Map<String, WidgetBuilder> get routes => {
@@ -112,15 +122,20 @@ class AppRoutes {
     caseStudy: (context) => const CaseStudyScreen(),
     wallet: (context) => const WalletDashboardScreen(),
     findMentors: (context) => const FindMentorsScreen(),
+    myMentors: (context) => const MyMentorsScreen(),
     mentorProfile: (context) => const MentorProfileScreen(),
     mentorChat: (context) => const MentorChatScreen(),
     bookingSession: (context) => const BookingSessionScreen(),
     mentoringSession: (context) => const MentoringSessionScreen(),
+    selesaiBimbingan: (context) => const SelesaiBimbinganScreen(),
     mentoringResult: (context) => const MentoringResultScreen(),
+    logBimbingan: (context) => const LogBimbinganScreen(),
+    ruangBelajar: (context) => const RuangBelajarScreen(),
     rewardHub: (context) => const RewardHubScreen(),
     settings: (context) => const StudentSettingsScreen(),
     editProfile: (context) => const EditProfileScreen(),
     privacySecurity: (context) => const PrivacySecurityScreen(),
     helpSupport: (context) => const HelpSupportScreen(),
+    switchToMentor: (context) => const SwitchToMentorScreen(),
   };
 }
