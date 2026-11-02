@@ -14,7 +14,6 @@ import 'package:flutter_frontend/features/dashboard/screens/student_main_layout.
 import 'package:flutter_frontend/features/project/screens/explore_projects_screen.dart';
 import 'package:flutter_frontend/features/project/screens/project_detail_screen.dart';
 import 'package:flutter_frontend/features/project/screens/apply_project_screen.dart';
-import 'package:flutter_frontend/features/project/screens/my_projects_screen.dart';
 import 'package:flutter_frontend/features/project/screens/project_completed_screen.dart';
 import 'package:flutter_frontend/features/notifications/screens/notifications_screen.dart';
 import 'package:flutter_frontend/features/workspace/screens/workspace_kanban_screen.dart';
@@ -93,7 +92,7 @@ class AppRoutes {
     exploreProjects: (context) => const ExploreProjectsScreen(),
     projectDetail: (context) => const ProjectDetailScreen(),
     applyProject: (context) => const ApplyProjectScreen(),
-    myProjects: (context) => const MyProjectsScreen(),
+    myProjects: (context) => const StudentMainLayout(initialIndex: 1),
     projectCompleted: (context) => const ProjectCompletedScreen(),
     notifications: (context) => const NotificationsScreen(),
     workspaceKanban: (context) => const WorkspaceKanbanScreen(),

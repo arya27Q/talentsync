@@ -1,119 +1,227 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationItem {
+  final String id;
+  final IconData icon;
+  final Color iconColor;
+  final Color iconBg;
+  final String title;
+  final String time;
+  final String desc;
+  bool isUnread;
+  final String? routeDestination;
+
+  NotificationItem({
+    required this.id,
+    required this.icon,
+    required this.iconColor,
+    required this.iconBg,
+    required this.title,
+    required this.time,
+    required this.desc,
+    this.isUnread = false,
+    this.routeDestination,
+  });
+}
+
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
-  Widget _buildNotificationItem({
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBg,
-    required String title,
-    required String time,
-    required String desc,
-    bool isUnread = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isUnread ? Colors.white : AppColors.warmOffWhite,
-        borderRadius: BorderRadius.circular(24),
-        border: isUnread ? Border.all(color: AppColors.primaryTan.withValues(alpha: 0.3)) : null,
-        boxShadow: isUnread
-            ? [
-                BoxShadow(
-                  color: AppColors.darkBrown.withValues(alpha: 0.05),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                )
-              ]
-            : [],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: iconBg,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title, 
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.darkBrown),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(time, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(desc, style: TextStyle(color: Colors.grey.shade700, fontSize: 13, height: 1.5)),
-              ],
-            ),
-          ),
-        ],
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  final List<NotificationItem> _notifications = [
+    NotificationItem(
+      id: '1',
+      icon: Icons.check_circle_outline_rounded,
+      iconColor: const Color(0xFF10B981),
+      iconBg: const Color(0xFFE8F7EE),
+      title: 'Application Accepted',
+      time: '10 mnt',
+      desc: 'Toko Bu Sri menerima lamaranmu untuk proyek aplikasi kasir.',
+      isUnread: true,
+      routeDestination: AppRoutes.myProjects,
+    ),
+    NotificationItem(
+      id: '2',
+      icon: Icons.toll_rounded,
+      iconColor: AppColors.accentAmberGold,
+      iconBg: const Color(0xFFFEF3C7),
+      title: '+80 TC diterima',
+      time: '2 jam',
+      desc: 'Warung Pak Gito telah memvalidasi hasil kerjamu.',
+      isUnread: true,
+      routeDestination: AppRoutes.wallet,
+    ),
+    NotificationItem(
+      id: '3',
+      icon: Icons.star_rounded,
+      iconColor: AppColors.accentAmberGold,
+      iconBg: const Color(0xFFFFF7ED),
+      title: 'Ulasan baru',
+      time: 'Kemarin',
+      desc: '"Rapi dan komunikatif, hasilnya langsung dipakai." Rating 5.0',
+      isUnread: false,
+      routeDestination: AppRoutes.portfolio,
+    ),
+    NotificationItem(
+      id: '4',
+      icon: Icons.calendar_today_rounded,
+      iconColor: AppColors.primaryNavy,
+      iconBg: const Color(0xFFEFF6FF),
+      title: 'Sesi mentoring besok',
+      time: 'Kemarin',
+      desc: 'Bersama Dimas Prasetyo, 19.00 WIB.',
+      isUnread: false,
+      routeDestination: AppRoutes.findMentors,
+    ),
+    NotificationItem(
+      id: '5',
+      icon: Icons.system_update_rounded,
+      iconColor: const Color(0xFF64748B),
+      iconBg: const Color(0xFFF1F5F9),
+      title: 'System Update',
+      time: '3 hari',
+      desc: 'Pencairan TC kini diproses kurang dari 1 hari kerja.',
+      isUnread: false,
+      routeDestination: null,
+    ),
+  ];
+
+  void _markAllAsRead() {
+    setState(() {
+      for (var item in _notifications) {
+        item.isUnread = false;
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Semua notifikasi telah ditandai dibaca.'),
+        backgroundColor: AppColors.darkSlate,
+        duration: Duration(seconds: 2),
       ),
     );
   }
 
-  Widget _buildBottomNavBarDummy(BuildContext context) {
-    return Positioned(
-      left: 24,
-      right: 24,
-      bottom: 24,
+  Widget _buildNotificationCard(NotificationItem item) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          item.isUnread = false;
+        });
+        if (item.routeDestination != null) {
+          Navigator.pushNamed(context, item.routeDestination!);
+        }
+      },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(40),
+          color: AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.darkBrown.withValues(alpha: 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              color: AppColors.darkSlate.withValues(alpha: 0.04),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildNavItem(Icons.home_rounded, context),
-            _buildNavItem(Icons.search_rounded, context),
-            _buildNavItem(Icons.assignment_rounded, context),
-            _buildNavItem(Icons.account_balance_wallet_rounded, context),
-            _buildNavItem(Icons.person_rounded, context),
+            // Leading Squircle Icon
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: item.iconBg,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Center(
+                child: Icon(
+                  item.icon,
+                  color: item.iconColor,
+                  size: 24,
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Middle Content: Title, Time, Unread Dot, Desc
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.title,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        item.time,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondarySlate,
+                        ),
+                      ),
+                      if (item.isUnread) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primaryNavy,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item.desc,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.secondarySlate,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(IconData icon, BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: const BoxDecoration(
+  Widget _buildNavIcon({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
         color: Colors.transparent,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        icon,
-        color: Colors.grey.shade400,
-        size: 26,
+        child: Icon(
+          icon,
+          color: AppColors.secondarySlate,
+          size: 24,
+        ),
       ),
     );
   }
@@ -121,102 +229,138 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.warmOffWhite,
+      backgroundColor: AppColors.canvasWhite,
       body: Stack(
         children: [
           SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Floating Header
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.darkBrown.withValues(alpha: 0.05),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
+                // Top App Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                   child: Row(
                     children: [
+                      // Back Button
                       GestureDetector(
-                        onTap: () => Navigator.pop(context),
+                        onTap: () {
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+                          }
+                        },
                         child: Container(
-                          padding: const EdgeInsets.all(8),
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
-                            color: AppColors.warmOffWhite,
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.cardSurface,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.darkSlate.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                          child: const Icon(Icons.keyboard_arrow_left_rounded, color: AppColors.darkBrown),
+                          child: const Center(
+                            child: Icon(
+                              Icons.keyboard_arrow_left_rounded,
+                              color: AppColors.darkSlate,
+                              size: 24,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
                       const Text(
                         'Notifications',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.darkBrown),
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: _markAllAsRead,
+                        child: const Text(
+                          'Tandai dibaca',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryNavy,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                
+
+                // Notifications List
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.only(left: 24, right: 24, top: 10, bottom: 120),
-                    children: [
-                      const Text('TODAY', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12)),
-                      const SizedBox(height: 16),
-                      _buildNotificationItem(
-                        icon: Icons.check_circle_rounded,
-                        iconColor: const Color(0xFF388E3C),
-                        iconBg: const Color(0xFFE8F5E9),
-                        title: 'Application Accepted!',
-                        time: '10 mins ago',
-                        desc: 'Batik Nusantara has accepted your application for Redesign Landing Page. Click here to open workspace.',
-                        isUnread: true,
-                      ),
-                      _buildNotificationItem(
-                        icon: Icons.message_rounded,
-                        iconColor: const Color(0xFF1976D2),
-                        iconBg: const Color(0xFFE3F2FD),
-                        title: 'New Message',
-                        time: '1 hour ago',
-                        desc: 'Pak Budi from Cafe Rindu sent you a message: "Can we have a meeting this afternoon?"',
-                        isUnread: true,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('YESTERDAY', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12)),
-                      const SizedBox(height: 16),
-                      _buildNotificationItem(
-                        icon: Icons.monetization_on_rounded,
-                        iconColor: const Color(0xFFF57C00),
-                        iconBg: const Color(0xFFFFF3E0),
-                        title: 'Payment Received',
-                        time: '1 day ago',
-                        desc: 'You received 5 TC from Toko Sepatu Juara for project Copywriting.',
-                        isUnread: false,
-                      ),
-                      _buildNotificationItem(
-                        icon: Icons.system_update_rounded,
-                        iconColor: AppColors.darkBrown,
-                        iconBg: Colors.white,
-                        title: 'System Update',
-                        time: '1 day ago',
-                        desc: 'SkillSwap v2.0 is out! Check out the new collaboration features.',
-                        isUnread: false,
-                      ),
-                    ],
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(left: 24, right: 24, top: 8, bottom: 120),
+                    itemCount: _notifications.length,
+                    itemBuilder: (context, index) {
+                      return _buildNotificationCard(_notifications[index]);
+                    },
                   ),
                 ),
               ],
             ),
           ),
-          
-          _buildBottomNavBarDummy(context),
+
+          // Floating Capsule Bottom Navigation Bar (Explore, Tasks, Wallet, Profile)
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(36),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.darkSlate.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavIcon(
+                    icon: Icons.explore_outlined,
+                    onTap: () {
+                      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.studentDashboard, (route) => false);
+                    },
+                  ),
+                  _buildNavIcon(
+                    icon: Icons.assignment_outlined,
+                    onTap: () {
+                      Navigator.pushReplacementNamed(context, AppRoutes.myProjects);
+                    },
+                  ),
+                  _buildNavIcon(
+                    icon: Icons.account_balance_wallet_outlined,
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoutes.wallet);
+                    },
+                  ),
+                  _buildNavIcon(
+                    icon: Icons.person_outline_rounded,
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoutes.settings);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
