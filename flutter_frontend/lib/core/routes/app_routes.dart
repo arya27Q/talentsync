@@ -30,6 +30,8 @@ import 'package:flutter_frontend/features/mentoring/screens/find_mentors_screen.
 import 'package:flutter_frontend/features/mentoring/screens/mentor_profile_screen.dart';
 import 'package:flutter_frontend/features/mentoring/screens/mentor_chat_screen.dart';
 import 'package:flutter_frontend/features/mentoring/screens/booking_session_screen.dart';
+import 'package:flutter_frontend/features/mentoring/screens/mentoring_session_screen.dart';
+import 'package:flutter_frontend/features/mentoring/screens/mentoring_result_screen.dart';
 import 'package:flutter_frontend/features/wallet/screens/reward_hub_screen.dart';
 import 'package:flutter_frontend/features/profile/screens/student_settings_screen.dart';
 import 'package:flutter_frontend/features/profile/screens/edit_profile_screen.dart';
@@ -71,6 +73,8 @@ class AppRoutes {
   static const String mentorProfile = '/mentors/profile';
   static const String mentorChat = '/mentors/chat';
   static const String bookingSession = '/mentors/booking';
+  static const String mentoringSession = '/mentoring/session';
+  static const String mentoringResult = '/mentoring/result';
   static const String rewardHub = '/wallet/rewards';
   static const String settings = '/settings';
   static const String editProfile = '/settings/edit-profile';
@@ -111,6 +115,8 @@ class AppRoutes {
     mentorProfile: (context) => const MentorProfileScreen(),
     mentorChat: (context) => const MentorChatScreen(),
     bookingSession: (context) => const BookingSessionScreen(),
+    mentoringSession: (context) => const MentoringSessionScreen(),
+    mentoringResult: (context) => const MentoringResultScreen(),
     rewardHub: (context) => const RewardHubScreen(),
     settings: (context) => const StudentSettingsScreen(),
     editProfile: (context) => const EditProfileScreen(),
