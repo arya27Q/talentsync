@@ -2,11 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 
-class ChatMessage {
+class ChatMessageItem {
+  final String id;
   final String text;
+  final String time;
   final bool isMe;
-  final String? attachment;
-  ChatMessage(this.text, this.isMe, {this.attachment});
+  final String? attachmentName;
+
+  ChatMessageItem({
+    required this.id,
+    required this.text,
+    required this.time,
+    required this.isMe,
+    this.attachmentName,
+  });
 }
 
 class WorkspaceChatScreen extends StatefulWidget {
@@ -17,30 +26,83 @@ class WorkspaceChatScreen extends StatefulWidget {
 }
 
 class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
-  final TextEditingController _messageController = TextEditingController();
+  final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
-  List<ChatMessage> messages = [
-    ChatMessage('Hello! Are you ready to start working on the wireframes?', false),
-    ChatMessage('Yes, I am! I have reviewed the requirements you sent earlier.', true),
-    ChatMessage('Great. I attached the brand guidelines for your reference.', false, attachment: 'Brand_Guidelines.pdf'),
-    ChatMessage('Thanks, I will take a look. I should have the first draft ready by tomorrow.', true),
+
+  final List<ChatMessageItem> _messages = [
+    ChatMessageItem(
+      id: '1',
+      text: 'Mas Arya, form stok sudah saya coba. Bisa tambah kolom harga modal?',
+      time: '09.12',
+      isMe: false,
+    ),
+    ChatMessageItem(
+      id: '2',
+      text: 'Bisa, Bu. Saya tambahkan hari ini, nanti laba otomatis dihitung dari selisih harga jual.',
+      time: '09.15',
+      isMe: true,
+    ),
+    ChatMessageItem(
+      id: '3',
+      text: '',
+      time: '11.40',
+      isMe: true,
+      attachmentName: 'preview-form-stok-v2.png',
+    ),
+    ChatMessageItem(
+      id: '4',
+      text: 'Sudah pas. Kalau semua beres, silakan ajukan hasil tahap ini ya.',
+      time: '11.52',
+      isMe: false,
+    ),
   ];
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isEmpty) return;
-    
+  final List<String> _quickChips = [
+    'Progres sudah 80%',
+    'Boleh minta feedback?',
+    'Saya kirim file revisi',
+    'Siap Bu, segera diajukan',
+  ];
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _sendMessage([String? presetText]) {
+    final text = presetText ?? _textController.text.trim();
+    if (text.isEmpty) return;
+
     setState(() {
-      messages.add(ChatMessage(_messageController.text, true));
+      _messages.add(
+        ChatMessageItem(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          text: text,
+          time: '11.55',
+          isMe: true,
+        ),
+      );
     });
-    _messageController.clear();
+
+    if (presetText == null) {
+      _textController.clear();
+    }
     _scrollToBottom();
 
-    // Fake Auto-Reply for Demo
+    // Auto simulated response from Toko Bu Sri
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
-          messages.add(ChatMessage("Siap! Ditunggu updatenya ya mas bro. Nanti kita review bareng di sesi meeting.", false));
+          _messages.add(
+            ChatMessageItem(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              text: 'Terima kasih Mas Arya! Sangat responsif. Silakan lanjut ke penuntasan milestone ya.',
+              time: '11.57',
+              isMe: false,
+            ),
+          );
         });
         _scrollToBottom();
       }
@@ -51,7 +113,7 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 200, // Extra padding
+          _scrollController.position.maxScrollExtent + 120,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
@@ -59,244 +121,424 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
     });
   }
 
-  Widget _buildBubble(ChatMessage message) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (!message.isMe)
-            Container(
-              width: 32,
-              height: 32,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: const BoxDecoration(color: Color(0xFF8C5E3C), shape: BoxShape.circle),
-              child: const Center(child: Text('BN', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))),
-            ),
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: message.isMe ? AppColors.primaryTan : Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(message.isMe ? 20 : 0),
-                  bottomRight: Radius.circular(message.isMe ? 0 : 20),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkBrown.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ],
+  Widget _buildBubble(ChatMessageItem item) {
+    if (item.attachmentName != null) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          constraints: const BoxConstraints(maxWidth: 280),
+          decoration: BoxDecoration(
+            color: AppColors.primaryNavy,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryNavy.withValues(alpha: 0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (message.attachment != null)
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
                     Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: const Color(0xFFFFF8E1), borderRadius: BorderRadius.circular(12)),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.insert_drive_file_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFFF8F00)),
-                          const SizedBox(width: 8),
-                          Text(message.attachment!, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFF8F00), fontSize: 12)),
+                          Text(
+                            item.attachmentName!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Lampiran',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white70,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  Text(
-                    message.text,
-                    style: TextStyle(color: message.isMe ? Colors.white : AppColors.darkBrown, height: 1.5),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                item.time,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final isMe = item.isMe;
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.78,
+        ),
+        decoration: BoxDecoration(
+          color: isMe ? AppColors.primaryNavy : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: isMe ? null : Border.all(color: AppColors.borderSlate),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.darkSlate.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.text,
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: isMe ? Colors.white : AppColors.darkSlate,
               ),
             ),
-          ),
-          if (message.isMe)
-            Container(
-              width: 32,
-              height: 32,
-              margin: const EdgeInsets.only(left: 8),
-              decoration: const BoxDecoration(color: AppColors.darkBrown, shape: BoxShape.circle),
-              child: const Center(child: Icon(Icons.person_rounded, color: Colors.white, size: 16)),
+            const SizedBox(height: 4),
+            Text(
+              item.time,
+              style: TextStyle(
+                fontSize: 10,
+                color: isMe ? Colors.white70 : AppColors.secondarySlate,
+              ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
-  Widget _buildChatInput() {
-    return Container(
-      margin: const EdgeInsets.only(left: 24, right: 24),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkBrown.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          const Icon(Icons.attach_file_rounded, color: Colors.grey),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              decoration: const InputDecoration(
-                hintText: 'Type a message...',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                border: InputBorder.none,
-                isDense: true,
-              ),
-              onSubmitted: (_) => _sendMessage(),
-            ),
-          ),
-          GestureDetector(
-            onTap: _sendMessage,
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(
-                color: AppColors.primaryTan,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.warmOffWhite,
+      backgroundColor: AppColors.canvasWhite,
       body: SafeArea(
         child: Column(
           children: [
-            // Floating Header
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.darkBrown.withValues(alpha: 0.05),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
+            // Header Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(bottom: BorderSide(color: AppColors.borderSlate)),
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.borderSlate),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.warmOffWhite,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.keyboard_arrow_left_rounded, color: AppColors.darkBrown),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          const Text(
-                            'Messages',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkBrown),
-                          ),
-                        ],
+                      child: const Icon(
+                        Icons.keyboard_arrow_left_rounded,
+                        color: AppColors.darkSlate,
+                        size: 24,
                       ),
-                      Row(
-                        children: [
-
-                          
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                
-                // Chat bubbles
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    itemCount: messages.length + 2,
-                    itemBuilder: (context, index) {
-                      if (index == 0) {
-                        return const Padding(
-                          padding: EdgeInsets.only(bottom: 24),
-                          child: Center(child: Text('Today, 10:42 AM', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold))),
-                        );
-                      }
-                      if (index == messages.length + 1) {
-                        return const SizedBox(height: 180);
-                      }
-                      return _buildBubble(messages[index - 1]);
-                    },
-                  ),
-                ),
-                
-            // Footer Section (Stacked neatly)
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Swipe to Complete
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, AppRoutes.submission);
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.all(16),
+                  const SizedBox(width: 12),
+                  // Avatar Toko Bu Sri
+                  Container(
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFFB88656), Color(0xFF8C5E3C)]),
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF8C5E3C).withValues(alpha: 0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        )
-                      ],
+                      color: AppColors.lightBlueSurface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.borderSlate),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: const Icon(
+                      Icons.storefront_rounded,
+                      color: AppColors.primaryNavy,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.swipe_right_alt_rounded, color: Colors.white),
-                        SizedBox(width: 12),
-                        Text('Swipe to Complete Task', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text(
+                          'Toko Bu Sri',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: AppColors.successGreen,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Online',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.successGreen,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightBlueSurface,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Text(
+                      'Mitra UMKM',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryNavy,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Pinned Milestone Banner
+            GestureDetector(
+              onTap: () => Navigator.pushNamed(context, AppRoutes.submission),
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderSlate),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkSlate.withValues(alpha: 0.03),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-                
-                const SizedBox(height: 16),
-                _buildChatInput(),
-                
-                const SizedBox(height: 16),
-                const SizedBox(height: 24),
-              ],
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.lightBlueSurface,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.flag_outlined,
+                        color: AppColors.primaryNavy,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Tahap 2: Fitur stok & transaksi',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.secondarySlate,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Encrypted Notice
+            const Text(
+              'Percakapan terenkripsi · tersimpan sebagai bukti kerja',
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.secondarySlate,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Chat Messages List
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  return _buildBubble(_messages[index]);
+                },
+              ),
+            ),
+
+            // Quick Reply Chips
+            Container(
+              height: 38,
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _quickChips.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                itemBuilder: (context, idx) {
+                  final chipText = _quickChips[idx];
+                  return ActionChip(
+                    label: Text(chipText),
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: AppColors.borderSlate),
+                    labelStyle: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.darkSlate,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    onPressed: () => _sendMessage(chipText),
+                  );
+                },
+              ),
+            ),
+
+            // Bottom Input Field Bar
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(top: BorderSide(color: AppColors.borderSlate)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: AppColors.canvasWhite,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.borderSlate),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.attach_file_rounded,
+                        color: AppColors.secondarySlate,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Lampirkan screenshot atau berkas deliverable.'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.canvasWhite,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: TextField(
+                        controller: _textController,
+                        style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                        decoration: const InputDecoration(
+                          hintText: 'Tulis pesan...',
+                          hintStyle: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        onSubmitted: (_) => _sendMessage(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () => _sendMessage(),
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryNavy,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.send_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

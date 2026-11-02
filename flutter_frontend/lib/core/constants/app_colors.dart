@@ -10,6 +10,8 @@ class AppColors {
   static const Color accentAmberGold = Color(0xFFF59E0B);
   static const Color borderSlate = Color(0xFFE2E8F0);
   static const Color lightBlueSurface = Color(0xFFEFF6FF);
+  static const Color successGreen = Color(0xFF10B981);
+  static const Color lightGreenSurface = Color(0xFFF0FDF4);
 
   // Warm Heritage Palette (Fallback / Legacy support)
   static const Color primaryTan = Color(0xFFB88656);

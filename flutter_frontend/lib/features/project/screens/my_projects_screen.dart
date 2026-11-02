@@ -31,18 +31,21 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> with SingleTickerPr
     required String deadline,
     required double progress,
     required bool isCompleted,
+    required VoidCallback onWorkspace,
+    required VoidCallback onMilestones,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
         boxShadow: [
           BoxShadow(
-            color: AppColors.darkBrown.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: AppColors.darkSlate.withValues(alpha: 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -53,70 +56,161 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> with SingleTickerPr
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: isCompleted ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0),
-                  borderRadius: BorderRadius.circular(12),
+                  color: isCompleted ? AppColors.lightGreenSurface : AppColors.lightBlueSurface,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  isCompleted ? 'Completed' : 'In Progress',
+                  isCompleted ? 'Selesai & Terverifikasi' : 'Sedang Berjalan',
                   style: TextStyle(
-                    color: isCompleted ? const Color(0xFF388E3C) : const Color(0xFFF57C00),
-                    fontSize: 12,
+                    color: isCompleted ? AppColors.successGreen : AppColors.primaryNavy,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              Text(
-                deadline,
-                style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_rounded,
+                    size: 13,
+                    color: AppColors.secondarySlate,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    deadline,
+                    style: const TextStyle(
+                      color: AppColors.secondarySlate,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.darkBrown)),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+              height: 1.3,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text('$client • $role', style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          const SizedBox(height: 20),
+          Text(
+            '$client · $role',
+            style: const TextStyle(
+              color: AppColors.secondarySlate,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 16),
           if (!isCompleted) ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Progress', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-                Text('${(progress * 100).toInt()}%', style: const TextStyle(color: AppColors.primaryTan, fontSize: 12, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Progres Pengerjaan',
+                  style: TextStyle(
+                    color: AppColors.secondarySlate,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  '${(progress * 100).toInt()}%',
+                  style: const TextStyle(
+                    color: AppColors.primaryNavy,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
                 value: progress,
-                backgroundColor: AppColors.warmOffWhite,
-                color: AppColors.primaryTan,
-                minHeight: 8,
+                backgroundColor: AppColors.borderSlate,
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryNavy),
+                minHeight: 7,
               ),
             ),
-            const SizedBox(height: 20),
-          ],
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, AppRoutes.workspaceKanban);
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: AppColors.primaryTan,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Center(
-                child: Text(
-                  'Open Workspace',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.darkSlate,
+                      side: const BorderSide(color: AppColors.borderSlate),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: onMilestones,
+                    child: const Text(
+                      'Milestones',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryNavy,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: onWorkspace,
+                    child: const Text(
+                      'Workspace',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            GestureDetector(
+              onTap: onMilestones,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryNavy,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Lihat Hasil & Testimoni',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -127,18 +221,18 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> with SingleTickerPr
     return SafeArea(
       child: Column(
         children: [
-          // Header
+          // Header Bar
           Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
                   'My Projects',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.darkBrown,
+                    color: AppColors.darkSlate,
                   ),
                 ),
                 Row(
@@ -146,38 +240,36 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> with SingleTickerPr
                     GestureDetector(
                       onTap: () => Navigator.pushNamed(context, AppRoutes.workspaceChat),
                       child: Container(
-                        padding: const EdgeInsets.all(10),
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.darkBrown.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
+                          border: Border.all(color: AppColors.borderSlate),
                         ),
-                        child: const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.darkBrown, size: 20),
+                        child: const Icon(
+                          Icons.chat_bubble_outline_rounded,
+                          color: AppColors.darkSlate,
+                          size: 20,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     GestureDetector(
                       onTap: () => Navigator.pushNamed(context, AppRoutes.notifications),
                       child: Container(
-                        padding: const EdgeInsets.all(10),
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.darkBrown.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
+                          border: Border.all(color: AppColors.borderSlate),
                         ),
-                        child: const Icon(Icons.notifications_none_rounded, color: AppColors.darkBrown, size: 20),
+                        child: const Icon(
+                          Icons.notifications_none_rounded,
+                          color: AppColors.darkSlate,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ],
@@ -188,78 +280,88 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> with SingleTickerPr
 
           // Tabs
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkBrown.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  )
-                ],
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.borderSlate),
               ),
               child: TabBar(
                 controller: _tabController,
-                indicatorSize: TabBarIndicatorSize.tab,
-                dividerColor: Colors.transparent,
                 indicator: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  color: AppColors.primaryTan,
+                  color: AppColors.primaryNavy,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 labelColor: Colors.white,
-                unselectedLabelColor: Colors.grey,
-                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                unselectedLabelColor: AppColors.secondarySlate,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                dividerColor: Colors.transparent,
                 tabs: const [
-                  Tab(text: 'In Progress'),
-                  Tab(text: 'Completed'),
+                  Tab(text: 'Sedang Aktif (1)'),
+                  Tab(text: 'Selesai (3)'),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 14),
 
-          // Tab Views
+          // Tab Content
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                // In Progress View
+                // Active Projects
                 ListView(
-                  padding: const EdgeInsets.only(left: 24, right: 24, bottom: 120),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
                   children: [
                     _buildProjectCard(
-                      title: 'Redesign E-commerce Landing Page',
-                      client: 'Batik Nusantara',
-                      role: 'UI/UX Design',
-                      deadline: 'Due in 3 days',
-                      progress: 0.4,
+                      title: 'Aplikasi Kasir Sederhana Toko Kelontong',
+                      client: 'Toko Bu Sri',
+                      role: 'Mobile Specialist',
+                      deadline: '12 Jul 2026',
+                      progress: 0.57,
                       isCompleted: false,
-                    ),
-                    _buildProjectCard(
-                      title: 'Build Mobile Menu App',
-                      client: 'Cafe Rindu',
-                      role: 'Flutter Dev',
-                      deadline: 'Due in 1 week',
-                      progress: 0.1,
-                      isCompleted: false,
+                      onWorkspace: () => Navigator.pushNamed(context, AppRoutes.workspaceKanban),
+                      onMilestones: () => Navigator.pushNamed(context, AppRoutes.submission),
                     ),
                   ],
                 ),
-                // Completed View
+
+                // Completed Projects
                 ListView(
-                  padding: const EdgeInsets.only(left: 24, right: 24, bottom: 120),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
                   children: [
                     _buildProjectCard(
-                      title: 'Social Media Management',
-                      client: 'Toko Sepatu Juara',
-                      role: 'Content Creator',
-                      deadline: 'Completed on Oct 10',
+                      title: 'Aplikasi Kasir Sederhana Toko Kelontong',
+                      client: 'Toko Bu Sri',
+                      role: 'Mobile Specialist',
+                      deadline: '28 Jun 2026',
                       progress: 1.0,
                       isCompleted: true,
+                      onWorkspace: () {},
+                      onMilestones: () => Navigator.pushNamed(context, AppRoutes.projectCompleted),
+                    ),
+                    _buildProjectCard(
+                      title: 'Katalog Produk Digital Keripik Tempe',
+                      client: 'UMKM Berkah Jaya',
+                      role: 'Flutter Developer',
+                      deadline: '14 Mei 2026',
+                      progress: 1.0,
+                      isCompleted: true,
+                      onWorkspace: () {},
+                      onMilestones: () => Navigator.pushNamed(context, AppRoutes.projectCompleted),
+                    ),
+                    _buildProjectCard(
+                      title: 'Sistem Pembukuan Kas Sederhana',
+                      client: 'Warung Madura Barokah',
+                      role: 'Mobile Developer',
+                      deadline: '20 Apr 2026',
+                      progress: 1.0,
+                      isCompleted: true,
+                      onWorkspace: () {},
+                      onMilestones: () => Navigator.pushNamed(context, AppRoutes.projectCompleted),
                     ),
                   ],
                 ),

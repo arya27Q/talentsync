@@ -3,23 +3,30 @@ import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/features/dashboard/screens/dashboard_mahasiswa_screen.dart';
 import 'package:flutter_frontend/features/project/screens/my_projects_screen.dart';
 import 'package:flutter_frontend/features/wallet/screens/wallet_dashboard_screen.dart';
-import 'package:flutter_frontend/features/profile/screens/student_settings_screen.dart';
+import 'package:flutter_frontend/features/portfolio/screens/portfolio_dashboard_screen.dart';
 
 class StudentMainLayout extends StatefulWidget {
-  const StudentMainLayout({super.key});
+  final int initialIndex;
+  const StudentMainLayout({super.key, this.initialIndex = 0});
 
   @override
   State<StudentMainLayout> createState() => _StudentMainLayoutState();
 }
 
 class _StudentMainLayoutState extends State<StudentMainLayout> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
 
   final List<Widget> _screens = [
     const DashboardMahasiswaScreen(),
     const MyProjectsScreen(),
     const WalletDashboardScreen(),
-    const StudentSettingsScreen(),
+    const PortfolioDashboardScreen(),
   ];
 
   Widget _buildNavItem({
@@ -116,7 +123,7 @@ class _StudentMainLayoutState extends State<StudentMainLayout> {
                   ),
                   _buildNavItem(
                     icon: Icons.assignment_outlined,
-                    label: 'Tasks',
+                    label: 'My Tasks',
                     index: 1,
                   ),
                   _buildNavItem(

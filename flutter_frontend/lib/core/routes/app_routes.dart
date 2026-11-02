@@ -15,6 +15,7 @@ import 'package:flutter_frontend/features/project/screens/explore_projects_scree
 import 'package:flutter_frontend/features/project/screens/project_detail_screen.dart';
 import 'package:flutter_frontend/features/project/screens/apply_project_screen.dart';
 import 'package:flutter_frontend/features/project/screens/my_projects_screen.dart';
+import 'package:flutter_frontend/features/project/screens/project_completed_screen.dart';
 import 'package:flutter_frontend/features/notifications/screens/notifications_screen.dart';
 import 'package:flutter_frontend/features/workspace/screens/workspace_kanban_screen.dart';
 import 'package:flutter_frontend/features/workspace/screens/workspace_chat_screen.dart';
@@ -54,6 +55,7 @@ class AppRoutes {
   static const String projectDetail = '/project-detail';
   static const String applyProject = '/project/apply';
   static const String myProjects = '/my-projects';
+  static const String projectCompleted = '/project/completed';
   static const String notifications = '/notifications';
   static const String workspaceKanban = '/workspace/kanban';
   static const String workspaceChat = '/workspace/chat';
@@ -92,6 +94,7 @@ class AppRoutes {
     projectDetail: (context) => const ProjectDetailScreen(),
     applyProject: (context) => const ApplyProjectScreen(),
     myProjects: (context) => const MyProjectsScreen(),
+    projectCompleted: (context) => const ProjectCompletedScreen(),
     notifications: (context) => const NotificationsScreen(),
     workspaceKanban: (context) => const WorkspaceKanbanScreen(),
     workspaceChat: (context) => const WorkspaceChatScreen(),
