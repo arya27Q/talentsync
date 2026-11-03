@@ -330,7 +330,7 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
   Widget _buildServiceList() => ListView(
     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
     children: [
-      MentorSectionTitle('Layanan saya', action: '${_services.length} layanan'),
+      const MentorSectionTitle('Layanan saya'),
       if (_services.isEmpty)
         const MentorCard(
           child: Text(

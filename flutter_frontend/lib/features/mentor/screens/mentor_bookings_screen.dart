@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/mentor/models/mentor_booking.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_booking_detail_screen.dart';
 import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorBookingsScreen extends StatefulWidget {
-  const MentorBookingsScreen({super.key, this.onOpenServices});
+  const MentorBookingsScreen({
+    super.key,
+    this.onOpenServices,
+    this.onSelectTab,
+  });
 
   final VoidCallback? onOpenServices;
+  final ValueChanged<int>? onSelectTab;
 
   @override
   State<MentorBookingsScreen> createState() => _MentorBookingsScreenState();
@@ -15,57 +22,49 @@ class MentorBookingsScreen extends StatefulWidget {
 class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
   int _filter = 0;
   final Map<String, String> _decisions = {};
-  final _bookings = const [
-    _Booking(
-      name: 'Dewi Lestari',
-      initials: 'DL',
-      study: 'Informatika · ITS',
-      title: 'Review arsitektur aplikasi antrean',
-      date: 'Kam, 26 Jun · 19.00 · 60 menit',
-      price: '30 TC',
-      color: Color(0xFF147D76),
-    ),
-    _Booking(
-      name: 'Rafi Hakim',
-      initials: 'RH',
-      study: 'Sistem Informasi · UNAIR',
-      title: 'Migrasi React Native ke Flutter',
-      date: 'Jum, 27 Jun · 16.00 · 60 menit',
-      price: '30 TC',
-      color: Color(0xFFAA3D17),
-    ),
-  ];
 
-  String _status(_Booking booking) => _decisions[booking.name] ?? 'pending';
+  String _status(MentorBooking booking) =>
+      _decisions[booking.student.name] ?? 'pending';
 
-  void _decide(_Booking booking, String status) {
-    setState(() => _decisions[booking.name] = status);
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          status == 'accepted'
-              ? 'Booking ${booking.name} dikonfirmasi.'
-              : 'Permintaan booking ${booking.name} ditolak.',
-        ),
+  List<MentorBooking> get _visibleBookings =>
+      mentorBookingRequests.where((booking) {
+        final status = _status(booking);
+        if (_filter == 0) return status == 'pending';
+        if (_filter == 1) return status == 'accepted';
+        return status == 'completed';
+      }).toList();
+
+  Future<void> _openBooking(MentorBooking booking) async {
+    final result = await Navigator.pushNamed<Object?>(
+      context,
+      AppRoutes.mentorBookingDetail,
+      arguments: MentorBookingDetailArgs(
+        booking: booking,
+        status: _status(booking),
+        onSelectTab: widget.onSelectTab,
       ),
     );
+    if (!mounted) return;
+    if (result is String) {
+      setState(() => _decisions[booking.student.name] = result);
+      final notice = switch (result) {
+        'accepted' => 'Booking ${booking.student.name} dikonfirmasi.',
+        'declined' => 'Permintaan booking ${booking.student.name} ditolak.',
+        'completed' => 'Sesi dengan ${booking.student.name} ditandai selesai.',
+        _ => null,
+      };
+      if (notice != null) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(notice)));
+      }
+    } else if (result is int) {
+      widget.onSelectTab?.call(result);
+    }
   }
 
-  void _complete(_Booking booking) {
-    setState(() => _decisions[booking.name] = 'completed');
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Sesi dengan ${booking.name} ditandai selesai.')),
-    );
-  }
-
-  List<_Booking> get _visibleBookings => _bookings.where((booking) {
-    final status = _status(booking);
-    if (_filter == 0) return status == 'pending';
-    if (_filter == 1) return status == 'accepted';
-    return status == 'completed';
-  }).toList();
+  int _countFor(String status) => mentorBookingRequests
+      .where((booking) => _status(booking) == status)
+      .length;
 
   @override
   Widget build(BuildContext context) {
@@ -105,22 +104,19 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
                 children: [
                   _FilterButton(
                     label: 'Permintaan',
-                    count:
-                        '${_bookings.where((b) => _status(b) == 'pending').length}',
+                    count: _countFor('pending'),
                     selected: _filter == 0,
                     onTap: () => setState(() => _filter = 0),
                   ),
                   _FilterButton(
                     label: 'Terjadwal',
-                    count:
-                        '${_bookings.where((b) => _status(b) == 'accepted').length}',
+                    count: _countFor('accepted'),
                     selected: _filter == 1,
                     onTap: () => setState(() => _filter = 1),
                   ),
                   _FilterButton(
                     label: 'Selesai',
-                    count:
-                        '${_bookings.where((b) => _status(b) == 'completed').length}',
+                    count: _countFor('completed'),
                     selected: _filter == 2,
                     onTap: () => setState(() => _filter = 2),
                   ),
@@ -142,9 +138,11 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          _filter == 2
-                              ? 'Belum ada sesi selesai.'
-                              : 'Tidak ada booking di tab ini.',
+                          _filter == 0
+                              ? 'Belum ada permintaan booking.'
+                              : _filter == 1
+                              ? 'Belum ada sesi terjadwal.'
+                              : 'Belum ada sesi selesai.',
                           style: const TextStyle(
                             color: AppColors.secondarySlate,
                           ),
@@ -156,83 +154,22 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
                     itemCount: bookings.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 14),
-                    itemBuilder: (context, index) => _BookingCard(
-                      booking: bookings[index],
-                      status: _status(bookings[index]),
-                      onMessage: () =>
-                          Navigator.pushNamed(context, AppRoutes.inbox),
-                      onOpen: () => _showBooking(bookings[index]),
-                    ),
+                    itemBuilder: (context, index) {
+                      final booking = bookings[index];
+                      final status = _status(booking);
+                      return _BookingCard(
+                        booking: booking,
+                        status: status,
+                        onMessage: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.mentorStudentChat,
+                          arguments: booking.student,
+                        ),
+                        onOpen: () => _openBooking(booking),
+                      );
+                    },
                   ),
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showBooking(_Booking booking) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: Text(
-          booking.name,
-          style: const TextStyle(
-            color: AppColors.darkSlate,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              booking.study,
-              style: const TextStyle(color: AppColors.secondarySlate),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              booking.title,
-              style: const TextStyle(
-                color: AppColors.darkSlate,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              booking.date,
-              style: const TextStyle(color: AppColors.secondarySlate),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${booking.price} · 1-on-1',
-              style: const TextStyle(
-                color: AppColors.primaryNavy,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Tutup'),
-          ),
-          if (_status(booking) == 'pending') ...[
-            TextButton(
-              onPressed: () => _decide(booking, 'declined'),
-              child: const Text('Tolak'),
-            ),
-            FilledButton(
-              onPressed: () => _decide(booking, 'accepted'),
-              child: const Text('Terima booking'),
-            ),
-          ],
-          if (_status(booking) == 'accepted')
-            FilledButton(
-              onPressed: () => _complete(booking),
-              child: const Text('Tandai selesai'),
-            ),
         ],
       ),
     );
@@ -246,8 +183,9 @@ class _FilterButton extends StatelessWidget {
     required this.selected,
     required this.onTap,
   });
+
   final String label;
-  final String count;
+  final int count;
   final bool selected;
   final VoidCallback onTap;
 
@@ -281,20 +219,6 @@ class _FilterButton extends StatelessWidget {
   );
 }
 
-class _Booking {
-  const _Booking({
-    required this.name,
-    required this.initials,
-    required this.study,
-    required this.title,
-    required this.date,
-    required this.price,
-    required this.color,
-  });
-  final String name, initials, study, title, date, price;
-  final Color color;
-}
-
 class _BookingCard extends StatelessWidget {
   const _BookingCard({
     required this.booking,
@@ -302,10 +226,15 @@ class _BookingCard extends StatelessWidget {
     required this.onMessage,
     required this.onOpen,
   });
-  final _Booking booking;
+
+  final MentorBooking booking;
   final String status;
   final VoidCallback onMessage;
   final VoidCallback onOpen;
+
+  Color get _avatarColor => booking.student.initials == 'RH'
+      ? const Color(0xFFAA3D17)
+      : const Color(0xFF147D76);
 
   @override
   Widget build(BuildContext context) => MentorCard(
@@ -316,9 +245,9 @@ class _BookingCard extends StatelessWidget {
         Row(
           children: [
             MentorAvatar(
-              initials: booking.initials,
+              initials: booking.student.initials,
               size: 54,
-              color: booking.color,
+              color: _avatarColor,
               textColor: Colors.white,
             ),
             const SizedBox(width: 12),
@@ -327,7 +256,7 @@ class _BookingCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    booking.name,
+                    booking.student.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -338,7 +267,7 @@ class _BookingCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    booking.study,
+                    booking.student.study,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -349,10 +278,14 @@ class _BookingCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.circle, size: 12, color: AppColors.primaryNavy),
+            const Icon(
+              Icons.circle,
+              size: 12,
+              color: AppColors.accentAmberDeep,
+            ),
             const SizedBox(width: 5),
             Text(
-              booking.price,
+              '${booking.price} TC',
               style: const TextStyle(
                 color: AppColors.darkSlate,
                 fontWeight: FontWeight.w800,
@@ -373,7 +306,7 @@ class _BookingCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                booking.title,
+                booking.topic,
                 style: const TextStyle(
                   color: AppColors.darkSlate,
                   fontWeight: FontWeight.w700,
@@ -391,7 +324,7 @@ class _BookingCard extends StatelessWidget {
                   const SizedBox(width: 7),
                   Expanded(
                     child: Text(
-                      booking.date,
+                      '${booking.date} · ${booking.time} · ${booking.durationMinutes} menit',
                       style: const TextStyle(
                         color: AppColors.secondarySlate,
                         fontSize: 12,
@@ -421,7 +354,7 @@ class _BookingCard extends StatelessWidget {
                 ),
                 child: Icon(
                   Icons.chat_bubble_outline_rounded,
-                  semanticLabel: 'Kirim pesan kepada ${booking.name}',
+                  semanticLabel: 'Kirim pesan kepada ${booking.student.name}',
                 ),
               ),
             ),
@@ -438,7 +371,11 @@ class _BookingCard extends StatelessWidget {
                         : Icons.video_call_outlined,
                   ),
                   label: Text(
-                    status == 'pending' ? 'Lihat Permintaan' : 'Lihat Jadwal',
+                    status == 'pending'
+                        ? 'Lihat Permintaan'
+                        : status == 'accepted'
+                        ? 'Lihat Jadwal'
+                        : 'Detail Sesi',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

@@ -44,6 +44,14 @@ import 'package:flutter_frontend/features/profile/screens/help_support_screen.da
 import 'package:flutter_frontend/features/profile/screens/switch_to_mentor_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_main_layout.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_onboarding_screen.dart';
+import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_recommendation_screen.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_booking_detail_screen.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_live_mentoring_screen.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_student_chat_screen.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_student_learning_room_screen.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_cashout_screen.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_featured_upgrade_screen.dart';
 
 class AppRoutes {
   // Define Route Names
@@ -59,6 +67,14 @@ class AppRoutes {
   static const String studentDashboard = '/dashboard/student';
   static const String mentorDashboard = '/dashboard/mentor';
   static const String mentorOnboarding = '/mentor/onboarding';
+  static const String mentorBookingDetail = '/mentor/booking-detail';
+  static const String mentorLiveMentoring = '/mentor/live';
+  static const String mentorStudentLearningRoom =
+      '/mentor/student/learning-room';
+  static const String mentorStudentChat = '/mentor/student/chat';
+  static const String mentorRecommendation = '/mentor/recommendation';
+  static const String mentorCashOut = '/mentor/cash-out';
+  static const String mentorFeaturedUpgrade = '/mentor/featured';
   static const String studentSetupProfile = '/auth/student/setup-profile';
   static const String studentSetupProfileStep2 =
       '/auth/student/setup-profile-step2';
@@ -108,6 +124,71 @@ class AppRoutes {
     studentDashboard: (context) => const StudentMainLayout(),
     mentorDashboard: (context) => const MentorMainLayout(),
     mentorOnboarding: (context) => const MentorOnboardingScreen(),
+    mentorBookingDetail: (context) => MentorBookingDetailScreen(
+      args:
+          ModalRoute.of(context)!.settings.arguments as MentorBookingDetailArgs,
+    ),
+    mentorLiveMentoring: (context) {
+      final argument = ModalRoute.of(context)?.settings.arguments;
+      if (argument is MentorLiveMentoringArgs) {
+        return MentorLiveMentoringScreen(
+          student: argument.student,
+          meetingUrl: argument.meetingUrl,
+          onSelectTab: argument.onSelectTab,
+        );
+      }
+      final student = argument is MentorStudent ? argument : mentorStudentArya;
+      return MentorLiveMentoringScreen(student: student);
+    },
+    mentorStudentLearningRoom: (context) {
+      final argument = ModalRoute.of(context)?.settings.arguments;
+      if (argument is MentorStudentLearningRoomArgs) {
+        return MentorStudentLearningRoomScreen(
+          student: argument.student,
+          onSelectTab: argument.onSelectTab,
+        );
+      }
+      final student = argument is MentorStudent ? argument : mentorStudentArya;
+      return MentorStudentLearningRoomScreen(student: student);
+    },
+    mentorStudentChat: (context) {
+      final student = ModalRoute.of(context)?.settings.arguments;
+      return MentorStudentChatScreen(
+        student: student is MentorStudent ? student : mentorStudentArya,
+      );
+    },
+    mentorRecommendation: (context) {
+      final argument = ModalRoute.of(context)?.settings.arguments;
+      if (argument is MentorRecommendationArgs) {
+        return MentorRecommendationScreen(
+          initialStudent: argument.initialStudent,
+          onSelectTab: argument.onSelectTab,
+        );
+      }
+      final student = argument is MentorStudent ? argument : null;
+      return MentorRecommendationScreen(initialStudent: student);
+    },
+    mentorCashOut: (context) {
+      final argument = ModalRoute.of(context)?.settings.arguments;
+      if (argument is MentorCashOutArgs) {
+        return MentorCashOutScreen(
+          availableTc: argument.availableTc,
+          onSelectTab: argument.onSelectTab,
+        );
+      }
+      return const MentorCashOutScreen();
+    },
+    mentorFeaturedUpgrade: (context) {
+      final argument = ModalRoute.of(context)?.settings.arguments;
+      if (argument is MentorFeaturedUpgradeArgs) {
+        return MentorFeaturedUpgradeScreen(
+          balanceTc: argument.balanceTc,
+          onSelectTab: argument.onSelectTab,
+        );
+      }
+      final balanceTc = argument is int ? argument : 420;
+      return MentorFeaturedUpgradeScreen(balanceTc: balanceTc);
+    },
     studentSetupProfile: (context) => const StudentSetupProfileScreen(),
     studentSetupProfileStep2: (context) =>
         const StudentSetupProfileStep2Screen(),

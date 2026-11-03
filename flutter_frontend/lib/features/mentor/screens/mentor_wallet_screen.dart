@@ -1,281 +1,260 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_cashout_screen.dart';
+import 'package:flutter_frontend/features/mentor/screens/mentor_featured_upgrade_screen.dart';
 import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorWalletScreen extends StatefulWidget {
-  const MentorWalletScreen({super.key});
+  const MentorWalletScreen({
+    super.key,
+    required this.availableTc,
+    this.onSelectTab,
+  });
+
+  final ValueNotifier<int> availableTc;
+  final ValueChanged<int>? onSelectTab;
 
   @override
   State<MentorWalletScreen> createState() => _MentorWalletScreenState();
 }
 
 class _MentorWalletScreenState extends State<MentorWalletScreen> {
+  int get _availableTc => widget.availableTc.value;
+  static const _escrowTc = 60;
   final List<_CashoutRequest> _requests = [];
-  static const int _balance = 420;
 
-  Future<void> _requestCashout() async {
-    final amountController = TextEditingController();
-    final bankController = TextEditingController();
-    final accountController = TextEditingController();
-    final sent = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: const Text(
-          'Ajukan pencairan',
-          style: TextStyle(
-            color: AppColors.darkSlate,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-          ),
+  Future<void> _openCashOut() async {
+    if (_availableTc < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Saldo TimeCoin belum tersedia untuk dicairkan.'),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              decoration: _decoration(
-                'Jumlah TimeCoin',
-                'Maksimal $_balance TC',
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: bankController,
-              decoration: _decoration('Nama bank', 'Contoh: BCA'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: accountController,
-              keyboardType: TextInputType.number,
-              decoration: _decoration(
-                'Nomor rekening',
-                'Nomor rekening tujuan',
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Estimasi 1 TC = Rp1.000. Biaya layanan mentor freemium 15%.',
-              style: TextStyle(
-                color: AppColors.secondarySlate,
-                fontSize: 11,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryNavy,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Ajukan'),
-          ),
-        ],
+      );
+      return;
+    }
+    final result = await Navigator.pushNamed<Object?>(
+      context,
+      AppRoutes.mentorCashOut,
+      arguments: MentorCashOutArgs(
+        availableTc: _availableTc,
+        onSelectTab: widget.onSelectTab,
       ),
     );
-    if (sent == true && mounted) {
-      final amount = int.tryParse(amountController.text) ?? 0;
-      if (amount < 1 ||
-          amount > _balance ||
-          bankController.text.trim().isEmpty ||
-          accountController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Periksa jumlah TC dan lengkapi detail rekening.'),
-          ),
+    if (result is MentorCashOutResult && mounted) {
+      setState(() {
+        widget.availableTc.value -= result.amountTc;
+        _requests.insert(
+          0,
+          _CashoutRequest(amountTc: result.amountTc, account: result.account),
         );
-      } else {
-        setState(
-          () => _requests.insert(
-            0,
-            _CashoutRequest(
-              amount: amount,
-              bank: bankController.text.trim(),
-              status: 'Menunggu',
-            ),
-          ),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pengajuan pencairan dicatat untuk ditinjau.'),
-          ),
-        );
-      }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pengajuan cash-out dicatat di sesi ini.'),
+        ),
+      );
+    } else if (result is int) {
+      widget.onSelectTab?.call(result);
     }
-    amountController.dispose();
-    bankController.dispose();
-    accountController.dispose();
   }
 
-  InputDecoration _decoration(String label, String hint) => InputDecoration(
-    labelText: label,
-    hintText: hint,
-    filled: true,
-    fillColor: AppColors.canvasWhite,
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(13),
-      borderSide: BorderSide.none,
-    ),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
-  );
+  void _openFeatured() {
+    Navigator.pushNamed(
+      context,
+      AppRoutes.mentorFeaturedUpgrade,
+      arguments: MentorFeaturedUpgradeArgs(
+        balanceTc: _availableTc,
+        onSelectTab: widget.onSelectTab,
+      ),
+    );
+  }
+
+  String _rupiah(int amount) {
+    final digits = amount.toString();
+    final result = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) result.write('.');
+      result.write(digits[i]);
+    }
+    return 'Rp$result';
+  }
 
   @override
   Widget build(BuildContext context) => SafeArea(
     bottom: false,
     child: Column(
       children: [
-        const MentorPageHeader(
-          title: 'Wallet & cash-out',
-          subtitle: 'Pantau pendapatan sesi mentoring.',
-        ),
+        const MentorPageHeader(title: 'Earnings Wallet'),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(22, 0, 22, 28),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             children: [
               Container(
-                padding: const EdgeInsets.all(22),
+                padding: const EdgeInsets.all(21),
                 decoration: BoxDecoration(
                   color: AppColors.primaryNavy,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(26),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'SALDO TIMECOIN',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1,
-                      ),
+                      'Saldo bisa dicairkan',
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                     const SizedBox(height: 8),
-                    const Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    Row(
                       children: [
-                        Text(
-                          '420',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 38,
-                            height: 1,
-                          ),
+                        const Icon(
+                          Icons.circle,
+                          color: AppColors.accentAmberGold,
+                          size: 28,
                         ),
-                        SizedBox(width: 8),
-                        Padding(
-                          padding: EdgeInsets.only(bottom: 4),
-                          child: Text(
-                            'TC',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '$_availableTc TC',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 38,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 7),
-                    const Text(
-                      'Estimasi nilai Rp420.000',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    const SizedBox(height: 4),
+                    Text(
+                      '≈ ${_rupiah(_availableTc * 1000)}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 15,
+                      ),
                     ),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _requestCashout,
-                        icon: const Icon(Icons.south_west_rounded, size: 18),
-                        label: const Text('Ajukan cash-out'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppColors.darkSlate,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Divider(color: Colors.white24, height: 1),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _BalanceDetail(
+                            label: 'Di escrow',
+                            value: '$_escrowTc TC',
                           ),
                         ),
-                      ),
+                        Expanded(
+                          child: _BalanceDetail(
+                            label: 'Admin cash-out',
+                            value: '15%',
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              const MentorCard(
-                child: Row(
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 54,
+                child: FilledButton.icon(
+                  onPressed: _openCashOut,
+                  iconAlignment: IconAlignment.end,
+                  icon: const Icon(Icons.account_balance_outlined),
+                  label: const Text('Withdraw to Bank (Cash-Out)'),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                child: InkWell(
+                  onTap: _openFeatured,
+                  borderRadius: BorderRadius.circular(22),
+                  child: Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF6E8),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: const Icon(
+                            Icons.workspace_premium_outlined,
+                            color: AppColors.accentAmberDeep,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Saat ini kamu kehilangan ${_rupiah((_availableTc * 1000 * .15).round())} untuk admin. Featured Mentor 0%.',
+                            style: const TextStyle(
+                              color: AppColors.darkSlate,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.secondarySlate,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              MentorCard(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline_rounded,
-                      color: AppColors.primaryNavy,
-                    ),
-                    SizedBox(width: 11),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Biaya pencairan',
-                            style: TextStyle(
-                              color: AppColors.darkSlate,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Mentor freemium dikenakan potongan layanan 15%. Featured Mentor bebas biaya admin.',
-                            style: TextStyle(
-                              color: AppColors.secondarySlate,
-                              fontSize: 12,
-                              height: 1.45,
-                            ),
-                          ),
-                        ],
+                    const Text(
+                      'Pendapatan 6 minggu',
+                      style: TextStyle(
+                        color: AppColors.darkSlate,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 142,
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Grafik mingguan belum tersedia pada demo ini.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.secondarySlate,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _WeekLabel('M1'),
+                        _WeekLabel('M2'),
+                        _WeekLabel('M3'),
+                        _WeekLabel('M4'),
+                        _WeekLabel('M5'),
+                        _WeekLabel('M6'),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 22),
-              MentorSectionTitle('Pengajuan pencairan'),
-              if (_requests.isEmpty)
-                const MentorCard(
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.account_balance_outlined,
-                        color: AppColors.secondarySlate,
-                      ),
-                      SizedBox(width: 11),
-                      Expanded(
-                        child: Text(
-                          'Belum ada pengajuan pencairan.',
-                          style: TextStyle(
-                            color: AppColors.secondarySlate,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                ..._requests.map(
-                  (request) => Padding(
+              const SizedBox(height: 18),
+              if (_requests.isNotEmpty) ...[
+                const MentorSectionTitle('Pengajuan cash-out'),
+                for (final request in _requests)
+                  Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: MentorCard(
-                      padding: const EdgeInsets.all(15),
                       child: Row(
                         children: [
                           const Icon(
@@ -284,63 +263,29 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${request.amount} TC · ${request.bank}',
-                                  style: const TextStyle(
-                                    color: AppColors.darkSlate,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  request.status,
-                                  style: const TextStyle(
-                                    color: AppColors.secondarySlate,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
+                            child: Text(
+                              '${request.amountTc} TC · ${request.account}',
+                              style: const TextStyle(
+                                color: AppColors.darkSlate,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
-                          const Text(
-                            'Pending',
-                            style: TextStyle(
-                              color: AppColors.accentAmberDeep,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11,
-                            ),
+                          const MentorTag(
+                            'Menunggu',
+                            color: Color(0xFFFFF6E8),
+                            textColor: AppColors.accentAmberDeep,
                           ),
                         ],
                       ),
                     ),
                   ),
-                ),
-              const SizedBox(height: 10),
-              const MentorSectionTitle('Riwayat transaksi'),
+              ],
+              const MentorSectionTitle('Transaksi terbaru'),
               const _TransactionRow(
-                icon: Icons.school_rounded,
-                title: 'Sesi mentoring · Nadia Putri',
-                date: 'Hari ini, 11.42',
-                amount: '+5 TC',
-                positive: true,
-              ),
-              const _TransactionRow(
-                icon: Icons.school_rounded,
-                title: 'Sesi mentoring · Dimas Akbar',
-                date: '28 Okt 2026',
-                amount: '+4 TC',
-                positive: true,
-              ),
-              const _TransactionRow(
-                icon: Icons.south_west_rounded,
-                title: 'Pencairan ke BCA',
-                date: '20 Okt 2026',
-                amount: '−20 TC',
-                positive: false,
+                title: 'Sesi Struktur BLoC',
+                subtitle: 'Arya Pratama · escrow dilepas · 8 Jul',
+                amount: '+30 TC',
               ),
             ],
           ),
@@ -350,27 +295,57 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
   );
 }
 
+class _BalanceDetail extends StatelessWidget {
+  const _BalanceDetail({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+      const SizedBox(height: 3),
+      Text(
+        value,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ],
+  );
+}
+
+class _WeekLabel extends StatelessWidget {
+  const _WeekLabel(this.label);
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    label,
+    style: const TextStyle(color: AppColors.secondarySlate, fontSize: 11),
+  );
+}
+
 class _CashoutRequest {
-  const _CashoutRequest({
-    required this.amount,
-    required this.bank,
-    required this.status,
-  });
-  final int amount;
-  final String bank, status;
+  const _CashoutRequest({required this.amountTc, required this.account});
+  final int amountTc;
+  final String account;
 }
 
 class _TransactionRow extends StatelessWidget {
   const _TransactionRow({
-    required this.icon,
     required this.title,
-    required this.date,
+    required this.subtitle,
     required this.amount,
-    required this.positive,
   });
-  final IconData icon;
-  final String title, date, amount;
-  final bool positive;
+
+  final String title;
+  final String subtitle;
+  final String amount;
+
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 10),
@@ -379,13 +354,16 @@ class _TransactionRow extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 38,
-            height: 38,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFFF5EFE8),
-              borderRadius: BorderRadius.circular(13),
+              color: const Color(0xFFE8F7F1),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, size: 19, color: AppColors.primaryNavy),
+            child: const Icon(
+              Icons.south_west_rounded,
+              color: Color(0xFF047857),
+            ),
           ),
           const SizedBox(width: 11),
           Expanded(
@@ -396,16 +374,15 @@ class _TransactionRow extends StatelessWidget {
                   title,
                   style: const TextStyle(
                     color: AppColors.darkSlate,
-                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  date,
+                  subtitle,
                   style: const TextStyle(
                     color: AppColors.secondarySlate,
-                    fontSize: 10,
+                    fontSize: 11,
                   ),
                 ),
               ],
@@ -413,9 +390,8 @@ class _TransactionRow extends StatelessWidget {
           ),
           Text(
             amount,
-            style: TextStyle(
-              color: positive ? const Color(0xFF38845B) : AppColors.darkSlate,
-              fontSize: 12,
+            style: const TextStyle(
+              color: Color(0xFF047857),
               fontWeight: FontWeight.w800,
             ),
           ),

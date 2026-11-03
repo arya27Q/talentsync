@@ -10,12 +10,14 @@ class MentorDashboardScreen extends StatelessWidget {
     this.onOpenBookings,
     this.onOpenServices,
     this.onOpenProfile,
+    this.onOpenLiveSession,
   });
 
   final VoidCallback? onOpenWallet;
   final VoidCallback? onOpenBookings;
   final VoidCallback? onOpenServices;
   final VoidCallback? onOpenProfile;
+  final VoidCallback? onOpenLiveSession;
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -320,13 +322,7 @@ class MentorDashboardScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: FilledButton.icon(
-                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Tautan Google Meet untuk sesi ini belum tersedia. Hubungi murid lewat Pesan.',
-                      ),
-                    ),
-                  ),
+                  onPressed: onOpenLiveSession,
                   icon: const Icon(Icons.videocam_outlined),
                   label: const FittedBox(
                     fit: BoxFit.scaleDown,
