@@ -195,8 +195,8 @@ class MentorBottomNav extends StatelessWidget {
   Widget build(BuildContext context) => SafeArea(
     top: false,
     child: Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(34),
@@ -207,6 +207,7 @@ class MentorBottomNav extends StatelessWidget {
           final selected = index == selectedIndex;
           final item = _items[index];
           return Expanded(
+            flex: selected ? 2 : 1,
             child: Semantics(
               button: true,
               selected: selected,
@@ -242,8 +243,6 @@ class MentorBottomNav extends StatelessWidget {
                           child: ExcludeSemantics(
                             child: Text(
                               item.$3,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
