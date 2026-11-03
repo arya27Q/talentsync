@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_featured_upgrade_screen.dart';
-import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorProfileScreen extends StatefulWidget {
   const MentorProfileScreen({
@@ -83,12 +82,45 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
     ),
   );
 
+  void _confirmLogout() {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Keluar dari akun?'),
+        content: const Text(
+          'Kamu akan dialihkan kembali ke halaman masuk mentor.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+            ),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.mentorAuth,
+                (route) => false,
+              );
+            },
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => SafeArea(
     bottom: false,
     child: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
       children: [
+        // Header matching screenshot
         Row(
           children: [
             const Expanded(
@@ -101,28 +133,78 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                 ),
               ),
             ),
-            IconButton(
-              tooltip: 'Edit profil',
-              onPressed: _editProfile,
-              icon: const Icon(Icons.edit_outlined, color: AppColors.darkSlate),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white,
-                minimumSize: const Size(48, 48),
-                side: const BorderSide(color: AppColors.borderSlate),
+            Semantics(
+              button: true,
+              label: 'Edit profil',
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: _editProfile,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.borderSlate),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.darkSlate,
+                    size: 22,
+                  ),
+                ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        MentorCard(
+        const SizedBox(height: 12),
+
+        // Profile Main Card matching Screenshot 1
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppColors.borderSlate.withValues(alpha: 0.8),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.darkSlate.withValues(alpha: 0.04),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Column(
             children: [
-              const MentorAvatar(
-                initials: 'DP',
-                size: 84,
-                color: AppColors.lightBlueSurface,
+              // Avatar Squircle
+              Container(
+                width: 82,
+                height: 82,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.person_rounded,
+                  size: 48,
+                  color: AppColors.primaryNavy,
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
+
+              // Name + Verified Badge
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -133,7 +215,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: AppColors.darkSlate,
-                        fontSize: 21,
+                        fontSize: 20,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -146,29 +228,54 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Text(
                 _headline,
                 style: const TextStyle(
                   color: AppColors.secondarySlate,
-                  fontSize: 14,
+                  fontSize: 13,
                 ),
               ),
               const SizedBox(height: 10),
-              const MentorTag(
-                'Top Rated',
-                color: Color(0xFFFFF6E8),
-                textColor: AppColors.accentAmberDeep,
+
+              // Top Rated Pill Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(
+                      Icons.star_rounded,
+                      color: Color(0xFFC2410C),
+                      size: 16,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'Top Rated',
+                      style: TextStyle(
+                        color: Color(0xFFC2410C),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 18),
+
+              // 3 Metrics Box Row
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppColors.canvasWhite,
+                  color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: const Row(
-                  children: [
+                child: Row(
+                  children: const [
                     Expanded(
                       child: _ProfileMetric(
                         value: '312',
@@ -177,11 +284,17 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                     ),
                     _MetricDivider(),
                     Expanded(
-                      child: _ProfileMetric(value: '4.9', label: 'Rating'),
+                      child: _ProfileMetric(
+                        value: '4.9',
+                        label: 'Rating',
+                      ),
                     ),
                     _MetricDivider(),
                     Expanded(
-                      child: _ProfileMetric(value: '74', label: 'Murid'),
+                      child: _ProfileMetric(
+                        value: '74',
+                        label: 'Murid',
+                      ),
                     ),
                   ],
                 ),
@@ -189,57 +302,110 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          child: InkWell(
-            onTap: _openUpgrade,
+        const SizedBox(height: 14),
+
+        // Featured Mentor Promo Banner matching Screenshot 1
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(22),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.workspace_premium_outlined,
-                    color: AppColors.accentAmberDeep,
-                    size: 25,
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Jadi Featured Mentor',
-                          style: TextStyle(
-                            color: AppColors.darkSlate,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          '0% admin cash-out dan tampil teratas',
-                          style: TextStyle(
-                            color: AppColors.secondarySlate,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+            border: Border.all(
+              color: AppColors.borderSlate.withValues(alpha: 0.8),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.darkSlate.withValues(alpha: 0.04),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF7ED),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.workspace_premium_rounded,
+                  color: Color(0xFFC2410C),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Jadi Featured Mentor',
+                      style: TextStyle(
+                        color: AppColors.darkSlate,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14.5,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      '0% admin cash-out dan tampil teratas',
+                      style: TextStyle(
+                        color: AppColors.secondarySlate,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Semantics(
+                button: true,
+                label: 'Upgrade ke Featured Mentor',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: _openUpgrade,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryNavy,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Text(
+                      'Upgrade',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _openUpgrade,
-                    child: const Text('Upgrade'),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
-        const SizedBox(height: 22),
-        const MentorSectionTitle('Layanan mentoring'),
+        const SizedBox(height: 20),
+
+        // Section: Layanan mentoring
+        const Text(
+          'Layanan mentoring',
+          style: TextStyle(
+            color: AppColors.darkSlate,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Service Card 1
         const _ProfileServiceCard(
           title: 'Code Review & Arsitektur Flutter',
           duration: '60 menit · 86 sesi terjual',
@@ -247,46 +413,87 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
           tags: ['Flutter', 'BLoC', 'Clean Architecture'],
         ),
         const SizedBox(height: 12),
+
+        // Service Card 2
         const _ProfileServiceCard(
           title: 'Simulasi Wawancara Mobile Developer',
           duration: '45 menit · 31 sesi terjual',
           price: '25 TC',
-          tags: ['Flutter', 'Interview'],
+          tags: ['Interview', 'CV Review'],
         ),
         const SizedBox(height: 22),
-        const MentorSectionTitle('Ulasan murid'),
-        const MentorCard(
-          child: Text(
-            'Ulasan murid akan tampil setelah sesi selesai dinilai.',
-            style: TextStyle(color: AppColors.secondarySlate),
+
+        // Section: Ulasan murid matching Screenshot 2
+        const Text(
+          'Ulasan murid',
+          style: TextStyle(
+            color: AppColors.darkSlate,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 18),
-        MentorCard(
-          padding: const EdgeInsets.all(0),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(22),
-            child: ListTile(
-              onTap: () => _confirmLogout(context),
-              leading: const Icon(
-                Icons.logout_rounded,
-                color: Color(0xFFB42318),
-              ),
-              title: const Text(
-                'Keluar',
-                style: TextStyle(
-                  color: Color(0xFFB42318),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              subtitle: const Text(
-                'Keluar dari akun mentor ini',
-                style: TextStyle(fontSize: 12),
-              ),
-              trailing: const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.secondarySlate,
+        const SizedBox(height: 12),
+
+        // Review 1: Arya Pratama
+        const _ReviewCard(
+          initials: 'AP',
+          avatarColor: AppColors.primaryNavy,
+          name: 'Arya Pratama',
+          date: '8 Jul',
+          stars: 5,
+          review:
+              '"Penjelasan BLoC-nya sangat detail dan langsung dipraktikkan ke proyek kasir saya."',
+        ),
+        const SizedBox(height: 12),
+
+        // Review 2: Dewi Lestari
+        const _ReviewCard(
+          initials: 'DL',
+          avatarColor: Color(0xFF0F766E),
+          name: 'Dewi Lestari',
+          date: '20 Jun',
+          stars: 5,
+          review:
+              '"Feedback konstruktif, action plan jelas. Portofolio saya lolos kurasi."',
+        ),
+        const SizedBox(height: 12),
+
+        // Review 3: Rafi Hakim
+        const _ReviewCard(
+          initials: 'RH',
+          avatarColor: Color(0xFFA03B1E),
+          name: 'Rafi Hakim',
+          date: '2 Jun',
+          stars: 4,
+          review: '"Sangat membantu pemula, hanya sesi terasa cepat."',
+        ),
+        const SizedBox(height: 24),
+
+        // Keluar (Logout) button matching Screenshot 2
+        Center(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: _confirmLogout,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(
+                    Icons.logout_rounded,
+                    color: Color(0xFFDC2626),
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Keluar',
+                    style: TextStyle(
+                      color: Color(0xFFDC2626),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -294,44 +501,6 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
       ],
     ),
   );
-
-  void _confirmLogout(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Keluar dari akun?',
-          style: TextStyle(
-            color: AppColors.darkSlate,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        content: const Text(
-          'Anda perlu masuk kembali untuk mengakses dashboard mentor.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pushNamedAndRemoveUntil(
-              context,
-              AppRoutes.roleSelection,
-              (route) => false,
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFB42318),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Keluar'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _ProfileMetric extends StatelessWidget {
@@ -347,15 +516,18 @@ class _ProfileMetric extends StatelessWidget {
         value,
         style: const TextStyle(
           color: AppColors.darkSlate,
-          fontSize: 20,
           fontWeight: FontWeight.w800,
+          fontSize: 18,
         ),
       ),
-      const SizedBox(height: 4),
+      const SizedBox(height: 3),
       Text(
         label,
-        textAlign: TextAlign.center,
-        style: const TextStyle(color: AppColors.secondarySlate, fontSize: 11),
+        style: const TextStyle(
+          color: AppColors.secondarySlate,
+          fontSize: 11.5,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ],
   );
@@ -365,8 +537,11 @@ class _MetricDivider extends StatelessWidget {
   const _MetricDivider();
 
   @override
-  Widget build(BuildContext context) =>
-      Container(width: 1, height: 42, color: AppColors.borderSlate);
+  Widget build(BuildContext context) => Container(
+    width: 1,
+    height: 32,
+    color: AppColors.borderSlate,
+  );
 }
 
 class _ProfileServiceCard extends StatelessWidget {
@@ -383,12 +558,28 @@ class _ProfileServiceCard extends StatelessWidget {
   final List<String> tags;
 
   @override
-  Widget build(BuildContext context) => MentorCard(
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: AppColors.borderSlate.withValues(alpha: 0.8),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.darkSlate.withValues(alpha: 0.03),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: Text(
@@ -396,7 +587,7 @@ class _ProfileServiceCard extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.darkSlate,
                   fontWeight: FontWeight.w800,
-                  fontSize: 15,
+                  fontSize: 14.5,
                 ),
               ),
             ),
@@ -406,27 +597,150 @@ class _ProfileServiceCard extends StatelessWidget {
               style: const TextStyle(
                 color: AppColors.darkSlate,
                 fontWeight: FontWeight.w800,
+                fontSize: 14,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
           duration,
-          style: const TextStyle(color: AppColors.secondarySlate, fontSize: 12),
+          style: const TextStyle(
+            color: AppColors.secondarySlate,
+            fontSize: 12,
+          ),
         ),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 7,
-          runSpacing: 7,
+          spacing: 8,
+          runSpacing: 6,
           children: [
             for (final tag in tags)
-              MentorTag(
-                tag,
-                color: AppColors.lightBlueSurface,
-                textColor: AppColors.primaryNavy,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  tag,
+                  style: const TextStyle(
+                    color: AppColors.primaryNavy,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11.5,
+                  ),
+                ),
               ),
           ],
+        ),
+      ],
+    ),
+  );
+}
+
+class _ReviewCard extends StatelessWidget {
+  const _ReviewCard({
+    required this.initials,
+    required this.avatarColor,
+    required this.name,
+    required this.date,
+    required this.stars,
+    required this.review,
+  });
+
+  final String initials;
+  final Color avatarColor;
+  final String name;
+  final String date;
+  final int stars;
+  final String review;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: AppColors.borderSlate.withValues(alpha: 0.8),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.darkSlate.withValues(alpha: 0.03),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: avatarColor,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                initials,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      color: AppColors.darkSlate,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    date,
+                    style: const TextStyle(
+                      color: AppColors.secondarySlate,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              children: List.generate(
+                5,
+                (index) => Icon(
+                  Icons.star_rounded,
+                  size: 17,
+                  color: index < stars
+                      ? AppColors.accentAmberGold
+                      : const Color(0xFFE2E8F0),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          review,
+          style: const TextStyle(
+            color: Color(0xFF334155),
+            fontSize: 13,
+            height: 1.45,
+          ),
         ),
       ],
     ),

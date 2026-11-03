@@ -3,7 +3,6 @@ import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_cashout_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_featured_upgrade_screen.dart';
-import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorWalletScreen extends StatefulWidget {
   const MentorWalletScreen({
@@ -51,7 +50,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Pengajuan cash-out dicatat di sesi ini.'),
+          content: Text('Pengajuan cash-out berhasil dikirim.'),
         ),
       );
     } else if (result is int) {
@@ -84,39 +83,62 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
   Widget build(BuildContext context) => SafeArea(
     bottom: false,
     child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const MentorPageHeader(title: 'Earnings Wallet'),
+        // Header matching screenshot
+        const Padding(
+          padding: EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Text(
+            'Earnings Wallet',
+            style: TextStyle(
+              color: AppColors.darkSlate,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+
+        // Scrollable content with bottom padding 120
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
             children: [
+              // 1. Solid Royal Navy Balance Card
               Container(
-                padding: const EdgeInsets.all(21),
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   color: AppColors.primaryNavy,
                   borderRadius: BorderRadius.circular(26),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryNavy.withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
                       'Saldo bisa dicairkan',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
                     ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         const Icon(
-                          Icons.circle,
+                          Icons.toll_rounded,
                           color: AppColors.accentAmberGold,
-                          size: 28,
+                          size: 32,
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         Text(
                           '$_availableTc TC',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 38,
+                            fontSize: 34,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -127,25 +149,59 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                       '≈ ${_rupiah(_availableTc * 1000)}',
                       style: const TextStyle(
                         color: Colors.white70,
-                        fontSize: 15,
+                        fontSize: 14.5,
                       ),
                     ),
                     const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       child: Divider(color: Colors.white24, height: 1),
                     ),
                     Row(
                       children: [
                         Expanded(
-                          child: _BalanceDetail(
-                            label: 'Di escrow',
-                            value: '$_escrowTc TC',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Di escrow',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                '$_escrowTc TC',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Expanded(
-                          child: _BalanceDetail(
-                            label: 'Admin cash-out',
-                            value: '15%',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Admin cash-out',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                '15%',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -154,62 +210,131 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              SizedBox(
-                height: 54,
-                child: FilledButton.icon(
-                  onPressed: _openCashOut,
-                  iconAlignment: IconAlignment.end,
-                  icon: const Icon(Icons.account_balance_outlined),
-                  label: const Text('Withdraw to Bank (Cash-Out)'),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
+
+              // 2. Withdraw to Bank (Cash-Out) Button matching screenshot
+              Semantics(
+                button: true,
+                label: 'Withdraw to Bank (Cash-Out)',
                 child: InkWell(
-                  onTap: _openFeatured,
-                  borderRadius: BorderRadius.circular(22),
-                  child: Padding(
-                    padding: const EdgeInsets.all(15),
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: _openCashOut,
+                  child: Container(
+                    width: double.infinity,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryNavy,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF6E8),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: const Icon(
-                            Icons.workspace_premium_outlined,
-                            color: AppColors.accentAmberDeep,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Text(
+                          'Withdraw to Bank (Cash-Out)',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Saat ini kamu kehilangan ${_rupiah((_availableTc * 1000 * .15).round())} untuk admin. Featured Mentor 0%.',
-                            style: const TextStyle(
-                              color: AppColors.darkSlate,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                              height: 1.35,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(
-                          Icons.chevron_right_rounded,
-                          color: AppColors.secondarySlate,
+                        SizedBox(width: 8),
+                        Icon(
+                          Icons.account_balance_outlined,
+                          color: Colors.white,
+                          size: 20,
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
-              MentorCard(
+              const SizedBox(height: 14),
+
+              // 3. Featured Mentor Promo Card matching screenshot
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: AppColors.borderSlate.withValues(alpha: 0.8),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkSlate.withValues(alpha: 0.04),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(22),
+                  onTap: _openFeatured,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.workspace_premium_rounded,
+                          color: Color(0xFFD97706),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Saat ini kamu kehilangan ${_rupiah((_availableTc * 1000 * .15).round())} untuk admin. Featured Mentor 0%.',
+                          style: const TextStyle(
+                            color: AppColors.darkSlate,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.secondarySlate,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // 4. Pendapatan 6 Minggu Chart Card matching screenshot
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: AppColors.borderSlate.withValues(alpha: 0.8),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkSlate.withValues(alpha: 0.04),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -217,75 +342,95 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                       'Pendapatan 6 minggu',
                       style: TextStyle(
                         color: AppColors.darkSlate,
-                        fontSize: 17,
+                        fontSize: 16,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Container(
-                      height: 142,
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Grafik mingguan belum tersedia pada demo ini.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.secondarySlate,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    const Row(
+                    const SizedBox(height: 80), // Chart space
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _WeekLabel('M1'),
-                        _WeekLabel('M2'),
-                        _WeekLabel('M3'),
-                        _WeekLabel('M4'),
-                        _WeekLabel('M5'),
-                        _WeekLabel('M6'),
+                      children: const [
+                        Text('M1', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                        Text('M2', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                        Text('M3', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                        Text('M4', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                        Text('M5', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                        Text('M6', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
-              if (_requests.isNotEmpty) ...[
-                const MentorSectionTitle('Pengajuan cash-out'),
-                for (final request in _requests)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: MentorCard(
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.hourglass_top_rounded,
-                            color: AppColors.accentAmberDeep,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              '${request.amountTc} TC · ${request.account}',
-                              style: const TextStyle(
-                                color: AppColors.darkSlate,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          const MentorTag(
-                            'Menunggu',
-                            color: Color(0xFFFFF6E8),
-                            textColor: AppColors.accentAmberDeep,
-                          ),
-                        ],
-                      ),
-                    ),
+              const SizedBox(height: 16),
+
+              // 5. Transaction Mutations List Card matching Screenshot 2
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: AppColors.borderSlate.withValues(alpha: 0.8),
                   ),
-              ],
-              const MentorSectionTitle('Transaksi terbaru'),
-              const _TransactionRow(
-                title: 'Sesi Struktur BLoC',
-                subtitle: 'Arya Pratama · escrow dilepas · 8 Jul',
-                amount: '+30 TC',
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkSlate.withValues(alpha: 0.04),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Item 1: Sesi Struktur BLoC
+                    _MutationItem(
+                      icon: Icons.south_west_rounded,
+                      iconBg: const Color(0xFFECFDF5),
+                      iconColor: const Color(0xFF059669),
+                      title: 'Sesi Struktur BLoC',
+                      subtitle: 'Arya Pratama · escrow dilepas · 8 Jul',
+                      amount: '+30 TC',
+                      amountColor: const Color(0xFF059669),
+                    ),
+                    const Divider(color: AppColors.borderSlate, height: 20),
+
+                    // Item 2: Cash-out ke BCA
+                    _MutationItem(
+                      icon: Icons.north_east_rounded,
+                      iconBg: const Color(0xFFF1F5F9),
+                      iconColor: const Color(0xFF475569),
+                      title: 'Cash-out ke BCA',
+                      subtitle: 'Admin 15% · Rp15.300 · 1 Jul',
+                      amount: '-102 TC',
+                      amountColor: AppColors.darkSlate,
+                    ),
+                    const Divider(color: AppColors.borderSlate, height: 20),
+
+                    // Item 3: Sesi review arsitektur
+                    _MutationItem(
+                      icon: Icons.south_west_rounded,
+                      iconBg: const Color(0xFFECFDF5),
+                      iconColor: const Color(0xFF059669),
+                      title: 'Sesi review arsitektur',
+                      subtitle: 'Arya Pratama · 24 Jun',
+                      amount: '+30 TC',
+                      amountColor: const Color(0xFF059669),
+                    ),
+                    const Divider(color: AppColors.borderSlate, height: 20),
+
+                    // Item 4: Sesi persiapan portofolio
+                    _MutationItem(
+                      icon: Icons.south_west_rounded,
+                      iconBg: const Color(0xFFECFDF5),
+                      iconColor: const Color(0xFF059669),
+                      title: 'Sesi persiapan portofolio',
+                      subtitle: 'Dewi Lestari · 20 Jun',
+                      amount: '+30 TC',
+                      amountColor: const Color(0xFF059669),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -295,37 +440,75 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
   );
 }
 
-class _BalanceDetail extends StatelessWidget {
-  const _BalanceDetail({required this.label, required this.value});
+class _MutationItem extends StatelessWidget {
+  const _MutationItem({
+    required this.icon,
+    required this.iconBg,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.amount,
+    required this.amountColor,
+  });
 
-  final String label;
-  final String value;
+  final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final String amount;
+  final Color amountColor;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-      const SizedBox(height: 3),
-      Text(
-        value,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: iconBg,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, color: iconColor, size: 20),
         ),
-      ),
-    ],
-  );
-}
-
-class _WeekLabel extends StatelessWidget {
-  const _WeekLabel(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Text(
-    label,
-    style: const TextStyle(color: AppColors.secondarySlate, fontSize: 11),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.darkSlate,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14.5,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: AppColors.secondarySlate,
+                  fontSize: 11.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          amount,
+          style: TextStyle(
+            color: amountColor,
+            fontWeight: FontWeight.w800,
+            fontSize: 14.5,
+          ),
+        ),
+      ],
+    ),
   );
 }
 
@@ -333,70 +516,4 @@ class _CashoutRequest {
   const _CashoutRequest({required this.amountTc, required this.account});
   final int amountTc;
   final String account;
-}
-
-class _TransactionRow extends StatelessWidget {
-  const _TransactionRow({
-    required this.title,
-    required this.subtitle,
-    required this.amount,
-  });
-
-  final String title;
-  final String subtitle;
-  final String amount;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: MentorCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F7F1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.south_west_rounded,
-              color: Color(0xFF047857),
-            ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.darkSlate,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: AppColors.secondarySlate,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            amount,
-            style: const TextStyle(
-              color: Color(0xFF047857),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
 }

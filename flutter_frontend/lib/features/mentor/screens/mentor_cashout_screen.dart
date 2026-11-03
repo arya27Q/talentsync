@@ -109,187 +109,351 @@ class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AppColors.canvasWhite,
-    appBar: AppBar(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.white,
-      titleSpacing: 0,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Cash-Out Funds',
-            style: TextStyle(
-              color: AppColors.darkSlate,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Text(
-            'Saldo ${widget.availableTc} TC',
-            style: const TextStyle(
-              color: AppColors.secondarySlate,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-      leading: IconButton(
-        tooltip: 'Kembali',
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: AppColors.darkSlate,
-        ),
-      ),
-    ),
     body: SafeArea(
-      top: false,
       bottom: false,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+      child: Column(
         children: [
-          MentorCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Header matching screenshot
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            child: Row(
               children: [
-                const _CashOutHeading('Rekening tujuan'),
-                for (final account in _accounts) ...[
-                  _AccountChoice(
-                    bank: account.$1,
-                    number: account.$2,
-                    icon: account.$3,
-                    selected: _selectedAccount == account.$1,
-                    onTap: () => setState(() => _selectedAccount = account.$1),
-                  ),
-                  if (account != _accounts.last) const SizedBox(height: 8),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          MentorCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _CashOutHeading('Jumlah TimeCoin ditukar'),
-                TextField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(
-                      Icons.circle,
-                      color: AppColors.accentAmberGold,
-                    ),
-                    suffixText: 'TC',
-                    filled: true,
-                    fillColor: AppColors.canvasWhite,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
+                Semantics(
+                  button: true,
+                  label: 'Kembali',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.borderSlate),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.darkSlate.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.keyboard_arrow_left_rounded,
+                        color: AppColors.darkSlate,
+                        size: 26,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    for (final amount in [
-                      50,
-                      100,
-                      200,
-                      widget.availableTc,
-                    ]) ...[
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            right: amount == widget.availableTc ? 0 : 7,
-                          ),
-                          child: _AmountPreset(
-                            label: amount == widget.availableTc
-                                ? 'Semua'
-                                : '$amount TC',
-                            selected: _amountTc == amount,
-                            onTap: () => _setAmount(amount),
-                          ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Cash-Out Funds',
+                        style: TextStyle(
+                          color: AppColors.darkSlate,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Saldo ${widget.availableTc} TC',
+                        style: const TextStyle(
+                          color: AppColors.secondarySlate,
+                          fontSize: 12,
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 14),
-          MentorCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+
+          // Scrollable content with bottom padding 120
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 120),
               children: [
-                const Text(
-                  'Ringkasan',
-                  style: TextStyle(
-                    color: AppColors.darkSlate,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
+                // 1. Rekening Tujuan Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: AppColors.borderSlate.withValues(alpha: 0.8),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.04),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Rekening tujuan',
+                        style: TextStyle(
+                          color: AppColors.darkSlate,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      for (final account in _accounts) ...[
+                        _AccountChoice(
+                          bank: account.$1,
+                          number: account.$2,
+                          icon: account.$3,
+                          selected: _selectedAccount == account.$1,
+                          onTap: () =>
+                              setState(() => _selectedAccount = account.$1),
+                        ),
+                        if (account != _accounts.last) const SizedBox(height: 8),
+                      ],
+                    ],
                   ),
                 ),
                 const SizedBox(height: 14),
-                _SummaryRow(label: 'Nilai kotor', value: _rupiah(_grossRupiah)),
-                const SizedBox(height: 10),
-                _SummaryRow(
-                  label: 'Biaya admin 15%',
-                  value: '−${_rupiah(_feeRupiah)}',
-                  valueColor: const Color(0xFFB42318),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(height: 1, color: AppColors.borderSlate),
-                ),
-                _SummaryRow(
-                  label: 'Diterima di rekening',
-                  value: _rupiah(_netRupiah),
-                  strong: true,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Material(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            child: InkWell(
-              onTap: () => Navigator.pushNamed(
-                context,
-                AppRoutes.mentorFeaturedUpgrade,
-                arguments: MentorFeaturedUpgradeArgs(
-                  balanceTc: widget.availableTc,
-                  onSelectTab: widget.onSelectTab,
-                ),
-              ),
-              borderRadius: BorderRadius.circular(20),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.workspace_premium_outlined,
-                      color: AppColors.accentAmberDeep,
+
+                // 2. Jumlah TimeCoin Ditukar Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: AppColors.borderSlate.withValues(alpha: 0.8),
                     ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Hemat ${_rupiah(_feeRupiah)} dengan Featured Mentor',
-                        style: const TextStyle(
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.04),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Jumlah TimeCoin ditukar',
+                        style: TextStyle(
                           color: AppColors.darkSlate,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                    ),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      color: AppColors.secondarySlate,
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+
+                      // Input Box matching Screenshot 3 & 4
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.toll_rounded,
+                              color: AppColors.accentAmberGold,
+                              size: 26,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                controller: _amountController,
+                                keyboardType: TextInputType.number,
+                                onChanged: (_) => setState(() {}),
+                                style: const TextStyle(
+                                  color: AppColors.darkSlate,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ),
+                            const Text(
+                              'TC',
+                              style: TextStyle(
+                                color: AppColors.secondarySlate,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Quick Preset Chips (50 TC, 100 TC, 200 TC, Semua)
+                      Row(
+                        children: [
+                          for (final amount in [
+                            50,
+                            100,
+                            200,
+                            widget.availableTc,
+                          ]) ...[
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: amount == widget.availableTc ? 0 : 7,
+                                ),
+                                child: _AmountPreset(
+                                  label: amount == widget.availableTc
+                                      ? 'Semua'
+                                      : '$amount TC',
+                                  selected: _amountTc == amount,
+                                  onTap: () => _setAmount(amount),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 14),
+
+                // 3. Ringkasan Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: AppColors.borderSlate.withValues(alpha: 0.8),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.04),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Ringkasan',
+                        style: TextStyle(
+                          color: AppColors.darkSlate,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _SummaryRow(
+                        label: 'Nilai kotor',
+                        value: _rupiah(_grossRupiah),
+                      ),
+                      const SizedBox(height: 10),
+                      _SummaryRow(
+                        label: 'Biaya admin 15%',
+                        value: '-${_rupiah(_feeRupiah)}',
+                        valueColor: const Color(0xFFDC2626),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Divider(height: 1, color: AppColors.borderSlate),
+                      ),
+                      _SummaryRow(
+                        label: 'Diterima di rekening',
+                        value: _rupiah(_netRupiah),
+                        strong: true,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // 4. Hemat Rp30.000 Sekarang Card matching Screenshot 4
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: AppColors.borderSlate.withValues(alpha: 0.8),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.04),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(22),
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.mentorFeaturedUpgrade,
+                      arguments: MentorFeaturedUpgradeArgs(
+                        balanceTc: widget.availableTc,
+                        onSelectTab: widget.onSelectTab,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(
+                              Icons.workspace_premium_rounded,
+                              color: Color(0xFFD97706),
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Hemat Rp30.000 sekarang',
+                              style: TextStyle(
+                                color: AppColors.darkSlate,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Featured Mentor Rp50.000/bulan menghapus biaya admin. Untung sejak cash-out di atas Rp333.000 per bulan.',
+                          style: TextStyle(
+                            color: AppColors.secondarySlate,
+                            fontSize: 12,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -299,19 +463,28 @@ class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
           child: SizedBox(
             width: double.infinity,
-            height: 52,
+            height: 50,
             child: FilledButton.icon(
               onPressed: _confirmCashOut,
               icon: const Icon(Icons.account_balance_outlined),
-              label: const Text('Withdraw to Bank (Cash-Out)'),
+              label: const Text(
+                'Withdraw to Bank (Cash-Out)',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primaryNavy,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
             ),
           ),
         ),
         MentorBottomNav(
-          selectedIndex: -1,
+          selectedIndex: 3,
           onSelected: (index) {
             if (widget.onSelectTab == null) {
               Navigator.pop(context, index);
@@ -342,25 +515,42 @@ class _AccountChoice extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: selected ? AppColors.lightBlueSurface : Colors.white,
-    borderRadius: BorderRadius.circular(16),
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    decoration: BoxDecoration(
+      color: selected ? const Color(0xFFF0F7FF) : Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: selected
+            ? AppColors.primaryNavy
+            : AppColors.borderSlate.withValues(alpha: 0.8),
+        width: selected ? 1.5 : 1,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.darkSlate.withValues(alpha: 0.02),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
     child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 58),
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: selected ? AppColors.primaryNavy : AppColors.borderSlate,
-            width: selected ? 1.5 : 1,
-          ),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.primaryNavy),
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: Icon(icon, color: AppColors.primaryNavy, size: 20),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -368,6 +558,7 @@ class _AccountChoice extends StatelessWidget {
                 style: const TextStyle(
                   color: AppColors.darkSlate,
                   fontWeight: FontWeight.w700,
+                  fontSize: 14,
                 ),
               ),
             ),
@@ -375,7 +566,8 @@ class _AccountChoice extends StatelessWidget {
               selected
                   ? Icons.radio_button_checked_rounded
                   : Icons.radio_button_unchecked_rounded,
-              color: selected ? AppColors.primaryNavy : AppColors.borderSlate,
+              color: selected ? AppColors.primaryNavy : const Color(0xFFCBD5E1),
+              size: 22,
             ),
           ],
         ),
@@ -396,22 +588,39 @@ class _AmountPreset extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 44,
-    child: OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        backgroundColor: selected ? AppColors.primaryNavy : Colors.white,
-        foregroundColor: selected ? Colors.white : AppColors.darkSlate,
-        side: BorderSide(
+  Widget build(BuildContext context) => InkWell(
+    borderRadius: BorderRadius.circular(12),
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: selected ? AppColors.primaryNavy : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
           color: selected ? AppColors.primaryNavy : AppColors.borderSlate,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : null,
       ),
+      alignment: Alignment.center,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+        child: Text(
+          label,
+          maxLines: 1,
+          style: TextStyle(
+            color: selected ? Colors.white : AppColors.darkSlate,
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+          ),
+        ),
       ),
     ),
   );
@@ -432,41 +641,24 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Expanded(
-        child: Text(
-          label,
-          style: TextStyle(
-            color: strong ? AppColors.darkSlate : AppColors.secondarySlate,
-            fontWeight: strong ? FontWeight.w800 : FontWeight.w500,
-          ),
+      Text(
+        label,
+        style: TextStyle(
+          color: strong ? AppColors.darkSlate : AppColors.secondarySlate,
+          fontSize: strong ? 15 : 13.5,
+          fontWeight: strong ? FontWeight.w800 : FontWeight.w500,
         ),
       ),
       Text(
         value,
         style: TextStyle(
           color: valueColor,
-          fontWeight: strong ? FontWeight.w800 : FontWeight.w700,
           fontSize: strong ? 18 : 14,
+          fontWeight: strong ? FontWeight.w800 : FontWeight.w700,
         ),
       ),
     ],
-  );
-}
-
-class _CashOutHeading extends StatelessWidget {
-  const _CashOutHeading(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Text(
-      text,
-      style: const TextStyle(
-        color: AppColors.darkSlate,
-        fontWeight: FontWeight.w700,
-      ),
-    ),
   );
 }

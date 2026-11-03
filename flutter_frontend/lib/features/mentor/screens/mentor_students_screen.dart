@@ -70,35 +70,50 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
       bottom: false,
       child: Column(
         children: [
+          // Header matching design
           MentorPageHeader(
             title: 'Murid Saya',
             subtitle: _drafts.isEmpty
                 ? '${mentorStudents.length} murid aktif'
                 : '${mentorStudents.length} murid aktif · ${_drafts.length} draft',
-            trailing: IconButton(
-              tooltip: 'Buat rekomendasi ke UMKM',
-              onPressed: () => _openRecommendation(),
-              icon: const Icon(
-                Icons.thumb_up_alt_outlined,
-                color: AppColors.darkSlate,
-              ),
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white,
-                minimumSize: const Size(48, 48),
-                side: const BorderSide(color: AppColors.borderSlate),
+            trailing: GestureDetector(
+              onTap: () => _openRecommendation(),
+              child: Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderSlate),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkSlate.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.thumb_up_alt_outlined,
+                  color: AppColors.darkSlate,
+                  size: 22,
+                ),
               ),
             ),
           ),
+
+          // Scrollable student list with bottom padding 120 so Rafi Hakim card is fully clear of bottom nav
           Expanded(
             child: students.isEmpty
                 ? const Center(
                     child: Text(
-                      'Belum ada murid yang direkomendasikan.',
+                      'Belum ada murid yang terdaftar.',
                       style: TextStyle(color: AppColors.secondarySlate),
                     ),
                   )
                 : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
                     itemCount: students.length + _drafts.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 14),
                     itemBuilder: (context, index) {
@@ -201,25 +216,52 @@ class _StudentCard extends StatelessWidget {
   final VoidCallback onOpenRoom;
 
   Color get _avatarColor => switch (student.initials) {
-    'DL' => const Color(0xFF147D76),
-    'RH' => const Color(0xFFAA3D17),
-    _ => AppColors.primaryNavy,
+    'DL' => const Color(0xFF0F766E), // Deep Teal
+    'RH' => const Color(0xFFA03B1E), // Terracotta/Rust
+    _ => AppColors.primaryNavy,      // Deep Royal Navy
   };
 
   @override
-  Widget build(BuildContext context) => MentorCard(
-    padding: const EdgeInsets.all(15),
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(22),
+      border: Border.all(
+        color: AppColors.borderSlate.withValues(alpha: 0.8),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.darkSlate.withValues(alpha: 0.04),
+          blurRadius: 14,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Avatar + Name + Subtitle + Badge
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MentorAvatar(
-              initials: student.initials,
-              size: 52,
-              color: _avatarColor,
-              textColor: Colors.white,
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: _avatarColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                student.initials,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -228,6 +270,8 @@ class _StudentCard extends StatelessWidget {
                 children: [
                   Text(
                     student.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: AppColors.darkSlate,
                       fontWeight: FontWeight.w800,
@@ -237,6 +281,8 @@ class _StudentCard extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     student.study,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: AppColors.secondarySlate,
                       fontSize: 12,
@@ -245,9 +291,11 @@ class _StudentCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     student.focus,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: AppColors.primaryNavy,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       fontSize: 12,
                     ),
                   ),
@@ -255,14 +303,26 @@ class _StudentCard extends StatelessWidget {
               ),
             ),
             if (student.needsReview > 0)
-              MentorTag(
-                '${student.needsReview} perlu dinilai',
-                color: const Color(0xFFFFF6E8),
-                textColor: AppColors.accentAmberDeep,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${student.needsReview} perlu dinilai',
+                  style: const TextStyle(
+                    color: Color(0xFFD97706),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11.5,
+                  ),
+                ),
               ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+
+        // 4 Metric items (Sesi, Materi, Tugas, Sertifikat)
         Row(
           children: [
             Expanded(
@@ -294,22 +354,24 @@ class _StudentCard extends StatelessWidget {
             ),
           ],
         ),
+
+        // Recommendation status indicator (green)
         if (recommended) ...[
           const SizedBox(height: 12),
-          const Row(
-            children: [
+          Row(
+            children: const [
               Icon(
-                Icons.thumb_up_alt_rounded,
-                color: Color(0xFF047857),
-                size: 17,
+                Icons.access_time_rounded,
+                color: Color(0xFF059669),
+                size: 16,
               ),
-              SizedBox(width: 7),
+              SizedBox(width: 6),
               Expanded(
                 child: Text(
                   'Sudah kamu rekomendasikan ke UMKM',
                   style: TextStyle(
-                    color: Color(0xFF047857),
-                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF059669),
+                    fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
                 ),
@@ -317,67 +379,106 @@ class _StudentCard extends StatelessWidget {
             ],
           ),
         ],
+
         const SizedBox(height: 14),
+
+        // Action Buttons Row: Chat, Rekomendasikan, Ruang Belajar
         Row(
           children: [
-            SizedBox(
-              width: 48,
-              height: 48,
-              child: OutlinedButton(
-                onPressed: onChat,
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  foregroundColor: AppColors.darkSlate,
-                  side: const BorderSide(color: AppColors.borderSlate),
-                  shape: RoundedRectangleBorder(
+            Semantics(
+              button: true,
+              label: 'Chat dengan ${student.name}',
+              child: InkWell(
+                borderRadius: BorderRadius.circular(15),
+                onTap: onChat,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: AppColors.borderSlate),
                   ),
-                ),
-                child: Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  semanticLabel: 'Chat dengan ${student.name}',
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    color: AppColors.darkSlate,
+                    size: 20,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: SizedBox(
-                height: 48,
-                child: OutlinedButton.icon(
-                  onPressed: onRecommend,
-                  icon: Icon(
-                    recommended
-                        ? Icons.thumb_up_alt_rounded
-                        : Icons.thumb_up_alt_outlined,
-                    size: 18,
-                  ),
-                  label: Text(
-                    recommended ? 'Direkomendasikan' : 'Rekomendasikan',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primaryNavy,
-                    side: const BorderSide(color: AppColors.borderSlate),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(17),
+              child: Semantics(
+                button: true,
+                label: 'Rekomendasikan ${student.name}',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: onRecommend,
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.borderSlate),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(
+                          Icons.thumb_up_alt_outlined,
+                          color: AppColors.primaryNavy,
+                          size: 18,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Rekomendasikan',
+                          style: TextStyle(
+                            color: AppColors.primaryNavy,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
-            SizedBox(
-              height: 48,
-              child: FilledButton(
-                onPressed: onOpenRoom,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 13),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(17),
+            Semantics(
+              button: true,
+              label: 'Buka ruang belajar ${student.name}',
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: onOpenRoom,
+                child: Container(
+                  width: 84,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryNavy,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    'Ruang\nBelajar',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                      height: 1.15,
+                    ),
                   ),
                 ),
-                child: const Text('Ruang Belajar'),
               ),
             ),
           ],
@@ -395,11 +496,11 @@ class _StudentMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    constraints: const BoxConstraints(minHeight: 66),
+    constraints: const BoxConstraints(minHeight: 64),
     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
     decoration: BoxDecoration(
-      color: AppColors.canvasWhite,
-      borderRadius: BorderRadius.circular(15),
+      color: const Color(0xFFF8FAFC),
+      borderRadius: BorderRadius.circular(14),
     ),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -411,13 +512,17 @@ class _StudentMetric extends StatelessWidget {
           style: const TextStyle(
             color: AppColors.darkSlate,
             fontWeight: FontWeight.w800,
-            fontSize: 17,
+            fontSize: 16.5,
           ),
         ),
         const SizedBox(height: 3),
         Text(
           label,
-          style: const TextStyle(color: AppColors.secondarySlate, fontSize: 11),
+          style: const TextStyle(
+            color: AppColors.secondarySlate,
+            fontWeight: FontWeight.w600,
+            fontSize: 11,
+          ),
         ),
       ],
     ),

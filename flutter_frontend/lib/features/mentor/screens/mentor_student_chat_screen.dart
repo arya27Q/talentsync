@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
-import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorStudentChatScreen extends StatefulWidget {
   const MentorStudentChatScreen({super.key, required this.student});
@@ -125,23 +124,55 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
     appBar: AppBar(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.white,
-      leadingWidth: 56,
-      leading: IconButton(
-        tooltip: 'Kembali',
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: AppColors.darkSlate,
+      elevation: 0,
+      leadingWidth: 64,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: Center(
+          child: Semantics(
+            button: true,
+            label: 'Kembali',
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderSlate),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.keyboard_arrow_left_rounded,
+                  color: AppColors.darkSlate,
+                  size: 26,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
-      titleSpacing: 0,
+      titleSpacing: 10,
       title: Row(
         children: [
-          MentorAvatar(
-            initials: widget.student.initials,
-            size: 42,
-            color: AppColors.primaryNavy,
-            textColor: Colors.white,
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.primaryNavy,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              widget.student.initials,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+              ),
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -154,34 +185,44 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppColors.darkSlate,
-                    fontSize: 15,
+                    fontSize: 15.5,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                if (widget.student.initials == 'AP')
-                  const Row(
-                    children: [
-                      Icon(Icons.circle, color: Color(0xFF059669), size: 8),
-                      SizedBox(width: 5),
-                      Text(
-                        'Online',
-                        style: TextStyle(
-                          color: Color(0xFF047857),
-                          fontSize: 12,
-                        ),
+                const SizedBox(height: 2),
+                Row(
+                  children: const [
+                    Icon(Icons.circle, color: Color(0xFF059669), size: 7),
+                    SizedBox(width: 4),
+                    Text(
+                      'Online',
+                      style: TextStyle(
+                        color: Color(0xFF059669),
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          const MentorTag(
-            'Murid',
-            color: AppColors.lightBlueSurface,
-            textColor: AppColors.primaryNavy,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Text(
+              'Murid',
+              style: TextStyle(
+                color: AppColors.primaryNavy,
+                fontWeight: FontWeight.w800,
+                fontSize: 11.5,
+              ),
+            ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
         ],
       ),
     ),
@@ -189,41 +230,58 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
       top: false,
       child: Column(
         children: [
+          // Banner Ruang Belajar Murid
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
-            child: Material(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 6),
+            child: Semantics(
+              button: true,
+              label: 'Buka ruang belajar murid',
               child: InkWell(
                 onTap: () => Navigator.pushNamed(
                   context,
                   AppRoutes.mentorStudentLearningRoom,
                   arguments: widget.student,
                 ),
-                borderRadius: BorderRadius.circular(18),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.borderSlate.withValues(alpha: 0.8),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
                   child: Row(
                     children: [
                       Container(
-                        width: 42,
-                        height: 42,
+                        width: 38,
+                        height: 38,
                         decoration: BoxDecoration(
-                          color: AppColors.lightBlueSurface,
-                          borderRadius: BorderRadius.circular(13),
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        alignment: Alignment.center,
                         child: const Icon(
                           Icons.menu_book_outlined,
                           color: AppColors.primaryNavy,
+                          size: 20,
                         ),
                       ),
-                      const SizedBox(width: 11),
-                      Expanded(
+                      const SizedBox(width: 10),
+                      const Expanded(
                         child: Text(
-                          'Ruang belajar murid: materi, tugas, proyek',
+                          'Ruang belajar murid: materi, tugas, proye...',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.darkSlate,
                             fontWeight: FontWeight.w700,
                             fontSize: 13,
@@ -233,6 +291,7 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
                       const Icon(
                         Icons.chevron_right_rounded,
                         color: AppColors.secondarySlate,
+                        size: 20,
                       ),
                     ],
                   ),
@@ -240,13 +299,20 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
               ),
             ),
           ),
+
+          // Security notice
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 14),
+            padding: EdgeInsets.symmetric(vertical: 10),
             child: Text(
-              'Gunakan chat untuk koordinasi materi dan sesi.',
-              style: TextStyle(color: AppColors.secondarySlate, fontSize: 12),
+              'Percakapan terenkripsi · tersimpan sebagai bukti kerja',
+              style: TextStyle(
+                color: AppColors.secondarySlate,
+                fontSize: 11.5,
+              ),
             ),
           ),
+
+          // Chat messages list
           Expanded(
             child: _messages.isEmpty
                 ? const Center(
@@ -257,26 +323,31 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
                   )
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+                    padding: const EdgeInsets.fromLTRB(18, 4, 18, 16),
                     itemCount: _messages.length,
                     itemBuilder: (context, index) =>
                         _MessageBubble(message: _messages[index]),
                   ),
           ),
+
+          // Quick Replies & Input Container
           Container(
             padding: EdgeInsets.fromLTRB(
-              18,
+              16,
               10,
-              18,
+              16,
               12 + MediaQuery.of(context).viewInsets.bottom,
             ),
             decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(top: BorderSide(color: AppColors.borderSlate)),
+              border: Border(
+                top: BorderSide(color: AppColors.borderSlate),
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Quick chips
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -284,32 +355,59 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
                       for (final reply in _quickReplies)
                         Padding(
                           padding: const EdgeInsets.only(right: 8),
-                          child: OutlinedButton(
-                            onPressed: () => _sendMessage(reply),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.darkSlate,
-                              side: const BorderSide(
-                                color: AppColors.borderSlate,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () => _sendMessage(reply),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
                               ),
-                              shape: const StadiumBorder(),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: AppColors.borderSlate),
+                              ),
+                              child: Text(
+                                reply,
+                                style: const TextStyle(
+                                  color: AppColors.darkSlate,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
-                            child: Text(reply, maxLines: 1),
                           ),
                         ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
+
+                // Input Row: Attachment + TextField + Solid Navy Send
                 Row(
                   children: [
-                    IconButton.filledTonal(
-                      tooltip: 'Bagikan materi',
-                      onPressed: _shareMaterial,
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppColors.canvasWhite,
-                        foregroundColor: AppColors.secondarySlate,
+                    Semantics(
+                      button: true,
+                      label: 'Bagikan materi',
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: _shareMaterial,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.attach_file_rounded,
+                            color: AppColors.darkSlate,
+                            size: 22,
+                          ),
+                        ),
                       ),
-                      icon: const Icon(Icons.attach_file_rounded),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -319,11 +417,15 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
                         onSubmitted: (_) => _sendMessage(),
                         decoration: InputDecoration(
                           hintText: 'Tulis pesan',
+                          hintStyle: const TextStyle(
+                            color: AppColors.secondarySlate,
+                            fontSize: 13,
+                          ),
                           filled: true,
-                          fillColor: AppColors.canvasWhite,
+                          fillColor: const Color(0xFFF8FAFC),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 14,
+                            vertical: 12,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24),
@@ -337,19 +439,45 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
                               color: AppColors.borderSlate,
                             ),
                           ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: const BorderSide(
+                              color: AppColors.primaryNavy,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    IconButton.filled(
-                      tooltip: 'Kirim pesan',
-                      onPressed: _sendMessage,
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppColors.primaryNavy,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(48, 48),
+                    Semantics(
+                      button: true,
+                      label: 'Kirim pesan',
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: () => _sendMessage(),
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryNavy,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    AppColors.primaryNavy.withValues(alpha: 0.25),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          alignment: Alignment.center,
+                          child: const Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
                       ),
-                      icon: const Icon(Icons.send_rounded),
                     ),
                   ],
                 ),
@@ -382,49 +510,53 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Align(
     alignment: message.isMine ? Alignment.centerRight : Alignment.centerLeft,
-    child: Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * .78,
+    child: Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.76,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+      decoration: BoxDecoration(
+        color: message.isMine ? AppColors.primaryNavy : Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(18),
+          topRight: const Radius.circular(18),
+          bottomLeft: Radius.circular(message.isMine ? 18 : 4),
+          bottomRight: Radius.circular(message.isMine ? 4 : 18),
         ),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(15, 12, 15, 9),
-          decoration: BoxDecoration(
-            color: message.isMine ? AppColors.primaryNavy : Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(19),
-              topRight: const Radius.circular(19),
-              bottomLeft: Radius.circular(message.isMine ? 19 : 5),
-              bottomRight: Radius.circular(message.isMine ? 5 : 19),
+        border: message.isMine
+            ? null
+            : Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.darkSlate.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: message.isMine
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
+        children: [
+          Text(
+            message.text,
+            style: TextStyle(
+              color: message.isMine ? Colors.white : AppColors.darkSlate,
+              fontSize: 13.5,
+              height: 1.4,
             ),
-            border: message.isMine
-                ? null
-                : Border.all(color: AppColors.borderSlate),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                message.text,
-                style: TextStyle(
-                  color: message.isMine ? Colors.white : AppColors.darkSlate,
-                  height: 1.45,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                message.time,
-                style: TextStyle(
-                  color: message.isMine
-                      ? Colors.white70
-                      : AppColors.secondarySlate,
-                  fontSize: 10,
-                ),
-              ),
-            ],
+          const SizedBox(height: 6),
+          Text(
+            message.time,
+            style: TextStyle(
+              color: message.isMine ? Colors.white70 : AppColors.secondarySlate,
+              fontSize: 10.5,
+            ),
           ),
-        ),
+        ],
       ),
     ),
   );

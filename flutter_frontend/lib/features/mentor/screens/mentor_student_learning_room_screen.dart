@@ -42,16 +42,19 @@ class _MentorStudentLearningRoomScreenState
       title: 'Panduan struktur folder feature-first',
       detail: 'PDF · 2,4 MB · 8 Jul',
       type: 'PDF',
+      isOpened: true,
     ),
     _LearningResource(
       title: 'Rekaman: refactor kasir kecil',
       detail: 'Video · 25 mnt · 8 Jul',
       type: 'Video',
+      isOpened: false,
     ),
     _LearningResource(
       title: 'Repo contoh clean architecture',
       detail: 'github.com · 9 Jul',
       type: 'Tautan',
+      isOpened: false,
     ),
   ];
 
@@ -62,75 +65,179 @@ class _MentorStudentLearningRoomScreenState
     'Sertifikat (${widget.student.certificates})',
   ];
 
+  Color get _studentColor => switch (widget.student.initials) {
+    'DL' => const Color(0xFF0F766E),
+    'RH' => const Color(0xFFA03B1E),
+    _ => AppColors.primaryNavy,
+  };
+
+  void _toggleRecommendation() {
+    setState(() => _recommended = !_recommended);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _recommended
+              ? '${widget.student.name} ditandai direkomendasikan ke UMKM.'
+              : 'Rekomendasi ${widget.student.name} dicabut.',
+        ),
+      ),
+    );
+  }
+
+  void _openResource(_LearningResource resource) {
+    setState(() => _openedResources.add(resource.title));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Membuka ${resource.title}...')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AppColors.canvasWhite,
-    appBar: AppBar(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.white,
-      titleSpacing: 0,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Ruang Belajar Murid',
-            style: TextStyle(
-              color: AppColors.darkSlate,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Text(
-            '${widget.student.name} · ${widget.student.focus}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: AppColors.secondarySlate,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-      leading: IconButton(
-        tooltip: 'Kembali',
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: AppColors.darkSlate,
-        ),
-      ),
-      actions: [
-        IconButton(
-          tooltip: 'Chat dengan ${widget.student.name}',
-          onPressed: () => Navigator.pushNamed(
-            context,
-            AppRoutes.mentorStudentChat,
-            arguments: widget.student,
-          ),
-          icon: const Icon(
-            Icons.chat_bubble_outline_rounded,
-            color: AppColors.darkSlate,
-          ),
-        ),
-        const SizedBox(width: 10),
-      ],
-    ),
     body: SafeArea(
-      top: false,
       bottom: false,
       child: Column(
         children: [
+          // Header matching screenshot
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            child: Row(
+              children: [
+                Semantics(
+                  button: true,
+                  label: 'Kembali',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.borderSlate),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.darkSlate.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.keyboard_arrow_left_rounded,
+                        color: AppColors.darkSlate,
+                        size: 26,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Ruang Belajar Murid',
+                        style: TextStyle(
+                          color: AppColors.darkSlate,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${widget.student.name} · ${widget.student.focus}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.secondarySlate,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Semantics(
+                  button: true,
+                  label: 'Chat dengan ${widget.student.name}',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.mentorStudentChat,
+                      arguments: widget.student,
+                    ),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.borderSlate),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.darkSlate.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        color: AppColors.darkSlate,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Content List with proper bottom padding 120
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 120),
               children: [
-                MentorCard(
+                // Top Student Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: AppColors.borderSlate.withValues(alpha: 0.8),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.04),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: Row(
                     children: [
-                      MentorAvatar(
-                        initials: widget.student.initials,
-                        size: 58,
-                        color: _studentColor,
-                        textColor: Colors.white,
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: _studentColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          widget.student.initials,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -156,80 +263,182 @@ class _MentorStudentLearningRoomScreenState
                           ],
                         ),
                       ),
-                      FilledButton.icon(
-                        onPressed: _toggleRecommendation,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: _recommended
-                              ? const Color(0xFFFFF6E8)
-                              : AppColors.primaryNavy,
-                          foregroundColor: _recommended
-                              ? AppColors.accentAmberDeep
-                              : Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
+                      Semantics(
+                        button: true,
+                        label: 'Status rekomendasi ke UMKM',
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: _toggleRecommendation,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF7ED),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.thumb_up_alt_rounded,
+                                  color: Color(0xFFC2410C),
+                                  size: 15,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  _recommended ? 'Ke UMKM' : 'Rekomendasikan',
+                                  style: const TextStyle(
+                                    color: Color(0xFFC2410C),
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        icon: Icon(
-                          _recommended
-                              ? Icons.thumb_up_alt_rounded
-                              : Icons.thumb_up_alt_outlined,
-                          size: 17,
-                        ),
-                        label: Text(
-                          _recommended ? 'Ke UMKM' : 'Rekomendasikan',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 14),
+
+                // Segmented Tabs Pill Container
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: AppColors.borderSlate),
                   ),
                   child: Row(
                     children: List.generate(
                       _tabs.length,
-                      (index) => Expanded(
-                        child: TextButton(
-                          onPressed: () => setState(() => _selectedTab = index),
-                          style: TextButton.styleFrom(
-                            minimumSize: const Size(0, 48),
-                            padding: const EdgeInsets.symmetric(horizontal: 3),
-                            backgroundColor: _selectedTab == index
-                                ? AppColors.primaryNavy
-                                : Colors.transparent,
-                            foregroundColor: _selectedTab == index
-                                ? Colors.white
-                                : AppColors.secondarySlate,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              _tabs[index],
-                              maxLines: 1,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 11,
+                      (index) {
+                        final selected = _selectedTab == index;
+                        return Expanded(
+                          child: Semantics(
+                            button: true,
+                            selected: selected,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              onTap: () => setState(() => _selectedTab = index),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? AppColors.primaryNavy
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: selected
+                                      ? [
+                                          BoxShadow(
+                                            color: AppColors.primaryNavy
+                                                .withValues(alpha: 0.2),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                alignment: Alignment.center,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    _tabs[index],
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      color: selected
+                                          ? Colors.white
+                                          : AppColors.secondarySlate,
+                                      fontWeight: selected
+                                          ? FontWeight.w800
+                                          : FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ),
                 ),
                 const SizedBox(height: 14),
-                ..._tabContent,
+
+                // Tab Content List
+                if (_selectedTab == 0) ...[
+                  // 1. Tab Materi (3)
+                  for (final item in _materials) ...[
+                    _MaterialResourceCard(
+                      resource: item,
+                      isOpened: _openedResources.contains(item.title) ||
+                          item.isOpened,
+                      onTap: () => _openResource(item),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ] else if (_selectedTab == 1) ...[
+                  // 2. Tab Tugas (3) matching Screenshot 1
+                  _TaskResourceCard(
+                    title: 'Refactor repository stok barang',
+                    dueDate: 'Tenggat 14 Jul',
+                    status: 'Dikerjakan murid',
+                    statusType: _TaskStatusType.inProgress,
+                  ),
+                  const SizedBox(height: 12),
+                  _TaskResourceCard(
+                    title: 'Tulis 5 unit test untuk perhitungan laba',
+                    dueDate: 'Tenggat 18 Jul',
+                    status: 'Dikerjakan murid',
+                    statusType: _TaskStatusType.inProgress,
+                  ),
+                  const SizedBox(height: 12),
+                  _TaskResourceCard(
+                    title: 'Diagram alur state kasir',
+                    dueDate: 'Tenggat 10 Jul',
+                    status: 'Dinilai 90',
+                    statusType: _TaskStatusType.graded,
+                    linkUrl: 'figma.com/file/state-kasir',
+                  ),
+                ] else if (_selectedTab == 2) ...[
+                  // 3. Tab Proyek (2) matching Screenshot 2
+                  _ProjectResourceCard(
+                    badge: 'Terverifikasi · 92',
+                    isVerified: true,
+                    rewardTc: '40 TC',
+                    title: 'Modul offline-sync aplikasi koperasi',
+                    client: 'Klien mentor · Koperasi Pasar Genteng',
+                    resultSummary:
+                        'Hasil: github.com/arya/offline-sync, Demo APK v1.2, Do...',
+                  ),
+                  const SizedBox(height: 12),
+                  _ProjectResourceCard(
+                    badge: 'Dikerjakan murid',
+                    isVerified: false,
+                    rewardTc: '30 TC',
+                    title: 'Code review & refactor fitur laporan',
+                    client: 'Tim internal fintech mentor',
+                    resultSummary: 'Hasil: PR #142 (draft)',
+                  ),
+                ] else ...[
+                  // 4. Tab Sertifikat (2) matching Screenshot 3
+                  _CertificateResourceCard(
+                    title: 'Rekomendasi Kerja: Flutter Developer',
+                    subtitle: 'Rekomendasi Kerja · 8 Jul 2025 · TS-END-0087',
+                    isAmber: true,
+                  ),
+                  const SizedBox(height: 12),
+                  _CertificateResourceCard(
+                    title: 'Lulus Bimbingan: Arsitektur Flutter & BLoC',
+                    subtitle: 'Kelulusan · 8 Jul 2025 · TS-MNT-0211',
+                    isAmber: false,
+                  ),
+                ],
               ],
             ),
           ),
@@ -237,7 +446,7 @@ class _MentorStudentLearningRoomScreenState
       ),
     ),
     bottomNavigationBar: MentorBottomNav(
-      selectedIndex: -1,
+      selectedIndex: 2,
       onSelected: (index) {
         if (widget.onSelectTab == null) {
           Navigator.pop(context, index);
@@ -248,162 +457,175 @@ class _MentorStudentLearningRoomScreenState
       },
     ),
   );
+}
 
-  Color get _studentColor => switch (widget.student.initials) {
-    'DL' => const Color(0xFF147D76),
-    'RH' => const Color(0xFFAA3D17),
-    _ => AppColors.primaryNavy,
-  };
+class _LearningResource {
+  const _LearningResource({
+    required this.title,
+    required this.detail,
+    required this.type,
+    this.isOpened = false,
+  });
 
-  List<Widget> get _tabContent => switch (_selectedTab) {
-    0 =>
-      widget.student.name == 'Arya Pratama'
-          ? _materials.map(_buildMaterialCard).toList()
-          : [
-              MentorCard(
-                child: Text(
-                  widget.student.materials == 0
-                      ? 'Belum ada materi di ruang belajar ini.'
-                      : '${widget.student.materials} materi tersedia untuk murid ini.',
-                  style: const TextStyle(color: AppColors.secondarySlate),
-                ),
-              ),
-            ],
-    1 => _buildTasks(),
-    2 => [
-      MentorCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Proyek murid',
-              style: TextStyle(
-                color: AppColors.darkSlate,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              widget.student.completedProjects > 0
-                  ? '${widget.student.completedProjects} proyek tercatat pada profil murid.'
-                  : 'Belum ada detail proyek yang dibagikan di ruang belajar.',
-              style: const TextStyle(
-                color: AppColors.secondarySlate,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
+  final String title;
+  final String detail;
+  final String type;
+  final bool isOpened;
+}
+
+class _MaterialResourceCard extends StatelessWidget {
+  const _MaterialResourceCard({
+    required this.resource,
+    required this.isOpened,
+    required this.onTap,
+  });
+
+  final _LearningResource resource;
+  final bool isOpened;
+  final VoidCallback onTap;
+
+  IconData get _iconData {
+    if (resource.type == 'PDF') return Icons.picture_as_pdf_outlined;
+    if (resource.type == 'Video') return Icons.play_circle_outline_rounded;
+    return Icons.link_rounded;
+  }
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: AppColors.borderSlate.withValues(alpha: 0.8),
       ),
-    ],
-    _ => [
-      MentorCard(
-        child: Text(
-          widget.student.certificates == 0
-              ? 'Belum ada sertifikat di ruang belajar ini.'
-              : '${widget.student.certificates} sertifikat tersimpan pada portofolio murid.',
-          style: const TextStyle(color: AppColors.secondarySlate),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.darkSlate.withValues(alpha: 0.03),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
         ),
-      ),
-    ],
-  };
-
-  List<Widget> _buildTasks() {
-    if (widget.student.totalTasks == 0) {
-      return [
-        const MentorCard(
-          child: Text(
-            'Belum ada tugas untuk murid ini.',
-            style: TextStyle(color: AppColors.secondarySlate),
+      ],
+    ),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              _iconData,
+              color: AppColors.primaryNavy,
+              size: 22,
+            ),
           ),
-        ),
-      ];
-    }
-    final titles = widget.student.name == 'Arya Pratama'
-        ? [
-            'Refactor repository kasir',
-            'Terapkan struktur folder feature-first',
-            'Review state BLoC',
-          ]
-        : ['Review bottleneck performa aplikasi'];
-    return [
-      for (var index = 0; index < titles.length; index++)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: MentorCard(
-            padding: const EdgeInsets.all(15),
-            child: Row(
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  index < widget.student.completedTasks
-                      ? Icons.task_alt_rounded
-                      : Icons.radio_button_unchecked_rounded,
-                  color: index < widget.student.completedTasks
-                      ? AppColors.primaryNavy
-                      : AppColors.secondarySlate,
-                ),
-                const SizedBox(width: 11),
-                Expanded(
-                  child: Text(
-                    titles[index],
-                    style: const TextStyle(
-                      color: AppColors.darkSlate,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Text(
+                  resource.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.darkSlate,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
                   ),
                 ),
+                const SizedBox(height: 3),
                 Text(
-                  index < widget.student.completedTasks
-                      ? 'Selesai'
-                      : 'Berjalan',
+                  resource.detail,
                   style: const TextStyle(
                     color: AppColors.secondarySlate,
-                    fontSize: 11,
+                    fontSize: 12,
                   ),
                 ),
               ],
             ),
           ),
-        ),
-    ];
-  }
-
-  Widget _buildMaterialCard(_LearningResource resource) {
-    final opened = _openedResources.contains(resource.title);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: MentorCard(
-        padding: const EdgeInsets.all(15),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: AppColors.lightBlueSurface,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              alignment: Alignment.center,
-              child: Icon(resource.icon, color: AppColors.primaryNavy),
+          const SizedBox(width: 8),
+          Text(
+            isOpened ? 'Dibuka murid' : 'Belum dibuka',
+            style: TextStyle(
+              color: isOpened
+                  ? const Color(0xFF059669)
+                  : AppColors.secondarySlate,
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
             ),
-            const SizedBox(width: 12),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+enum _TaskStatusType { inProgress, graded }
+
+class _TaskResourceCard extends StatelessWidget {
+  const _TaskResourceCard({
+    required this.title,
+    required this.dueDate,
+    required this.status,
+    required this.statusType,
+    this.linkUrl,
+  });
+
+  final String title;
+  final String dueDate;
+  final String status;
+  final _TaskStatusType statusType;
+  final String? linkUrl;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: AppColors.borderSlate.withValues(alpha: 0.8),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.darkSlate.withValues(alpha: 0.03),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    resource.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    title,
                     style: const TextStyle(
                       color: AppColors.darkSlate,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    resource.detail,
+                    dueDate,
                     style: const TextStyle(
                       color: AppColors.secondarySlate,
                       fontSize: 12,
@@ -412,51 +634,240 @@ class _MentorStudentLearningRoomScreenState
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            Text(
-              opened ? 'Dibuka murid' : 'Belum dibuka',
-              style: TextStyle(
-                color: opened
-                    ? const Color(0xFF047857)
-                    : AppColors.secondarySlate,
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: statusType == _TaskStatusType.graded
+                    ? const Color(0xFFECFDF5)
+                    : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                status,
+                style: TextStyle(
+                  color: statusType == _TaskStatusType.graded
+                      ? const Color(0xFF059669)
+                      : const Color(0xFF475569),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _toggleRecommendation() {
-    setState(() => _recommended = !_recommended);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _recommended
-              ? '${widget.student.name} direkomendasikan ke UMKM.'
-              : 'Rekomendasi ${widget.student.name} dibatalkan.',
-        ),
-      ),
-    );
-  }
+        if (linkUrl != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.link_rounded,
+                  size: 16,
+                  color: AppColors.primaryNavy,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    linkUrl!,
+                    style: const TextStyle(
+                      color: AppColors.darkSlate,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    ),
+  );
 }
 
-class _LearningResource {
-  const _LearningResource({
+class _ProjectResourceCard extends StatelessWidget {
+  const _ProjectResourceCard({
+    required this.badge,
+    required this.isVerified,
+    required this.rewardTc,
     required this.title,
-    required this.detail,
-    required this.type,
+    required this.client,
+    required this.resultSummary,
+  });
+
+  final String badge;
+  final bool isVerified;
+  final String rewardTc;
+  final String title;
+  final String client;
+  final String resultSummary;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: AppColors.borderSlate.withValues(alpha: 0.8),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.darkSlate.withValues(alpha: 0.03),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: isVerified
+                    ? const Color(0xFFECFDF5)
+                    : const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                badge,
+                style: TextStyle(
+                  color: isVerified
+                      ? const Color(0xFF059669)
+                      : AppColors.primaryNavy,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                ),
+              ),
+            ),
+            Text(
+              rewardTc,
+              style: const TextStyle(
+                color: AppColors.darkSlate,
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.darkSlate,
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          client,
+          style: const TextStyle(
+            color: AppColors.secondarySlate,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          resultSummary,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Color(0xFF334155),
+            fontSize: 12,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _CertificateResourceCard extends StatelessWidget {
+  const _CertificateResourceCard({
+    required this.title,
+    required this.subtitle,
+    required this.isAmber,
   });
 
   final String title;
-  final String detail;
-  final String type;
+  final String subtitle;
+  final bool isAmber;
 
-  IconData get icon => switch (type) {
-    'PDF' => Icons.picture_as_pdf_outlined,
-    'Video' => Icons.play_circle_outline_rounded,
-    _ => Icons.link_rounded,
-  };
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(
+        color: AppColors.borderSlate.withValues(alpha: 0.8),
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.darkSlate.withValues(alpha: 0.03),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: isAmber ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            isAmber
+                ? Icons.workspace_premium_rounded
+                : Icons.verified_outlined,
+            color: isAmber
+                ? const Color(0xFFD97706)
+                : AppColors.primaryNavy,
+            size: 26,
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppColors.darkSlate,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14.5,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: AppColors.secondarySlate,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }
