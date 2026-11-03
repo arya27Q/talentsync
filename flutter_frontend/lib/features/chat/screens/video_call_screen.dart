@@ -16,7 +16,7 @@ class VideoCallScreen extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          
+
           // Dark Overlay for better text visibility
           Positioned.fill(
             child: Container(
@@ -51,27 +51,54 @@ class VideoCallScreen extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   const Column(
                     children: [
-                      Text('Mentoring Session', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(
+                        'Mentoring Session',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       SizedBox(height: 4),
-                      Text('42:15', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      Text(
+                        '42:15',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.redAccent,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.fiber_manual_record, color: Colors.white, size: 12),
+                        Icon(
+                          Icons.fiber_manual_record,
+                          color: Colors.white,
+                          size: 12,
+                        ),
                         SizedBox(width: 4),
-                        Text('REC', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                        Text(
+                          'REC',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -91,10 +118,16 @@ class VideoCallScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.white, width: 2),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 5)),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
                 ],
                 image: const DecorationImage(
-                  image: NetworkImage('https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=800&q=80'),
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=800&q=80',
+                  ),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -109,11 +142,20 @@ class VideoCallScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildControlButton(Icons.mic_off_rounded, Colors.white.withValues(alpha: 0.2)),
+                _buildControlButton(
+                  Icons.mic_off_rounded,
+                  Colors.white.withValues(alpha: 0.2),
+                ),
                 const SizedBox(width: 20),
-                _buildControlButton(Icons.videocam_rounded, Colors.white.withValues(alpha: 0.2)),
+                _buildControlButton(
+                  Icons.videocam_rounded,
+                  Colors.white.withValues(alpha: 0.2),
+                ),
                 const SizedBox(width: 20),
-                _buildControlButton(Icons.screen_share_rounded, Colors.white.withValues(alpha: 0.2)),
+                _buildControlButton(
+                  Icons.screen_share_rounded,
+                  Colors.white.withValues(alpha: 0.2),
+                ),
                 const SizedBox(width: 20),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
@@ -123,7 +165,11 @@ class VideoCallScreen extends StatelessWidget {
                       color: Colors.red,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.call_end_rounded, color: Colors.white, size: 28),
+                    child: const Icon(
+                      Icons.call_end_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                   ),
                 ),
               ],
@@ -137,10 +183,7 @@ class VideoCallScreen extends StatelessWidget {
   Widget _buildControlButton(IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       child: Icon(icon, color: Colors.white, size: 24),
     );
   }

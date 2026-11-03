@@ -32,7 +32,8 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
   final List<ChatMessageItem> _messages = [
     ChatMessageItem(
       id: '1',
-      text: 'Mas Arya, form stok sudah saya coba. Bisa tambah kolom harga modal?',
+      text:
+          'Mas Arya, form stok sudah saya coba. Bisa tambah kolom harga modal?',
       time: '09.12',
       isMe: false,
     ),
@@ -195,10 +196,7 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
               const SizedBox(height: 6),
               Text(
                 item.time,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: Colors.white70,
-                ),
+                style: const TextStyle(fontSize: 10, color: Colors.white70),
               ),
             ],
           ),
@@ -229,7 +227,9 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
           ],
         ),
         child: Column(
-          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             Text(
               item.text,
@@ -265,7 +265,9 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                border: Border(bottom: BorderSide(color: AppColors.borderSlate)),
+                border: Border(
+                  bottom: BorderSide(color: AppColors.borderSlate),
+                ),
               ),
               child: Row(
                 children: [
@@ -341,7 +343,10 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.lightBlueSurface,
                       borderRadius: BorderRadius.circular(14),
@@ -364,7 +369,10 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
               onTap: () => Navigator.pushNamed(context, AppRoutes.submission),
               child: Container(
                 margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -415,10 +423,7 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
             // Encrypted Notice
             const Text(
               'Percakapan terenkripsi · tersimpan sebagai bukti kerja',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.secondarySlate,
-              ),
+              style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
             ),
             const SizedBox(height: 12),
 
@@ -489,7 +494,9 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Lampirkan screenshot atau berkas deliverable.'),
+                            content: Text(
+                              'Lampirkan screenshot atau berkas deliverable.',
+                            ),
                             duration: Duration(seconds: 1),
                           ),
                         );
@@ -507,10 +514,16 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
                       ),
                       child: TextField(
                         controller: _textController,
-                        style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.darkSlate,
+                        ),
                         decoration: const InputDecoration(
                           hintText: 'Tulis pesan...',
-                          hintStyle: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+                          hintStyle: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.secondarySlate,
+                          ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 10),
                         ),

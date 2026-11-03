@@ -68,7 +68,10 @@ class TransferScreen extends StatelessWidget {
             TextField(
               decoration: InputDecoration(
                 hintText: '@username',
-                prefixIcon: const Icon(Icons.person_outline, color: AppColors.primaryTan),
+                prefixIcon: const Icon(
+                  Icons.person_outline,
+                  color: AppColors.primaryTan,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: const BorderSide(color: Colors.grey),

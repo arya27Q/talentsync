@@ -5,7 +5,11 @@ class SharedAuthLayout extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const SharedAuthLayout({super.key, required this.title, required this.children});
+  const SharedAuthLayout({
+    super.key,
+    required this.title,
+    required this.children,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +22,10 @@ class SharedAuthLayout extends StatelessWidget {
             children: [
               // Floating Header
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
                 decoration: AppColors.floatingDecoration.copyWith(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -32,7 +39,11 @@ class SharedAuthLayout extends StatelessWidget {
                           color: AppColors.warmOffWhite,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.arrow_back, color: AppColors.darkBrown, size: 20),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: AppColors.darkBrown,
+                          size: 20,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -65,7 +76,11 @@ class SharedAuthLayout extends StatelessWidget {
   }
 }
 
-Widget buildFloatingTextField(String hint, IconData icon, {bool isPassword = false}) {
+Widget buildFloatingTextField(
+  String hint,
+  IconData icon, {
+  bool isPassword = false,
+}) {
   return Container(
     margin: const EdgeInsets.only(bottom: 20),
     decoration: AppColors.floatingDecoration,
@@ -76,7 +91,10 @@ Widget buildFloatingTextField(String hint, IconData icon, {bool isPassword = fal
         hintStyle: const TextStyle(color: Colors.grey, fontSize: 16),
         prefixIcon: Icon(icon, color: AppColors.tertiaryCaramel),
         border: InputBorder.none,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 20,
+        ),
       ),
     ),
   );
@@ -100,12 +118,13 @@ Widget buildElevatedButton(String text, VoidCallback onPressed) {
         backgroundColor: AppColors.primaryTan,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 22),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         elevation: 0,
       ),
-      child: Text(text, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
     ),
   );
 }
@@ -120,11 +139,12 @@ Widget buildOutlinedButton(String text, VoidCallback onPressed) {
         backgroundColor: Colors.transparent,
         side: const BorderSide(color: AppColors.primaryTan, width: 2),
         padding: const EdgeInsets.symmetric(vertical: 20),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      ),
     ),
   );
 }
@@ -140,7 +160,11 @@ Widget buildUploadButton(String text, IconData icon, VoidCallback onPressed) {
         decoration: BoxDecoration(
           color: AppColors.warmOffWhite,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.primaryTan, width: 2, style: BorderStyle.solid),
+          border: Border.all(
+            color: AppColors.primaryTan,
+            width: 2,
+            style: BorderStyle.solid,
+          ),
           boxShadow: [
             BoxShadow(
               color: AppColors.primaryTan.withValues(alpha: 0.1),
@@ -169,16 +193,17 @@ Widget buildUploadButton(String text, IconData icon, VoidCallback onPressed) {
   );
 }
 
-Widget buildAuthFooter(String text, String actionText, VoidCallback onActionTap) {
+Widget buildAuthFooter(
+  String text,
+  String actionText,
+  VoidCallback onActionTap,
+) {
   return Padding(
     padding: const EdgeInsets.only(top: 24.0, bottom: 16.0),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          text,
-          style: const TextStyle(color: Colors.grey, fontSize: 14),
-        ),
+        Text(text, style: const TextStyle(color: Colors.grey, fontSize: 14)),
         const SizedBox(width: 4),
         InkWell(
           onTap: onActionTap,

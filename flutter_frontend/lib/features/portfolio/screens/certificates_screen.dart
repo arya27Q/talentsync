@@ -211,7 +211,9 @@ class CertificatesScreen extends StatelessWidget {
                           border: Border.all(color: AppColors.borderSlate),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.darkSlate.withValues(alpha: 0.03),
+                              color: AppColors.darkSlate.withValues(
+                                alpha: 0.03,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
                             ),
@@ -263,10 +265,15 @@ class CertificatesScreen extends StatelessWidget {
                                   Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: cert.badgeBg,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Text(
                                           cert.category,
@@ -337,35 +344,63 @@ class CertificatesScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard),
+                    onTap: () => Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.studentDashboard,
+                    ),
                     child: const Padding(
                       padding: EdgeInsets.all(10),
-                      child: Icon(Icons.explore_outlined, color: AppColors.secondarySlate, size: 24),
+                      child: Icon(
+                        Icons.explore_outlined,
+                        color: AppColors.secondarySlate,
+                        size: 24,
+                      ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.submission),
+                    onTap: () => Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.submission,
+                    ),
                     child: const Padding(
                       padding: EdgeInsets.all(10),
-                      child: Icon(Icons.assignment_outlined, color: AppColors.secondarySlate, size: 24),
+                      child: Icon(
+                        Icons.assignment_outlined,
+                        color: AppColors.secondarySlate,
+                        size: 24,
+                      ),
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.wallet),
+                    onTap: () => Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.wallet,
+                    ),
                     child: const Padding(
                       padding: EdgeInsets.all(10),
-                      child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.secondarySlate, size: 24),
+                      child: Icon(
+                        Icons.account_balance_wallet_outlined,
+                        color: AppColors.secondarySlate,
+                        size: 24,
+                      ),
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primaryNavy,
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: const Row(
                       children: [
-                        Icon(Icons.person_rounded, color: Colors.white, size: 18),
+                        Icon(
+                          Icons.person_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                         SizedBox(width: 8),
                         Text(
                           'Profile',
@@ -387,4 +422,3 @@ class CertificatesScreen extends StatelessWidget {
     );
   }
 }
-

@@ -2,8 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 
-class ProjectCompletedScreen extends StatelessWidget {
+class ProjectCompletedScreen extends StatefulWidget {
   const ProjectCompletedScreen({super.key});
+
+  @override
+  State<ProjectCompletedScreen> createState() => _ProjectCompletedScreenState();
+}
+
+class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
+  int _userRating = 5;
+  final TextEditingController _reviewController = TextEditingController(
+    text:
+        'Brief jelas, sangat suportif, dan persetujuan milestone tepat waktu.',
+  );
+
+  @override
+  void dispose() {
+    _reviewController.dispose();
+    super.dispose();
+  }
+
+  void _onFinish() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Proyek selesai! 40 TC telah ditambahkan ke Dompet Utama.',
+        ),
+        backgroundColor: AppColors.darkSlate,
+        duration: Duration(seconds: 2),
+      ),
+    );
+    Navigator.pushReplacementNamed(context, AppRoutes.portfolio);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +93,9 @@ class ProjectCompletedScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
@@ -78,7 +110,10 @@ class ProjectCompletedScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
@@ -104,7 +139,10 @@ class ProjectCompletedScreen extends StatelessWidget {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(16),
@@ -244,7 +282,10 @@ class ProjectCompletedScreen extends StatelessWidget {
                                 ],
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.lightBlueSurface,
                                   borderRadius: BorderRadius.circular(8),
@@ -294,7 +335,9 @@ class ProjectCompletedScreen extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: AppColors.borderSlate),
+                                    border: Border.all(
+                                      color: AppColors.borderSlate,
+                                    ),
                                   ),
                                   child: const Icon(
                                     Icons.point_of_sale_rounded,
@@ -305,7 +348,8 @@ class ProjectCompletedScreen extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: const [
                                       Text(
                                         'Aplikasi Kasir Sederha...',
@@ -328,11 +372,16 @@ class ProjectCompletedScreen extends StatelessWidget {
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: AppColors.borderSlate),
+                                    border: Border.all(
+                                      color: AppColors.borderSlate,
+                                    ),
                                   ),
                                   child: const Row(
                                     children: [
@@ -366,7 +415,10 @@ class ProjectCompletedScreen extends StatelessWidget {
                               _buildSkillBadge('SQLite'),
                               _buildSkillBadge('BLoC'),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFEF3C7),
                                   borderRadius: BorderRadius.circular(8),
@@ -430,7 +482,10 @@ class ProjectCompletedScreen extends StatelessWidget {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFEF3C7),
                                   borderRadius: BorderRadius.circular(8),
@@ -466,7 +521,9 @@ class ProjectCompletedScreen extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: AppColors.lightBlueSurface,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AppColors.borderSlate),
+                                  border: Border.all(
+                                    color: AppColors.borderSlate,
+                                  ),
                                 ),
                                 child: const Icon(
                                   Icons.storefront_rounded,
@@ -499,7 +556,7 @@ class ProjectCompletedScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           const Text(
-                            '"Arya sangat responsif dan hasilnya langsung bisa dipakai transaksi harian toko. Kode dan dokumentasinya juga rapi."',
+                            '"Arya sangat responsif dan hasilnya langsung kami pakai di toko. Sesuai ekspektasi dan tepat waktu."',
                             style: TextStyle(
                               fontSize: 13,
                               color: AppColors.secondarySlate,
@@ -510,12 +567,107 @@ class ProjectCompletedScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // Card 4: Ulas mitra UMKM (From User Screenshot)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.borderSlate),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.darkSlate.withValues(alpha: 0.03),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Ulas mitra UMKM',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Beri timbal balik singkat untuk Toko Bu Sri',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.secondarySlate,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          // Rating Stars
+                          Row(
+                            children: List.generate(5, (index) {
+                              final isSelected = index < _userRating;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _userRating = index + 1;
+                                  });
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: Icon(
+                                    Icons.star_rounded,
+                                    color: isSelected
+                                        ? const Color(0xFFF59E0B)
+                                        : const Color(0xFFE2E8F0),
+                                    size: 30,
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                          const SizedBox(height: 14),
+                          // Feedback Box
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.canvasWhite,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.borderSlate),
+                            ),
+                            child: TextField(
+                              controller: _reviewController,
+                              maxLines: 2,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.darkSlate,
+                                height: 1.4,
+                              ),
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                border: InputBorder.none,
+                                hintText:
+                                    'Tulis timbal balik untuk mitra UMKM...',
+                                hintStyle: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.secondarySlate,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
 
-            // Fixed Bottom Action CTA
+            // Fixed Bottom Action CTA (From User Screenshot)
             Container(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
               decoration: const BoxDecoration(
@@ -526,9 +678,7 @@ class ProjectCompletedScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.portfolio);
-                    },
+                    onTap: _onFinish,
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -537,7 +687,9 @@ class ProjectCompletedScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -570,8 +722,8 @@ class ProjectCompletedScreen extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.check_circle_outline_rounded,
-                        color: AppColors.successGreen,
-                        size: 14,
+                        color: Color(0xFF16A34A),
+                        size: 15,
                       ),
                       SizedBox(width: 6),
                       Text(
@@ -611,4 +763,3 @@ class ProjectCompletedScreen extends StatelessWidget {
     );
   }
 }
-

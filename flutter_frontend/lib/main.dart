@@ -15,8 +15,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'TalentSync',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryTan),
-        scaffoldBackgroundColor: AppColors.warmOffWhite,
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryNavy),
+        scaffoldBackgroundColor: AppColors.canvasWhite,
         useMaterial3: true,
       ),
       initialRoute: AppRoutes.splash,

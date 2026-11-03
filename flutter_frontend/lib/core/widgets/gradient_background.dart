@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class GradientBackground extends StatelessWidget {
   final Widget child;
-  
+
   const GradientBackground({super.key, required this.child});
 
   @override

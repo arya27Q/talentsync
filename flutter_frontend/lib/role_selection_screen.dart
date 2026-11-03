@@ -21,7 +21,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         Navigator.pushNamed(context, AppRoutes.msmeAuth);
         break;
       case 2:
-        Navigator.pushNamed(context, AppRoutes.mentorAuth);
+        Navigator.pushNamed(context, AppRoutes.mentorOnboarding);
         break;
     }
   }
@@ -69,7 +69,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryNavy : AppColors.lightBlueSurface,
+                color: isSelected
+                    ? AppColors.primaryNavy
+                    : AppColors.lightBlueSurface,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
@@ -129,7 +131,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 shape: BoxShape.circle,
                 color: isSelected ? AppColors.primaryNavy : Colors.transparent,
                 border: Border.all(
-                  color: isSelected ? AppColors.primaryNavy : const Color(0xFFCBD5E1),
+                  color: isSelected
+                      ? AppColors.primaryNavy
+                      : const Color(0xFFCBD5E1),
                   width: 1.5,
                 ),
               ),
@@ -158,7 +162,10 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 20,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -231,7 +238,12 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
             // Bottom CTA Button
             Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24, bottom: 28, top: 12),
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                bottom: 28,
+                top: 12,
+              ),
               child: GestureDetector(
                 onTap: _onProceed,
                 child: Container(

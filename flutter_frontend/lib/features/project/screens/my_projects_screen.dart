@@ -161,7 +161,10 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(7),
@@ -252,7 +255,9 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                     value: progressPercent / 100,
                     minHeight: 5,
                     backgroundColor: const Color(0xFFE2E8F0),
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryNavy),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.primaryNavy,
+                    ),
                   ),
                 ),
               ),
@@ -359,7 +364,9 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: isUrgentDays ? const Color(0xFFDC2626) : AppColors.darkSlate,
+                          color: isUrgentDays
+                              ? const Color(0xFFDC2626)
+                              : AppColors.darkSlate,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -557,7 +564,11 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.hourglass_empty_rounded, size: 12, color: Color(0xFFD97706)),
+                    Icon(
+                      Icons.hourglass_empty_rounded,
+                      size: 12,
+                      color: Color(0xFFD97706),
+                    ),
                     SizedBox(width: 4),
                     Text(
                       'Menunggu Seleksi',
@@ -573,11 +584,19 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
               const Spacer(),
               const Row(
                 children: [
-                  Icon(Icons.toll_rounded, color: AppColors.accentAmberGold, size: 16),
+                  Icon(
+                    Icons.toll_rounded,
+                    color: AppColors.accentAmberGold,
+                    size: 16,
+                  ),
                   SizedBox(width: 4),
                   Text(
                     '300 TC',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.darkSlate),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppColors.darkSlate,
+                    ),
                   ),
                 ],
               ),
@@ -606,12 +625,20 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
             ),
             child: const Row(
               children: [
-                Icon(Icons.info_outline_rounded, size: 16, color: AppColors.secondarySlate),
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 16,
+                  color: AppColors.secondarySlate,
+                ),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'UMKM sedang meninjau portofolio dan pesan lamaranmu. Hasil seleksi diberitahukan paling lambat 2 hari.',
-                    style: TextStyle(fontSize: 11, color: AppColors.secondarySlate, height: 1.4),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.secondarySlate,
+                      height: 1.4,
+                    ),
                   ),
                 ),
               ],
@@ -682,7 +709,11 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.check_circle_rounded, size: 12, color: Color(0xFF16A34A)),
+                    Icon(
+                      Icons.check_circle_rounded,
+                      size: 12,
+                      color: Color(0xFF16A34A),
+                    ),
                     SizedBox(width: 4),
                     Text(
                       'Selesai & Valid',
@@ -698,11 +729,19 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
               const Spacer(),
               Row(
                 children: [
-                  const Icon(Icons.toll_rounded, color: AppColors.accentAmberGold, size: 16),
+                  const Icon(
+                    Icons.toll_rounded,
+                    color: AppColors.accentAmberGold,
+                    size: 16,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     '+$earnedTc TC',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF16A34A)),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Color(0xFF16A34A),
+                    ),
                   ),
                 ],
               ),
@@ -720,7 +759,10 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
           const SizedBox(height: 4),
           Text(
             '$client · Diselesaikan $date',
-            style: const TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.secondarySlate,
+            ),
           ),
           const SizedBox(height: 12),
           Container(
@@ -732,11 +774,19 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.star_rounded, color: AppColors.accentAmberGold, size: 18),
+                const Icon(
+                  Icons.star_rounded,
+                  color: AppColors.accentAmberGold,
+                  size: 18,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   rating,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.darkSlate),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: AppColors.darkSlate,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -744,7 +794,10 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                     feedback,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.secondarySlate,
+                    ),
                   ),
                 ),
               ],
@@ -767,7 +820,12 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
             children: [
               // 1. Top App Bar: Title & Notification Bell
               Padding(
-                padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 20),
+                padding: const EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  top: 16,
+                  bottom: 20,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -791,7 +849,9 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.darkSlate.withValues(alpha: 0.05),
+                              color: AppColors.darkSlate.withValues(
+                                alpha: 0.05,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -904,7 +964,10 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                           Navigator.pushNamed(context, AppRoutes.workspaceChat);
                         },
                         onKanban: () {
-                          Navigator.pushNamed(context, AppRoutes.workspaceKanban);
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.workspaceKanban,
+                          );
                         },
                         onMilestone: () {
                           Navigator.pushNamed(context, AppRoutes.submission);
@@ -932,7 +995,10 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                           Navigator.pushNamed(context, AppRoutes.workspaceChat);
                         },
                         onKanban: () {
-                          Navigator.pushNamed(context, AppRoutes.workspaceKanban);
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.workspaceKanban,
+                          );
                         },
                         onMilestone: () {
                           Navigator.pushNamed(context, AppRoutes.submission);
@@ -946,7 +1012,8 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                         client: 'Warung Pak Gito',
                         earnedTc: 80,
                         rating: '5.0',
-                        feedback: 'Rapi dan komunikatif, hasilnya langsung dipakai.',
+                        feedback:
+                            'Rapi dan komunikatif, hasilnya langsung dipakai.',
                         date: '2 hari lalu',
                       ),
                       _buildSelesaiCard(

@@ -107,7 +107,9 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: const Text(
                 'Tambah Tugas Baru',
                 style: TextStyle(
@@ -122,31 +124,49 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                 children: [
                   const Text(
                     'Judul Tugas',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.secondarySlate),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondarySlate,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   TextField(
                     controller: titleController,
                     decoration: InputDecoration(
                       hintText: 'Misal: Optimasi cetak nota struk',
-                      hintStyle: const TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+                      hintStyle: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.secondarySlate,
+                      ),
                       filled: true,
                       fillColor: AppColors.canvasWhite,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderSlate),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderSlate,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderSlate),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderSlate,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 14),
                   const Text(
                     'Kategori Label',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.secondarySlate),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondarySlate,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -160,7 +180,9 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                         labelStyle: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : AppColors.darkSlate,
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.darkSlate,
                         ),
                         onSelected: (val) {
                           setDialogState(() {
@@ -175,19 +197,25 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Batal', style: TextStyle(color: AppColors.secondarySlate)),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: AppColors.secondarySlate),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryNavy,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   onPressed: () {
                     if (titleController.text.trim().isNotEmpty) {
                       setState(() {
                         _tasks.add(
                           KanbanTask(
-                            id: DateTime.now().millisecondsSinceEpoch.toString(),
+                            id: DateTime.now().millisecondsSinceEpoch
+                                .toString(),
                             title: titleController.text.trim(),
                             tag: selectedTag,
                             deadline: '12 Jul',
@@ -200,7 +228,13 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                       Navigator.pop(ctx);
                     }
                   },
-                  child: const Text('Simpan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Simpan',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -259,16 +293,22 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
           Row(
             children: [
               Icon(
-                task.status == 'done' ? Icons.check_circle_rounded : Icons.access_time_rounded,
+                task.status == 'done'
+                    ? Icons.check_circle_rounded
+                    : Icons.access_time_rounded,
                 size: 13,
-                color: task.status == 'done' ? AppColors.successGreen : AppColors.secondarySlate,
+                color: task.status == 'done'
+                    ? AppColors.successGreen
+                    : AppColors.secondarySlate,
               ),
               const SizedBox(width: 4),
               Text(
                 task.deadline,
                 style: TextStyle(
                   fontSize: 11,
-                  color: task.status == 'done' ? AppColors.successGreen : AppColors.secondarySlate,
+                  color: task.status == 'done'
+                      ? AppColors.successGreen
+                      : AppColors.secondarySlate,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -399,10 +439,17 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard),
+              onTap: () => Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.studentDashboard,
+              ),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.explore_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.explore_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             Container(
@@ -427,17 +474,27 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.wallet),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.wallet),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.account_balance_wallet_outlined, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
             GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
+              onTap: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
               child: const Padding(
                 padding: EdgeInsets.all(10),
-                child: Icon(Icons.person_outline_rounded, color: AppColors.secondarySlate, size: 24),
+                child: Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.secondarySlate,
+                  size: 24,
+                ),
               ),
             ),
           ],
@@ -449,7 +506,9 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
   @override
   Widget build(BuildContext context) {
     final todoTasks = _tasks.where((t) => t.status == 'todo').toList();
-    final inProgressTasks = _tasks.where((t) => t.status == 'in_progress').toList();
+    final inProgressTasks = _tasks
+        .where((t) => t.status == 'in_progress')
+        .toList();
     final doneTasks = _tasks.where((t) => t.status == 'done').toList();
 
     return Scaffold(
@@ -504,7 +563,10 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                         ],
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.workspaceChat),
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.workspaceChat,
+                        ),
                         child: Container(
                           width: 40,
                           height: 40,
@@ -552,7 +614,9 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                                 value: 0.57,
                                 strokeWidth: 5,
                                 backgroundColor: AppColors.borderSlate,
-                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryNavy),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primaryNavy,
+                                ),
                               ),
                               Text(
                                 '57%',
@@ -602,7 +666,10 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                         ),
                         // Right TimeCoin Badge
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFEF3C7),
                             borderRadius: BorderRadius.circular(20),
