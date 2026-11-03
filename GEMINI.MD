@@ -205,6 +205,7 @@ Bagian ini mencatat setiap masalah teknis yang pernah dihadapi agar agen langsun
 | 2026-10-29 | Tombol Book Session/Open Workspace tampak kosong | Tombol menggunakan border outline dan latar transparan/putih. | Ubah dekorasi tombol menjadi solid penuh dengan teks `Colors.white` dan `FontWeight.bold`. |
 | 2026-10-29 | Ikon terlihat kekanak-kanakan / gaya AI stiker | Ikon matahari kartun dan ornamen stiker yang tidak profesional. | Bersihkan seluruh ornamen kartun, ganti dengan ikon standar `Icons.*_rounded`. |
 | 2026-10-30 | Lint warning `use_null_aware_elements` di Dart 3+ | Menggunakan `if (trailing != null) trailing!` di widget list. | Gunakan sintaks null-aware element: `?trailing,`. |
+| 2026-11-02 | Lint info `unnecessary_underscores` di Dart 3.7+ | Pemakaian `(_, __)` pada `separatorBuilder` di `ListView.separated`. | Gunakan `(context, index)` atau single underscore `(_, _)`. |
 
 ---
 
