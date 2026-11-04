@@ -8,6 +8,7 @@ import 'package:flutter_frontend/features/auth/screens/student_register_screen.d
 import 'package:flutter_frontend/features/auth/screens/msme_register_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/mentor_register_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/student_onboarding_screen.dart';
+import 'package:flutter_frontend/features/auth/screens/msme_onboarding_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/student_setup_profile_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/student_setup_profile_step2_screen.dart';
 import 'package:flutter_frontend/features/dashboard/screens/student_main_layout.dart';
@@ -52,6 +53,12 @@ import 'package:flutter_frontend/features/mentor/screens/mentor_student_chat_scr
 import 'package:flutter_frontend/features/mentor/screens/mentor_student_learning_room_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_cashout_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_featured_upgrade_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_main_layout.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_create_task_wizard_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_applicant_profile_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
 
 class AppRoutes {
   // Define Route Names
@@ -66,6 +73,13 @@ class AppRoutes {
   static const String studentOnboarding = '/auth/student/onboarding';
   static const String studentDashboard = '/dashboard/student';
   static const String mentorDashboard = '/dashboard/mentor';
+  static const String msmeDashboard = '/dashboard/msme';
+  static const String msmeCreateTask = '/msme/create-task';
+  static const String msmeReviewApplicants = '/msme/review-applicants';
+  static const String msmeApplicantProfile = '/msme/applicant-profile';
+  static const String msmeReviewSubmission = '/msme/review-submission';
+  static const String msmeChat = '/msme/chat';
+  static const String msmeOnboarding = '/msme/onboarding';
   static const String mentorOnboarding = '/mentor/onboarding';
   static const String mentorBookingDetail = '/mentor/booking-detail';
   static const String mentorLiveMentoring = '/mentor/live';
@@ -123,6 +137,13 @@ class AppRoutes {
     studentOnboarding: (context) => const StudentOnboardingScreen(),
     studentDashboard: (context) => const StudentMainLayout(),
     mentorDashboard: (context) => const MentorMainLayout(),
+    msmeDashboard: (context) => const MsmeMainLayout(),
+    msmeCreateTask: (context) => const MsmeCreateTaskWizardScreen(),
+    msmeReviewApplicants: (context) => const MsmeReviewApplicantsScreen(),
+    msmeApplicantProfile: (context) => const MsmeApplicantProfileScreen(),
+    msmeReviewSubmission: (context) => const MsmeReviewSubmissionScreen(),
+    msmeChat: (context) => const MsmeChatScreen(),
+    msmeOnboarding: (context) => const MsmeOnboardingScreen(),
     mentorOnboarding: (context) => const MentorOnboardingScreen(),
     mentorBookingDetail: (context) => MentorBookingDetailScreen(
       args:

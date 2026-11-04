@@ -18,7 +18,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         Navigator.pushNamed(context, AppRoutes.studentOnboarding);
         break;
       case 1:
-        Navigator.pushNamed(context, AppRoutes.msmeAuth);
+        Navigator.pushNamed(context, AppRoutes.msmeOnboarding);
         break;
       case 2:
         Navigator.pushNamed(context, AppRoutes.mentorOnboarding);
