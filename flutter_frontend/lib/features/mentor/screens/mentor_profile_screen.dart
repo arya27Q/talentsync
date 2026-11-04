@@ -187,7 +187,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
           ),
           child: Column(
             children: [
-              // Avatar Squircle
+              // Avatar Squircle matching Screenshot 3
               Container(
                 width: 82,
                 height: 82,
@@ -195,11 +195,21 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                   color: const Color(0xFFE2E8F0),
                   borderRadius: BorderRadius.circular(24),
                 ),
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.person_rounded,
-                  size: 48,
-                  color: AppColors.primaryNavy,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.network(
+                    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300',
+                    width: 82,
+                    height: 82,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Center(
+                      child: Icon(
+                        Icons.person_rounded,
+                        size: 48,
+                        color: AppColors.primaryNavy,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
@@ -419,7 +429,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
           title: 'Simulasi Wawancara Mobile Developer',
           duration: '45 menit · 31 sesi terjual',
           price: '25 TC',
-          tags: ['Interview', 'CV Review'],
+          tags: [],
         ),
         const SizedBox(height: 22),
 
@@ -549,7 +559,7 @@ class _ProfileServiceCard extends StatelessWidget {
     required this.title,
     required this.duration,
     required this.price,
-    required this.tags,
+    this.tags = const [],
   });
 
   final String title;

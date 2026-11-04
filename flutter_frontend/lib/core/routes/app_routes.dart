@@ -59,6 +59,9 @@ import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_sc
 import 'package:flutter_frontend/features/msme/screens/msme_applicant_profile_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_barter_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_upgrade_pro_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_store_profile_screen.dart';
 
 class AppRoutes {
   // Define Route Names
@@ -79,6 +82,9 @@ class AppRoutes {
   static const String msmeApplicantProfile = '/msme/applicant-profile';
   static const String msmeReviewSubmission = '/msme/review-submission';
   static const String msmeChat = '/msme/chat';
+  static const String msmeBarter = '/msme/barter';
+  static const String msmeUpgradePro = '/msme/upgrade-pro';
+  static const String msmeStoreProfile = '/msme/store-profile';
   static const String msmeOnboarding = '/msme/onboarding';
   static const String mentorOnboarding = '/mentor/onboarding';
   static const String mentorBookingDetail = '/mentor/booking-detail';
@@ -143,6 +149,9 @@ class AppRoutes {
     msmeApplicantProfile: (context) => const MsmeApplicantProfileScreen(),
     msmeReviewSubmission: (context) => const MsmeReviewSubmissionScreen(),
     msmeChat: (context) => const MsmeChatScreen(),
+    msmeBarter: (context) => const MsmeBarterScreen(),
+    msmeUpgradePro: (context) => const MsmeUpgradeProScreen(),
+    msmeStoreProfile: (context) => const MsmeStoreProfileScreen(),
     msmeOnboarding: (context) => const MsmeOnboardingScreen(),
     mentorOnboarding: (context) => const MentorOnboardingScreen(),
     mentorBookingDetail: (context) => MentorBookingDetailScreen(
@@ -167,6 +176,7 @@ class AppRoutes {
         return MentorStudentLearningRoomScreen(
           student: argument.student,
           onSelectTab: argument.onSelectTab,
+          initialTab: argument.initialTab,
         );
       }
       final student = argument is MentorStudent ? argument : mentorStudentArya;

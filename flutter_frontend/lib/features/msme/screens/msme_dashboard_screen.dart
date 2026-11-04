@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
@@ -294,11 +295,9 @@ class MsmeDashboardScreen extends StatelessWidget {
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Upgrade ke UMKM Premium.'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.msmeUpgradePro,
                                   );
                                 },
                                 borderRadius: BorderRadius.circular(10),

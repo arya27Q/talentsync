@@ -8,10 +8,12 @@ class MentorStudentLearningRoomArgs {
   const MentorStudentLearningRoomArgs({
     required this.student,
     this.onSelectTab,
+    this.initialTab = 1,
   });
 
   final MentorStudent student;
   final ValueChanged<int>? onSelectTab;
+  final int initialTab;
 }
 
 class MentorStudentLearningRoomScreen extends StatefulWidget {
@@ -19,10 +21,12 @@ class MentorStudentLearningRoomScreen extends StatefulWidget {
     super.key,
     required this.student,
     this.onSelectTab,
+    this.initialTab = 1,
   });
 
   final MentorStudent student;
   final ValueChanged<int>? onSelectTab;
+  final int initialTab;
 
   @override
   State<MentorStudentLearningRoomScreen> createState() =>
@@ -31,7 +35,7 @@ class MentorStudentLearningRoomScreen extends StatefulWidget {
 
 class _MentorStudentLearningRoomScreenState
     extends State<MentorStudentLearningRoomScreen> {
-  int _selectedTab = 0;
+  late int _selectedTab = widget.initialTab;
   late bool _recommended = widget.student.recommended;
   final Set<String> _openedResources = {
     'Panduan struktur folder feature-first',
