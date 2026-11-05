@@ -76,7 +76,8 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
               time: booking.time,
               durationMinutes: booking.durationMinutes,
               price: booking.price,
-              meetingUrl: 'meet.google.com/tsy-${booking.student.initials.toLowerCase()}-101',
+              meetingUrl:
+                  'meet.google.com/tsy-${booking.student.initials.toLowerCase()}-101',
               status: 'accepted',
             ),
           );
@@ -364,9 +365,7 @@ class _BookingCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(22),
-      border: Border.all(
-        color: AppColors.borderSlate.withValues(alpha: 0.8),
-      ),
+      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
       boxShadow: [
         BoxShadow(
           color: AppColors.darkSlate.withValues(alpha: 0.04),
@@ -563,7 +562,9 @@ class _BookingCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -636,7 +637,9 @@ class _BookingCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -674,7 +677,10 @@ class _BookingCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(10),

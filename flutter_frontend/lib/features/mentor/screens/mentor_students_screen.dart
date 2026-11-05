@@ -218,7 +218,7 @@ class _StudentCard extends StatelessWidget {
   Color get _avatarColor => switch (student.initials) {
     'DL' => const Color(0xFF0F766E), // Deep Teal
     'RH' => const Color(0xFFA03B1E), // Terracotta/Rust
-    _ => AppColors.primaryNavy,      // Deep Royal Navy
+    _ => AppColors.primaryNavy, // Deep Royal Navy
   };
 
   @override
@@ -228,9 +228,7 @@ class _StudentCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(22),
-      border: Border.all(
-        color: AppColors.borderSlate.withValues(alpha: 0.8),
-      ),
+      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
       boxShadow: [
         BoxShadow(
           color: AppColors.darkSlate.withValues(alpha: 0.04),
@@ -304,7 +302,10 @@ class _StudentCard extends StatelessWidget {
             ),
             if (student.needsReview > 0)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(10),

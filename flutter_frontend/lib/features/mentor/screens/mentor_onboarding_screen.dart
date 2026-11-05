@@ -257,18 +257,10 @@ class _PathStep extends StatelessWidget {
                 color: bgColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 20,
-              ),
+              child: Icon(icon, color: iconColor, size: 20),
             ),
             if (!last)
-              Container(
-                width: 1.5,
-                height: 16,
-                color: const Color(0xFFE2E8F0),
-              ),
+              Container(width: 1.5, height: 16, color: const Color(0xFFE2E8F0)),
           ],
         ),
         const SizedBox(width: 14),

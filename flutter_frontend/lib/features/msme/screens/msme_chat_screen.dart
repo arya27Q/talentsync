@@ -3,10 +3,7 @@ import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
 
 class MsmeChatScreen extends StatefulWidget {
-  const MsmeChatScreen({
-    super.key,
-    this.studentName = 'Salsa Putri',
-  });
+  const MsmeChatScreen({super.key, this.studentName = 'Salsa Putri'});
 
   final String studentName;
 
@@ -53,13 +50,7 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
     if (text.isEmpty) return;
 
     setState(() {
-      _messages.add(
-        _ChatMessage(
-          text: text,
-          time: '10.22',
-          isMe: true,
-        ),
-      );
+      _messages.add(_ChatMessage(text: text, time: '10.22', isMe: true));
     });
     if (customText == null) {
       _messageController.clear();
@@ -147,14 +138,10 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
                       const SizedBox(height: 2),
                       const Row(
                         children: [
-                          Icon(
-                            Icons.circle,
-                            color: Color(0xFF10B981),
-                            size: 8,
-                          ),
+                          Icon(Icons.circle, color: Color(0xFF10B981), size: 8),
                           SizedBox(width: 6),
                           Text(
-                            'Online',
+                            'Aktif',
                             style: TextStyle(
                               fontSize: 12,
                               color: Color(0xFF10B981),
@@ -588,4 +575,3 @@ class _ChatMessage {
   final bool isMe;
   final String? attachmentName;
 }
-

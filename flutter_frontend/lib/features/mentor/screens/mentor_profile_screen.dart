@@ -250,7 +250,10 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
 
               // Top Rated Pill Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF7ED),
                   borderRadius: BorderRadius.circular(10),
@@ -294,17 +297,11 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                     ),
                     _MetricDivider(),
                     Expanded(
-                      child: _ProfileMetric(
-                        value: '4.9',
-                        label: 'Rating',
-                      ),
+                      child: _ProfileMetric(value: '4.9', label: 'Rating'),
                     ),
                     _MetricDivider(),
                     Expanded(
-                      child: _ProfileMetric(
-                        value: '74',
-                        label: 'Murid',
-                      ),
+                      child: _ProfileMetric(value: '74', label: 'Murid'),
                     ),
                   ],
                 ),
@@ -451,8 +448,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
           name: 'Arya Pratama',
           date: '8 Jul',
           stars: 5,
-          review:
-              '"Penjelasan BLoC-nya sangat detail dan langsung dipraktikkan ke proyek kasir saya."',
+          review: '"Penjelasan BLoC-nya sangat detail dan langsung dipraktikkan ke proyek kasir saya."',
         ),
         const SizedBox(height: 12),
 
@@ -463,8 +459,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
           name: 'Dewi Lestari',
           date: '20 Jun',
           stars: 5,
-          review:
-              '"Feedback konstruktif, action plan jelas. Portofolio saya lolos kurasi."',
+          review: '"Feedback konstruktif, action plan jelas. Portofolio saya lolos kurasi."',
         ),
         const SizedBox(height: 12),
 
@@ -547,11 +542,8 @@ class _MetricDivider extends StatelessWidget {
   const _MetricDivider();
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: 1,
-    height: 32,
-    color: AppColors.borderSlate,
-  );
+  Widget build(BuildContext context) =>
+      Container(width: 1, height: 32, color: AppColors.borderSlate);
 }
 
 class _ProfileServiceCard extends StatelessWidget {
@@ -574,9 +566,7 @@ class _ProfileServiceCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: AppColors.borderSlate.withValues(alpha: 0.8),
-      ),
+      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
       boxShadow: [
         BoxShadow(
           color: AppColors.darkSlate.withValues(alpha: 0.03),
@@ -615,10 +605,7 @@ class _ProfileServiceCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           duration,
-          style: const TextStyle(
-            color: AppColors.secondarySlate,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: AppColors.secondarySlate, fontSize: 12),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -627,7 +614,10 @@ class _ProfileServiceCard extends StatelessWidget {
           children: [
             for (final tag in tags)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(8),
@@ -672,9 +662,7 @@ class _ReviewCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: AppColors.borderSlate.withValues(alpha: 0.8),
-      ),
+      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
       boxShadow: [
         BoxShadow(
           color: AppColors.darkSlate.withValues(alpha: 0.03),

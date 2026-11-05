@@ -1,4 +1,4 @@
-﻿import 'dart:math' as math;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
@@ -467,12 +467,19 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
         ),
         content: const Text(
           'Apakah Anda yakin ingin keluar dari akun mahasiswa? Anda harus masuk kembali dengan NIM dan kata sandi.',
-          style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.secondarySlate),
+          style: TextStyle(
+            fontSize: 13,
+            height: 1.4,
+            color: AppColors.secondarySlate,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.secondarySlate)),
+            child: const Text(
+              'Batal',
+              style: TextStyle(color: AppColors.secondarySlate),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -491,13 +498,17 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
             },
             child: const Text(
               'Keluar',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -562,9 +573,8 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                 color: const Color(0xFFFEF2F2),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: const Color(0xFFFCA5A5).withValues(
-                                    alpha: 0.5,
-                                  ),
+                                  color: const Color(0xFFFCA5A5)
+                                      .withValues(alpha: 0.5),
                                 ),
                                 boxShadow: [
                                   BoxShadow(
@@ -1337,10 +1347,8 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppRoutes.editProfile,
-                        ),
+                        onTap: () =>
+                            Navigator.pushNamed(context, AppRoutes.editProfile),
                         child: const Text(
                           'Kelola',
                           style: TextStyle(

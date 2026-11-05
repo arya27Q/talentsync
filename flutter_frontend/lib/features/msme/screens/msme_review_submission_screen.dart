@@ -122,7 +122,7 @@ class _MsmeReviewSubmissionScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Review Submission',
+                            'Tinjau Pengajuan Hasil',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
@@ -159,7 +159,7 @@ class _MsmeReviewSubmissionScreenState
                         ],
                       ),
                       child: IconButton(
-                        tooltip: 'Chat',
+                        tooltip: 'Kirim pesan',
                         padding: EdgeInsets.zero,
                         onPressed: _openChat,
                         icon: const Icon(
@@ -453,7 +453,7 @@ class _MsmeReviewSubmissionScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Checklist persetujuan',
+                        'Daftar periksa persetujuan',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -464,7 +464,7 @@ class _MsmeReviewSubmissionScreenState
 
                       // Item 1
                       _buildChecklistTile(
-                        label: 'Sesuai brief dan deliverable',
+                        label: 'Sesuai instruksi dan hasil kerja',
                         value: _checkBrief,
                         onChanged: (val) =>
                             setState(() => _checkBrief = val ?? false),

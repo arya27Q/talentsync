@@ -564,8 +564,9 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
                                   borderRadius: BorderRadius.circular(14),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.primaryNavy
-                                          .withValues(alpha: 0.25),
+                                      color: AppColors.primaryNavy.withValues(
+                                        alpha: 0.25,
+                                      ),
                                       blurRadius: 8,
                                       offset: const Offset(0, 3),
                                     ),

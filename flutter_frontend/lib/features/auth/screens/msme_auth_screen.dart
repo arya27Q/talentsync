@@ -63,7 +63,7 @@ class _MsmeAuthScreenState extends State<MsmeAuthScreen> {
       backgroundColor: AppColors.canvasWhite,
       elevation: 0,
       title: const Text(
-        'Business Portal',
+        'Portal Mitra UMKM',
         style: TextStyle(
           fontWeight: FontWeight.w700,
           color: AppColors.darkSlate,

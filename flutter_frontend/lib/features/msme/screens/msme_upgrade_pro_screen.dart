@@ -48,7 +48,8 @@ class _MsmeUpgradeProScreenState extends State<MsmeUpgradeProScreen> {
                         border: Border.all(color: AppColors.borderSlate),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                            color: const Color(0xFF0F172A)
+                                .withValues(alpha: 0.04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -67,7 +68,7 @@ class _MsmeUpgradeProScreenState extends State<MsmeUpgradeProScreen> {
                     ),
                     const SizedBox(width: 14),
                     const Text(
-                      'Upgrade Partner Pro',
+                      'Tingkatkan ke Partner Pro',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -287,7 +288,11 @@ class _MsmeUpgradeProScreenState extends State<MsmeUpgradeProScreen> {
                       const Divider(height: 24, color: AppColors.borderSlate),
 
                       // Row 1
-                      _buildTableRow('Slot proyek aktif', '2 proyek', '10 proyek'),
+                      _buildTableRow(
+                        'Slot proyek aktif',
+                        '2 proyek',
+                        '10 proyek',
+                      ),
                       const Divider(height: 20, color: Color(0xFFF1F5F9)),
 
                       // Row 2
@@ -319,11 +324,7 @@ class _MsmeUpgradeProScreenState extends State<MsmeUpgradeProScreen> {
                       const Divider(height: 20, color: Color(0xFFF1F5F9)),
 
                       // Row 6
-                      _buildTableRow(
-                        'Laporan dampak bulanan',
-                        '-',
-                        'Ya',
-                      ),
+                      _buildTableRow('Laporan dampak bulanan', '-', 'Ya'),
                     ],
                   ),
                 ),
@@ -493,8 +494,8 @@ class _MsmeUpgradeProScreenState extends State<MsmeUpgradeProScreen> {
                         children: [
                           Text(
                             _selectedPlanIndex == 0
-                                ? 'Upgrade Rp49.000/bulan'
-                                : 'Upgrade Rp490.000/tahun',
+                                ? 'Berlangganan Rp49.000/bulan'
+                                : 'Berlangganan Rp490.000/tahun',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -561,4 +562,3 @@ class _MsmeUpgradeProScreenState extends State<MsmeUpgradeProScreen> {
     ],
   );
 }
-

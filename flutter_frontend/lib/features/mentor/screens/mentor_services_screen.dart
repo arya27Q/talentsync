@@ -11,7 +11,9 @@ class MentorServicesScreen extends StatefulWidget {
 
 class MentorServicesScreenState extends State<MentorServicesScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController(text: 'Kurasi Portofolio Proyek UMKM');
+  final _titleController = TextEditingController(
+    text: 'Kurasi Portofolio Proyek UMKM',
+  );
   final _descriptionController = TextEditingController(
     text: 'Bedah portofolio dan kode proyek nyata agar siap lolos seleksi proyek UMKM.',
   );
@@ -50,7 +52,15 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
   int _duration = 60;
   String _format = '1-on-1';
   final Set<String> _availableDays = {'Sel', 'Kam', 'Sab'};
-  final List<String> _allDays = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  final List<String> _allDays = [
+    'Sen',
+    'Sel',
+    'Rab',
+    'Kam',
+    'Jum',
+    'Sab',
+    'Min',
+  ];
 
   final Map<String, bool> _studentOutputs = {
     'Rekaman sesi': true,
@@ -189,9 +199,17 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                           const _FieldTitle('Judul kelas'),
                           TextFormField(
                             controller: _titleController,
-                            style: const TextStyle(fontSize: 14, color: AppColors.darkSlate),
-                            decoration: _fieldDecoration('Kurasi Portofolio Proyek UMKM'),
-                            validator: (val) => val == null || val.trim().isEmpty ? 'Isi judul kelas.' : null,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.darkSlate,
+                            ),
+                            decoration: _fieldDecoration(
+                              'Kurasi Portofolio Proyek UMKM',
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Isi judul kelas.'
+                                : null,
                           ),
                           const SizedBox(height: 16),
 
@@ -199,9 +217,18 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                           TextFormField(
                             controller: _descriptionController,
                             maxLines: 3,
-                            style: const TextStyle(fontSize: 13, color: AppColors.darkSlate, height: 1.4),
-                            decoration: _fieldDecoration('Bedah portofolio dan kode proyek nyata...'),
-                            validator: (val) => val == null || val.trim().isEmpty ? 'Isi deskripsi kelas.' : null,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.darkSlate,
+                              height: 1.4,
+                            ),
+                            decoration: _fieldDecoration(
+                              'Bedah portofolio dan kode proyek nyata...',
+                            ),
+                            validator: (val) =>
+                                val == null || val.trim().isEmpty
+                                ? 'Isi deskripsi kelas.'
+                                : null,
                           ),
                           const SizedBox(height: 16),
 
@@ -210,7 +237,9 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                             spacing: 8,
                             runSpacing: 8,
                             children: _skills.map((skill) {
-                              final isSelected = _selectedSkills.contains(skill);
+                              final isSelected = _selectedSkills.contains(
+                                skill,
+                              );
                               return GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -222,12 +251,19 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                   });
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.primaryNavy : Colors.white,
+                                    color: isSelected
+                                        ? AppColors.primaryNavy
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: isSelected ? AppColors.primaryNavy : AppColors.borderSlate,
+                                      color: isSelected
+                                          ? AppColors.primaryNavy
+                                          : AppColors.borderSlate,
                                     ),
                                   ),
                                   child: Text(
@@ -235,7 +271,9 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : AppColors.darkSlate,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.darkSlate,
                                     ),
                                   ),
                                 ),
@@ -274,12 +312,19 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                               return GestureDetector(
                                 onTap: () => setState(() => _duration = dur),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.primaryNavy : Colors.white,
+                                    color: isSelected
+                                        ? AppColors.primaryNavy
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: isSelected ? AppColors.primaryNavy : AppColors.borderSlate,
+                                      color: isSelected
+                                          ? AppColors.primaryNavy
+                                          : AppColors.borderSlate,
                                     ),
                                   ),
                                   child: Text(
@@ -287,7 +332,9 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : AppColors.darkSlate,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.darkSlate,
                                     ),
                                   ),
                                 ),
@@ -305,11 +352,15 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                   children: [
                                     const _FieldTitle('Harga TimeCoin'),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(color: AppColors.borderSlate),
+                                        border: Border.all(
+                                          color: AppColors.borderSlate,
+                                        ),
                                       ),
                                       child: Row(
                                         children: [
@@ -322,7 +373,8 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                           Expanded(
                                             child: TextFormField(
                                               controller: _priceController,
-                                              keyboardType: TextInputType.number,
+                                              keyboardType:
+                                                  TextInputType.number,
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.bold,
@@ -330,7 +382,10 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                               ),
                                               decoration: const InputDecoration(
                                                 border: InputBorder.none,
-                                                contentPadding: EdgeInsets.symmetric(vertical: 12),
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                      vertical: 12,
+                                                    ),
                                               ),
                                               onChanged: (_) => setState(() {}),
                                             ),
@@ -357,11 +412,16 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                     const _FieldTitle('Setara Rupiah'),
                                     Container(
                                       width: double.infinity,
-                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 15,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: AppColors.canvasWhite,
                                         borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(color: AppColors.borderSlate),
+                                        border: Border.all(
+                                          color: AppColors.borderSlate,
+                                        ),
                                       ),
                                       child: Text(
                                         'Rp${((int.tryParse(_priceController.text) ?? 0) * 1000).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
@@ -382,10 +442,13 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                           // Keterangan potongan admin cash-out
                           Builder(
                             builder: (context) {
-                              final amount = int.tryParse(_priceController.text) ?? 30;
+                              final amount =
+                                  int.tryParse(_priceController.text) ?? 30;
                               final rupiah = amount * 1000;
                               final bersih = (rupiah * 0.85).toInt();
-                              final formattedBersih = bersih.toString().replaceAllMapped(
+                              final formattedBersih = bersih
+                                  .toString()
+                                  .replaceAllMapped(
                                     RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
                                     (Match m) => '${m[1]}.',
                                   );
@@ -410,12 +473,19 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                               return GestureDetector(
                                 onTap: () => setState(() => _format = fmt),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.primaryNavy : Colors.white,
+                                    color: isSelected
+                                        ? AppColors.primaryNavy
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: isSelected ? AppColors.primaryNavy : AppColors.borderSlate,
+                                      color: isSelected
+                                          ? AppColors.primaryNavy
+                                          : AppColors.borderSlate,
                                     ),
                                   ),
                                   child: Text(
@@ -423,7 +493,9 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.white : AppColors.darkSlate,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : AppColors.darkSlate,
                                     ),
                                   ),
                                 ),
@@ -453,10 +525,14 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.primaryNavy : Colors.white,
+                                    color: isSelected
+                                        ? AppColors.primaryNavy
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: isSelected ? AppColors.primaryNavy : AppColors.borderSlate,
+                                      color: isSelected
+                                          ? AppColors.primaryNavy
+                                          : AppColors.borderSlate,
                                     ),
                                   ),
                                   child: Center(
@@ -465,7 +541,9 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                       style: TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
-                                        color: isSelected ? Colors.white : AppColors.darkSlate,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.darkSlate,
                                       ),
                                     ),
                                   ),
@@ -508,11 +586,16 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                               },
                               child: Container(
                                 margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.canvasWhite,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.borderSlate),
+                                  border: Border.all(
+                                    color: AppColors.borderSlate,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
@@ -520,10 +603,14 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                       width: 22,
                                       height: 22,
                                       decoration: BoxDecoration(
-                                        color: isChecked ? AppColors.primaryNavy : Colors.white,
+                                        color: isChecked
+                                            ? AppColors.primaryNavy
+                                            : Colors.white,
                                         borderRadius: BorderRadius.circular(6),
                                         border: Border.all(
-                                          color: isChecked ? AppColors.primaryNavy : AppColors.borderSlate,
+                                          color: isChecked
+                                              ? AppColors.primaryNavy
+                                              : AppColors.borderSlate,
                                           width: 1.5,
                                         ),
                                       ),
@@ -541,7 +628,9 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                         key,
                                         style: TextStyle(
                                           fontSize: 13,
-                                          fontWeight: isChecked ? FontWeight.w600 : FontWeight.normal,
+                                          fontWeight: isChecked
+                                              ? FontWeight.w600
+                                              : FontWeight.normal,
                                           color: AppColors.darkSlate,
                                         ),
                                       ),
@@ -639,7 +728,8 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
               for (final service in _services) ...[
                 _ServiceCard(
                   service: service,
-                  onChanged: (active) => setState(() => service.active = active),
+                  onChanged: (active) =>
+                      setState(() => service.active = active),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -683,26 +773,23 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
   }
 
   InputDecoration _fieldDecoration(String hint) => InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.borderSlate),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.borderSlate),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primaryNavy, width: 1.5),
-        ),
-      );
+    hintText: hint,
+    filled: true,
+    fillColor: Colors.white,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: AppColors.borderSlate),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: AppColors.borderSlate),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: AppColors.primaryNavy, width: 1.5),
+    ),
+  );
 }
 
 class _MentorService {

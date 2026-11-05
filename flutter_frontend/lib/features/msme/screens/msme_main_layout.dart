@@ -46,19 +46,14 @@ class _MsmeMainLayoutState extends State<MsmeMainLayout> {
         onOpenBarter: () => _selectTab(2),
         onOpenProfile: () => _selectTab(3),
       ),
-      MsmePostingsScreen(
-        onCreatePosting: _openCreateTaskWizard,
-      ),
+      MsmePostingsScreen(onCreatePosting: _openCreateTaskWizard),
       const MsmeBarterScreen(),
       const MsmeStoreProfileScreen(),
     ];
 
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: MsmeBottomNav(
         selectedIndex: _currentIndex,
         onSelected: _selectTab,

@@ -42,8 +42,7 @@ const mentorBookingRequests = [
     time: '19.00',
     durationMinutes: 60,
     price: 30,
-    message:
-        'Mas Dimas, aplikasi antrean saya mulai lambat saat datanya banyak. Saya ingin dicek strukturnya sebelum melamar proyek UMKM.',
+    message: 'Mas Dimas, aplikasi antrean saya mulai lambat saat datanya banyak. Saya ingin dicek strukturnya sebelum melamar proyek UMKM.',
     sessionGoals: [
       'Tahu bottleneck performa',
       'Struktur folder yang benar',

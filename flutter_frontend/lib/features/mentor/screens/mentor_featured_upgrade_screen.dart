@@ -204,8 +204,7 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                       _BenefitItem(
                         icon: Icons.money_off_csred_rounded,
                         title: '0% biaya admin cash-out',
-                        detail:
-                            'Paket gratis dipotong 15% setiap penukaran TC ke Rupiah',
+                        detail: 'Paket gratis dipotong 15% setiap penukaran TC ke Rupiah',
                       ),
                       Divider(height: 1, color: AppColors.borderSlate),
                       _BenefitItem(
@@ -218,8 +217,7 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                       _BenefitItem(
                         icon: Icons.workspace_premium_rounded,
                         title: 'Badge Featured Mentor',
-                        detail:
-                            'Tanda kepercayaan di profil dan kartu mentor',
+                        detail: 'Tanda kepercayaan di profil dan kartu mentor',
                       ),
                       Divider(height: 1, color: AppColors.borderSlate),
                       _BenefitItem(

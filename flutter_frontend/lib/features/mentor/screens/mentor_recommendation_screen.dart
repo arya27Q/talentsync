@@ -149,7 +149,11 @@ class _MentorRecommendationScreenState
               children: [
                 // 1. Permintaan dari UMKM
                 const _StepHeading('1. Permintaan dari UMKM'),
-                for (var index = 0; index < mentorUmkmProjects.length; index++) ...[
+                for (
+                  var index = 0;
+                  index < mentorUmkmProjects.length;
+                  index++
+                ) ...[
                   _ProjectChoice(
                     project: mentorUmkmProjects[index],
                     selected: index == _projectIndex,
@@ -269,7 +273,9 @@ class _MentorRecommendationScreenState
                           activeTrackColor: AppColors.primaryNavy,
                           inactiveTrackColor: const Color(0xFFE2E8F0),
                           thumbColor: AppColors.primaryNavy,
-                          overlayColor: AppColors.primaryNavy.withValues(alpha: 0.15),
+                          overlayColor: AppColors.primaryNavy.withValues(
+                            alpha: 0.15,
+                          ),
                           trackHeight: 6,
                           thumbShape: const RoundSliderThumbShape(
                             enabledThumbRadius: 9,
@@ -543,7 +549,7 @@ class _CandidateChoice extends StatelessWidget {
   Color get _avatarColor => switch (candidate.student.initials) {
     'DL' => const Color(0xFF0F766E), // Deep Teal
     'RH' => const Color(0xFFA03B1E), // Terracotta/Rust
-    _ => AppColors.primaryNavy,      // Deep Royal Navy
+    _ => AppColors.primaryNavy, // Deep Royal Navy
   };
 
   @override

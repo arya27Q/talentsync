@@ -18,7 +18,7 @@ class _MsmeReviewApplicantsScreenState
     'Semua',
     'Rekomendasi Mentor',
     'Endorse Mentor',
-    'Rating 4.8+',
+    'Penilaian 4.8+',
   ];
 
   void _onRejectAndRecommendMentor(String name) {
@@ -63,7 +63,11 @@ class _MsmeReviewApplicantsScreenState
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.lightbulb_rounded, color: Color(0xFFB45309), size: 20),
+                  Icon(
+                    Icons.lightbulb_rounded,
+                    color: Color(0xFFB45309),
+                    size: 20,
+                  ),
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -83,7 +87,10 @@ class _MsmeReviewApplicantsScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal', style: TextStyle(color: AppColors.secondarySlate)),
+            child: const Text(
+              'Batal',
+              style: TextStyle(color: AppColors.secondarySlate),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -104,7 +111,10 @@ class _MsmeReviewApplicantsScreenState
             },
             child: const Text(
               'Kirim Rekomendasi',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -126,9 +136,7 @@ class _MsmeReviewApplicantsScreenState
     Navigator.push<void>(
       context,
       MaterialPageRoute(
-        builder: (context) => MsmeApplicantProfileScreen(
-          applicantName: name,
-        ),
+        builder: (context) => MsmeApplicantProfileScreen(applicantName: name),
       ),
     );
   }
@@ -184,7 +192,7 @@ class _MsmeReviewApplicantsScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Review Applicants',
+                      'Tinjau Pelamar',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -231,7 +239,9 @@ class _MsmeReviewApplicantsScreenState
                         vertical: 9,
                       ),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primaryNavy : Colors.white,
+                        color: isSelected
+                            ? AppColors.primaryNavy
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
@@ -286,7 +296,8 @@ class _MsmeReviewApplicantsScreenState
                       border: Border.all(color: AppColors.borderSlate),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                          color: const Color(0xFF0F172A)
+                              .withValues(alpha: 0.03),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -355,16 +366,14 @@ class _MsmeReviewApplicantsScreenState
                     mentorRecommendation: (
                       mentorName: 'Direkomendasikan Dimas Prasetyo',
                       matchPercent: '95% cocok',
-                      mentorAvatar:
-                          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
+                      mentorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
                     ),
                     portfolioImages: const [
                       'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=80',
                       'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=200&q=80',
                       'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?auto=format&fit=crop&w=200&q=80',
                     ],
-                    coverLetter:
-                        'Yth. Kopi Tepi Kali, saya sudah membangun aplikasi kasir dan sistem reservasi untuk UMKM kuliner. Saya...',
+                    coverLetter: 'Yth. Kopi Tepi Kali, saya sudah membangun aplikasi kasir dan sistem reservasi untuk UMKM kuliner. Saya...',
                   ),
 
                   const SizedBox(height: 16),
@@ -384,8 +393,7 @@ class _MsmeReviewApplicantsScreenState
                       'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=200&q=80',
                       'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=200&q=80',
                     ],
-                    coverLetter:
-                        'Saya tertarik membantu digitalisasi kedai. Pernah membuat aplikasi antrean dengan notifikasi real-...',
+                    coverLetter: 'Saya tertarik membantu digitalisasi kedai. Pernah membuat aplikasi antrean dengan notifikasi real-...',
                   ),
 
                   const SizedBox(height: 16),
@@ -405,8 +413,7 @@ class _MsmeReviewApplicantsScreenState
                       'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=200&q=80',
                       'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=200&q=80',
                     ],
-                    coverLetter:
-                        'Saya bisa mengerjakan dengan React Native agar nanti mudah dibuat versi iOS juga.',
+                    coverLetter: 'Saya bisa mengerjakan dengan React Native agar nanti mudah dibuat versi iOS juga.',
                   ),
                 ],
               ),
@@ -427,7 +434,7 @@ class _MsmeReviewApplicantsScreenState
     required String campus,
     String? endorseMentor,
     ({String mentorName, String matchPercent, String mentorAvatar})?
-        mentorRecommendation,
+    mentorRecommendation,
     required List<String> portfolioImages,
     required String coverLetter,
   }) => Container(
@@ -454,9 +461,7 @@ class _MsmeReviewApplicantsScreenState
             decoration: const BoxDecoration(
               color: Color(0xFFFFFBEB),
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              border: Border(
-                bottom: BorderSide(color: Color(0xFFFDE68A)),
-              ),
+              border: Border(bottom: BorderSide(color: Color(0xFFFDE68A))),
             ),
             child: Row(
               children: [
@@ -680,7 +685,7 @@ class _MsmeReviewApplicantsScreenState
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      tooltip: 'Chat pelamar',
+                      tooltip: 'Kirim pesan ke pelamar',
                       onPressed: () => _onChat(name),
                       icon: const Icon(
                         Icons.chat_bubble_rounded,
@@ -793,4 +798,3 @@ class _MsmeReviewApplicantsScreenState
     ),
   );
 }
-

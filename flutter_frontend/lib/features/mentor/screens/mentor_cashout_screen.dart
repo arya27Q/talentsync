@@ -220,7 +220,8 @@ class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
                           onTap: () =>
                               setState(() => _selectedAccount = account.$1),
                         ),
-                        if (account != _accounts.last) const SizedBox(height: 8),
+                        if (account != _accounts.last)
+                          const SizedBox(height: 8),
                       ],
                     ],
                   ),

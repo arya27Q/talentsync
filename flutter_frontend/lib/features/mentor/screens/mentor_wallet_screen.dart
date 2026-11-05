@@ -49,9 +49,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
         );
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pengajuan cash-out berhasil dikirim.'),
-        ),
+        const SnackBar(content: Text('Pengajuan cash-out berhasil dikirim.')),
       );
     } else if (result is int) {
       widget.onSelectTab?.call(result);
@@ -350,12 +348,48 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: const [
-                        Text('M1', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
-                        Text('M2', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
-                        Text('M3', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
-                        Text('M4', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
-                        Text('M5', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
-                        Text('M6', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                        Text(
+                          'M1',
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 11,
+                          ),
+                        ),
+                        Text(
+                          'M2',
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 11,
+                          ),
+                        ),
+                        Text(
+                          'M3',
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 11,
+                          ),
+                        ),
+                        Text(
+                          'M4',
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 11,
+                          ),
+                        ),
+                        Text(
+                          'M5',
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 11,
+                          ),
+                        ),
+                        Text(
+                          'M6',
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 11,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -366,7 +400,10 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
               // 5. Transaction Mutations List Card matching Screenshot 2
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(22),

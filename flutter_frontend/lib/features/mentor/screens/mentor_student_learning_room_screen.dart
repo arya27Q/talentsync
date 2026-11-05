@@ -90,9 +90,8 @@ class _MentorStudentLearningRoomScreenState
 
   void _openResource(_LearningResource resource) {
     setState(() => _openedResources.add(resource.title));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Membuka ${resource.title}...')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Membuka ${resource.title}...')));
   }
 
   @override
@@ -318,58 +317,55 @@ class _MentorStudentLearningRoomScreenState
                     border: Border.all(color: AppColors.borderSlate),
                   ),
                   child: Row(
-                    children: List.generate(
-                      _tabs.length,
-                      (index) {
-                        final selected = _selectedTab == index;
-                        return Expanded(
-                          child: Semantics(
-                            button: true,
-                            selected: selected,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(20),
-                              onTap: () => setState(() => _selectedTab = index),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: selected
-                                      ? AppColors.primaryNavy
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: selected
-                                      ? [
-                                          BoxShadow(
-                                            color: AppColors.primaryNavy
-                                                .withValues(alpha: 0.2),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 3),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                alignment: Alignment.center,
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    _tabs[index],
-                                    maxLines: 1,
-                                    style: TextStyle(
-                                      color: selected
-                                          ? Colors.white
-                                          : AppColors.secondarySlate,
-                                      fontWeight: selected
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
-                                      fontSize: 12,
-                                    ),
+                    children: List.generate(_tabs.length, (index) {
+                      final selected = _selectedTab == index;
+                      return Expanded(
+                        child: Semantics(
+                          button: true,
+                          selected: selected,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () => setState(() => _selectedTab = index),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? AppColors.primaryNavy
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: selected
+                                    ? [
+                                        BoxShadow(
+                                          color: AppColors.primaryNavy
+                                              .withValues(alpha: 0.2),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              alignment: Alignment.center,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  _tabs[index],
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    color: selected
+                                        ? Colors.white
+                                        : AppColors.secondarySlate,
+                                    fontWeight: selected
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    }),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -380,7 +376,8 @@ class _MentorStudentLearningRoomScreenState
                   for (final item in _materials) ...[
                     _MaterialResourceCard(
                       resource: item,
-                      isOpened: _openedResources.contains(item.title) ||
+                      isOpened:
+                          _openedResources.contains(item.title) ||
                           item.isOpened,
                       onTap: () => _openResource(item),
                     ),
@@ -417,8 +414,7 @@ class _MentorStudentLearningRoomScreenState
                     rewardTc: '40 TC',
                     title: 'Modul offline-sync aplikasi koperasi',
                     client: 'Klien mentor · Koperasi Pasar Genteng',
-                    resultSummary:
-                        'Hasil: github.com/arya/offline-sync, Demo APK v1.2, Do...',
+                    resultSummary: 'Hasil: github.com/arya/offline-sync, Demo APK v1.2, Do...',
                   ),
                   const SizedBox(height: 12),
                   _ProjectResourceCard(
@@ -501,9 +497,7 @@ class _MaterialResourceCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: AppColors.borderSlate.withValues(alpha: 0.8),
-      ),
+      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
       boxShadow: [
         BoxShadow(
           color: AppColors.darkSlate.withValues(alpha: 0.03),
@@ -525,11 +519,7 @@ class _MaterialResourceCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             alignment: Alignment.center,
-            child: Icon(
-              _iconData,
-              color: AppColors.primaryNavy,
-              size: 22,
-            ),
+            child: Icon(_iconData, color: AppColors.primaryNavy, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -598,9 +588,7 @@ class _TaskResourceCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: AppColors.borderSlate.withValues(alpha: 0.8),
-      ),
+      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
       boxShadow: [
         BoxShadow(
           color: AppColors.darkSlate.withValues(alpha: 0.03),
@@ -720,9 +708,7 @@ class _ProjectResourceCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: AppColors.borderSlate.withValues(alpha: 0.8),
-      ),
+      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
       boxShadow: [
         BoxShadow(
           color: AppColors.darkSlate.withValues(alpha: 0.03),
@@ -778,20 +764,14 @@ class _ProjectResourceCard extends StatelessWidget {
         const SizedBox(height: 3),
         Text(
           client,
-          style: const TextStyle(
-            color: AppColors.secondarySlate,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: AppColors.secondarySlate, fontSize: 12),
         ),
         const SizedBox(height: 8),
         Text(
           resultSummary,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Color(0xFF334155),
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Color(0xFF334155), fontSize: 12),
         ),
       ],
     ),
@@ -816,9 +796,7 @@ class _CertificateResourceCard extends StatelessWidget {
     decoration: BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: AppColors.borderSlate.withValues(alpha: 0.8),
-      ),
+      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
       boxShadow: [
         BoxShadow(
           color: AppColors.darkSlate.withValues(alpha: 0.03),
@@ -838,12 +816,8 @@ class _CertificateResourceCard extends StatelessWidget {
           ),
           alignment: Alignment.center,
           child: Icon(
-            isAmber
-                ? Icons.workspace_premium_rounded
-                : Icons.verified_rounded,
-            color: isAmber
-                ? const Color(0xFFD97706)
-                : AppColors.primaryNavy,
+            isAmber ? Icons.workspace_premium_rounded : Icons.verified_rounded,
+            color: isAmber ? const Color(0xFFD97706) : AppColors.primaryNavy,
             size: 26,
           ),
         ),

@@ -10,11 +10,17 @@ class MentorRegisterScreen extends StatefulWidget {
 }
 
 class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
-  final TextEditingController _nameController = TextEditingController(text: 'Dimas Prasetyo');
-  final TextEditingController _campusController = TextEditingController(text: 'Universitas Negeri Surabaya');
+  final TextEditingController _nameController = TextEditingController(
+    text: 'Dimas Prasetyo',
+  );
+  final TextEditingController _campusController = TextEditingController(
+    text: 'Universitas Negeri Surabaya',
+  );
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _portfolioUrlController = TextEditingController(text: 'https://github.com/dimasprasetyo');
+  final TextEditingController _portfolioUrlController = TextEditingController(
+    text: 'https://github.com/dimasprasetyo',
+  );
   final TextEditingController _passwordController = TextEditingController();
 
   int _selectedStatusIndex = 0; // 0: Mahasiswa Tingkat Akhir, 1: Fresh Graduate, 2: Praktisi Muda, 3: Alumni
@@ -25,7 +31,11 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
     'Alumni Kampus',
   ];
 
-  final Set<String> _selectedSkills = {'Flutter & Dart', 'Laravel & PHP', 'UI/UX Design & Figma'};
+  final Set<String> _selectedSkills = {
+    'Flutter & Dart',
+    'Laravel & PHP',
+    'UI/UX Design & Figma',
+  };
   final List<String> _availableSkills = [
     'Flutter & Dart',
     'Laravel & PHP',
@@ -86,7 +96,9 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
     if (!_agreedToEthics) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Harap centang persetujuan kode etik bimbingan terlebih dahulu.'),
+          content: Text(
+            'Harap centang persetujuan kode etik bimbingan terlebih dahulu.',
+          ),
           backgroundColor: AppColors.darkSlate,
         ),
       );
@@ -230,21 +242,11 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
         controller: controller,
         keyboardType: keyboardType,
         obscureText: obscureText,
-        style: const TextStyle(
-          fontSize: 14,
-          color: AppColors.darkSlate,
-        ),
+        style: const TextStyle(fontSize: 14, color: AppColors.darkSlate),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(
-            color: Color(0xFF94A3B8),
-            fontSize: 14,
-          ),
-          prefixIcon: Icon(
-            icon,
-            color: AppColors.secondarySlate,
-            size: 20,
-          ),
+          hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+          prefixIcon: Icon(icon, color: AppColors.secondarySlate, size: 20),
           suffixIcon: suffixIcon,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
@@ -322,7 +324,10 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
             // Scrollable Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -335,7 +340,9 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.22),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.22,
+                            ),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
@@ -492,7 +499,8 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                     // 2. Status Saat Ini (Chips)
                     _buildFieldSection(
                       label: 'Status / Latar Belakang Saat Ini',
-                      caption: 'Pilih status yang paling menggambarkan posisimu',
+                      caption:
+                          'Pilih status yang paling menggambarkan posisimu',
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -591,7 +599,9 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                         spacing: 8,
                         runSpacing: 8,
                         children: _availableSkills.map((skill) {
-                          final bool isSelected = _selectedSkills.contains(skill);
+                          final bool isSelected = _selectedSkills.contains(
+                            skill,
+                          );
                           return GestureDetector(
                             onTap: () {
                               setState(() {
@@ -708,76 +718,74 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                                   ],
                                 )
                               : _uploadedFileName != null
-                                  ? Row(
-                                      children: [
-                                        Container(
-                                          width: 36,
-                                          height: 36,
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFDCFCE7),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                          child: const Icon(
-                                            Icons.task_alt_rounded,
-                                            color: Color(0xFF16A34A),
-                                            size: 20,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                _uploadedFileName!,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.darkSlate,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              const Text(
-                                                '2.4 MB · Terlampir',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Color(0xFF16A34A),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const Icon(
-                                          Icons.refresh_rounded,
-                                          color: AppColors.secondarySlate,
-                                          size: 18,
-                                        ),
-                                      ],
-                                    )
-                                  : const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.upload_file_rounded,
-                                          color: AppColors.primaryNavy,
-                                          size: 22,
-                                        ),
-                                        SizedBox(width: 10),
-                                        Text(
-                                          'Pilih berkas PDF atau gambar (Maks 10MB)',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.primaryNavy,
-                                          ),
-                                        ),
-                                      ],
+                              ? Row(
+                                  children: [
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFDCFCE7),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.task_alt_rounded,
+                                        color: Color(0xFF16A34A),
+                                        size: 20,
+                                      ),
                                     ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _uploadedFileName!,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.darkSlate,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          const Text(
+                                            '2.4 MB · Terlampir',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF16A34A),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.refresh_rounded,
+                                      color: AppColors.secondarySlate,
+                                      size: 18,
+                                    ),
+                                  ],
+                                )
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.upload_file_rounded,
+                                      color: AppColors.primaryNavy,
+                                      size: 22,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'Pilih berkas PDF atau gambar (Maks 10MB)',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primaryNavy,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                         ),
                       ),
                     ),
@@ -865,7 +873,8 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                     // 10. Kata Sandi Baru
                     _buildFieldSection(
                       label: 'Kata Sandi Akun Mentor',
-                      caption: 'Minimal 8 karakter untuk keamanan dasbor bimbingan',
+                      caption:
+                          'Minimal 8 karakter untuk keamanan dasbor bimbingan',
                       child: _buildInputBox(
                         controller: _passwordController,
                         hint: 'Minimal 8 karakter',
@@ -961,7 +970,9 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                              color: AppColors.primaryNavy.withValues(
+                                alpha: 0.25,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),

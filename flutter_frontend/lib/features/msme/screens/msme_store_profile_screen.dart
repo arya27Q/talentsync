@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
@@ -228,7 +228,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
               const Divider(color: AppColors.borderSlate, height: 16),
               _buildMutationTile(
                 title: 'Barter 5 Voucher Minum Kopi',
-                date: '28 Jun 2026 · Terdistribusi ke Reward Hub',
+                date: '28 Jun 2026 · Terdistribusi ke Katalog Hadiah',
                 amount: '+75 TC',
                 isIncome: true,
               ),
@@ -367,7 +367,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
                   ),
                 ),
                 title: const Text(
-                  'Panduan & Standar Validasi Deliverable',
+                  'Panduan & Standar Validasi Hasil Kerja',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -470,7 +470,9 @@ class MsmeStoreProfileScreen extends StatelessWidget {
         child: Text(
           status,
           style: TextStyle(
-            color: isVerified ? const Color(0xFF059669) : AppColors.secondarySlate,
+            color: isVerified
+                ? const Color(0xFF059669)
+                : AppColors.secondarySlate,
             fontWeight: FontWeight.w700,
             fontSize: 11,
           ),
@@ -528,7 +530,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
       children: [
         // Screen Header matching Screenshot 1
         const Text(
-          'Store Profile',
+          'Profil Toko & Usaha',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w800,
@@ -576,13 +578,14 @@ class MsmeStoreProfileScreen extends StatelessWidget {
                         width: 70,
                         height: 70,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Center(
-                          child: Icon(
-                            Icons.storefront_rounded,
-                            size: 34,
-                            color: AppColors.primaryNavy,
-                          ),
-                        ),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Center(
+                              child: Icon(
+                                Icons.storefront_rounded,
+                                size: 34,
+                                color: AppColors.primaryNavy,
+                              ),
+                            ),
                       ),
                     ),
                   ),
@@ -665,7 +668,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
                     Expanded(
                       child: _StoreMetricCol(
                         value: '4.9',
-                        label: 'Rating mahasiswa',
+                        label: 'Penilaian mahasiswa',
                       ),
                     ),
                     _StoreMetricDivider(),
@@ -689,33 +692,27 @@ class MsmeStoreProfileScreen extends StatelessWidget {
           height: 180,
           items: [
             CarouselSlideItem(
-              imageUrl:
-                  'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
+              imageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
               tag: 'Suasana Toko',
               tagColor: AppColors.primaryNavy,
               title: 'Barista & Area Seduh Kopi Tepi Kali',
-              subtitle:
-                  'Area pelayanan ramah pelanggan dengan standar higienis dan racikan kopi berkualitas.',
+              subtitle: 'Area pelayanan ramah pelanggan dengan standar higienis dan racikan kopi berkualitas.',
               buttonText: 'Galeri',
             ),
             CarouselSlideItem(
-              imageUrl:
-                  'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80',
+              imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80',
               tag: 'Produk Unggulan',
               tagColor: Color(0xFFB45309),
               title: 'Biji Kopi Sangrai & Kemasan Kraft',
-              subtitle:
-                  'Hasil desain kemasan karya mahasiswa yang meningkatkan daya tarik penjualan online.',
+              subtitle: 'Hasil desain kemasan karya mahasiswa yang meningkatkan daya tarik penjualan online.',
               buttonText: 'Produk',
             ),
             CarouselSlideItem(
-              imageUrl:
-                  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+              imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
               tag: 'Ruang Kolaborasi',
               tagColor: Color(0xFF10B981),
               title: 'Dapur Kerja & Diskusi Proyek',
-              subtitle:
-                  'Ruang temu kreatif mahasiswa dan pemilik toko saat perancangan prototipe produk.',
+              subtitle: 'Ruang temu kreatif mahasiswa dan pemilik toko saat perancangan prototipe produk.',
               buttonText: 'Lokasi',
             ),
           ],
@@ -830,7 +827,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Text(
-                          'Upgrade',
+                          'Tingkatkan',
                           style: TextStyle(
                             color: AppColors.primaryNavy,
                             fontSize: 13,
@@ -869,12 +866,16 @@ class MsmeStoreProfileScreen extends StatelessWidget {
               // 1. Edit Detail Usaha
               _buildStoreMenuRow(
                 icon: Icons.edit_rounded,
-                title: 'Edit Detail Usaha',
+                title: 'Ubah Detail Usaha',
                 onTap: () {
                   Navigator.pushNamed(context, AppRoutes.msmeRegister);
                 },
               ),
-              const Divider(color: AppColors.borderSlate, height: 1, indent: 64),
+              const Divider(
+                color: AppColors.borderSlate,
+                height: 1,
+                indent: 64,
+              ),
 
               // 2. Dokumen & Verifikasi
               _buildStoreMenuRow(
@@ -882,7 +883,11 @@ class MsmeStoreProfileScreen extends StatelessWidget {
                 title: 'Dokumen & Verifikasi',
                 onTap: () => _showDocumentsModal(context),
               ),
-              const Divider(color: AppColors.borderSlate, height: 1, indent: 64),
+              const Divider(
+                color: AppColors.borderSlate,
+                height: 1,
+                indent: 64,
+              ),
 
               // 3. Riwayat TimeCoin
               _buildStoreMenuRow(
@@ -890,7 +895,11 @@ class MsmeStoreProfileScreen extends StatelessWidget {
                 title: 'Riwayat TimeCoin',
                 onTap: () => _showTimeCoinHistoryModal(context),
               ),
-              const Divider(color: AppColors.borderSlate, height: 1, indent: 64),
+              const Divider(
+                color: AppColors.borderSlate,
+                height: 1,
+                indent: 64,
+              ),
 
               // 4. Pusat Bantuan
               _buildStoreMenuRow(
@@ -978,11 +987,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
                 color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.darkSlate,
-                size: 20,
-              ),
+              child: Icon(icon, color: AppColors.darkSlate, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1008,10 +1013,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
 }
 
 class _StoreMetricCol extends StatelessWidget {
-  const _StoreMetricCol({
-    required this.value,
-    required this.label,
-  });
+  const _StoreMetricCol({required this.value, required this.label});
 
   final String value;
   final String label;
@@ -1045,10 +1047,6 @@ class _StoreMetricDivider extends StatelessWidget {
   const _StoreMetricDivider();
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: 1,
-    height: 30,
-    color: AppColors.borderSlate,
-  );
+  Widget build(BuildContext context) =>
+      Container(width: 1, height: 30, color: AppColors.borderSlate);
 }
-

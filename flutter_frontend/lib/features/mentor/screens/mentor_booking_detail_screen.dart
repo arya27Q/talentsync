@@ -213,7 +213,9 @@ class MentorBookingDetailScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      (booking.rating ?? 4.7).toStringAsFixed(1),
+                                      (booking.rating ?? 4.7).toStringAsFixed(
+                                        1,
+                                      ),
                                       style: const TextStyle(
                                         color: AppColors.darkSlate,
                                         fontWeight: FontWeight.w700,
@@ -407,7 +409,9 @@ class MentorBookingDetailScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppColors.borderSlate),
+                                border: Border.all(
+                                  color: AppColors.borderSlate,
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -452,9 +456,7 @@ class MentorBookingDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF0F7FF),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFFDCEAFE),
-                    ),
+                    border: Border.all(color: const Color(0xFFDCEAFE)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -548,8 +550,9 @@ class MentorBookingDetailScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    AppColors.primaryNavy.withValues(alpha: 0.25),
+                                color: AppColors.primaryNavy.withValues(
+                                  alpha: 0.25,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -637,8 +640,9 @@ class MentorBookingDetailScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    AppColors.primaryNavy.withValues(alpha: 0.25),
+                                color: AppColors.primaryNavy.withValues(
+                                  alpha: 0.25,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),

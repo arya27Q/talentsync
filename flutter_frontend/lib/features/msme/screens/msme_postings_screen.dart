@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
@@ -6,10 +6,7 @@ import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_sc
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
 
 class MsmePostingsScreen extends StatefulWidget {
-  const MsmePostingsScreen({
-    super.key,
-    required this.onCreatePosting,
-  });
+  const MsmePostingsScreen({super.key, required this.onCreatePosting});
 
   final VoidCallback onCreatePosting;
 
@@ -46,7 +43,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'My Postings',
+                      'Postingan Tugas Saya',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -161,33 +158,27 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
                     height: 170,
                     items: [
                       CarouselSlideItem(
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80',
+                        imageUrl: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80',
                         tag: 'Tahap 1: Riset',
                         tagColor: AppColors.primaryNavy,
                         title: 'Briefing & Riset Visual Kemasan',
-                        subtitle:
-                            'Mahasiswa menyusun moodboard visual sesuai target pasar sebelum eksekusi desain.',
+                        subtitle: 'Mahasiswa menyusun moodboard visual sesuai target pasar sebelum eksekusi desain.',
                         buttonText: 'Alur',
                       ),
                       CarouselSlideItem(
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
-                        tag: 'Tahap 2: Deliverable',
+                        imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+                        tag: 'Tahap 2: Hasil Kerja',
                         tagColor: Color(0xFFB45309),
                         title: 'Uji Coba Lapangan & Mockup Cetak',
-                        subtitle:
-                            'Penerapan desain pada kemasan botol sambal atau menu board kafe secara nyata.',
+                        subtitle: 'Penerapan desain pada kemasan botol sambal atau menu board kafe secara nyata.',
                         buttonText: 'Standar',
                       ),
                       CarouselSlideItem(
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80',
+                        imageUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80',
                         tag: 'Tahap 3: Escrow',
                         tagColor: Color(0xFF10B981),
                         title: 'Serah Terima & Pencairan TimeCoin',
-                        subtitle:
-                            'File siap cetak diserahkan dan dana escrow ditransfer dengan ulasan bintang.',
+                        subtitle: 'File siap cetak diserahkan dan dana escrow ditransfer dengan ulasan bintang.',
                         buttonText: 'Ketentuan',
                       ),
                     ],
@@ -278,11 +269,19 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
         // Tag Chips
         Row(
           children: [
-            _buildTagChip('Mobile', const Color(0xFFEFF6FF), AppColors.primaryNavy),
+            _buildTagChip(
+              'Mobile',
+              const Color(0xFFEFF6FF),
+              AppColors.primaryNavy,
+            ),
             const SizedBox(width: 8),
             _buildTcTagChip('380 TC'),
             const SizedBox(width: 8),
-            _buildTagChip('1 Bulan', const Color(0xFFF1F5F9), const Color(0xFF475569)),
+            _buildTagChip(
+              '1 Bulan',
+              const Color(0xFFF1F5F9),
+              const Color(0xFF475569),
+            ),
           ],
         ),
 
@@ -361,7 +360,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Review Pelamar',
+                      'Tinjau Pelamar',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -451,11 +450,19 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
         // Tag Chips
         Row(
           children: [
-            _buildTagChip('UI/UX Design', const Color(0xFFEFF6FF), AppColors.primaryNavy),
+            _buildTagChip(
+              'UI/UX Design',
+              const Color(0xFFEFF6FF),
+              AppColors.primaryNavy,
+            ),
             const SizedBox(width: 8),
             _buildTcTagChip('120 TC'),
             const SizedBox(width: 8),
-            _buildTagChip('3 Minggu', const Color(0xFFF1F5F9), const Color(0xFF475569)),
+            _buildTagChip(
+              '3 Minggu',
+              const Color(0xFFF1F5F9),
+              const Color(0xFF475569),
+            ),
           ],
         ),
 
@@ -522,10 +529,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
         // Escrow text
         const Text(
           'Cair 35 TC · terkunci di escrow 85 TC',
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.secondarySlate,
-          ),
+          style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
         ),
 
         const SizedBox(height: 14),
@@ -576,7 +580,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,
-                tooltip: 'Chat mahasiswa',
+                tooltip: 'Kirim pesan ke mahasiswa',
                 onPressed: () {
                   Navigator.push<void>(
                     context,
@@ -607,7 +611,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Status milestone diperbarui.'),
+                      content: Text('Tahapan pengerjaan berhasil diperbarui.'),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
@@ -734,11 +738,19 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
         // Tag Chips
         Row(
           children: [
-            _buildTagChip('Desain', const Color(0xFFEFF6FF), AppColors.primaryNavy),
+            _buildTagChip(
+              'Desain',
+              const Color(0xFFEFF6FF),
+              AppColors.primaryNavy,
+            ),
             const SizedBox(width: 8),
             _buildTcTagChip('60 TC'),
             const SizedBox(width: 8),
-            _buildTagChip('5 Hari', const Color(0xFFF1F5F9), const Color(0xFF475569)),
+            _buildTagChip(
+              '5 Hari',
+              const Color(0xFFF1F5F9),
+              const Color(0xFF475569),
+            ),
           ],
         ),
 
@@ -794,7 +806,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,
-                tooltip: 'Chat mahasiswa',
+                tooltip: 'Kirim pesan ke mahasiswa',
                 onPressed: () {
                   Navigator.push<void>(
                     context,
@@ -827,7 +839,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Fitur perpanjang kolaborasi memerlukan upgrade slot.',
+                            'Fitur perpanjang kolaborasi memerlukan penambahan kuota slot.',
                           ),
                           behavior: SnackBarBehavior.floating,
                         ),
@@ -896,11 +908,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(
-          Icons.toll_rounded,
-          color: Color(0xFFF59E0B),
-          size: 14,
-        ),
+        const Icon(Icons.toll_rounded, color: Color(0xFFF59E0B), size: 14),
         const SizedBox(width: 5),
         Text(
           amount,

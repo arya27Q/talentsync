@@ -38,7 +38,7 @@ class MsmeBottomNav extends StatelessWidget {
         children: [
           _NavItem(
             icon: Icons.grid_view_rounded,
-            label: 'Dashboard',
+            label: 'Beranda',
             selected: selectedIndex == 0,
             onTap: () => onSelected(0),
           ),
@@ -136,4 +136,3 @@ class _NavItem extends StatelessWidget {
     );
   }
 }
-

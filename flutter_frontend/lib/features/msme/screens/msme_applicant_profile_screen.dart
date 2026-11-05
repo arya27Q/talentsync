@@ -79,7 +79,8 @@ class _MsmeApplicantProfileScreenState
                         border: Border.all(color: AppColors.borderSlate),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                            color: const Color(0xFF0F172A)
+                                .withValues(alpha: 0.04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -133,14 +134,15 @@ class _MsmeApplicantProfileScreenState
                         border: Border.all(color: AppColors.borderSlate),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                            color: const Color(0xFF0F172A)
+                                .withValues(alpha: 0.04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
                         ],
                       ),
                       child: IconButton(
-                        tooltip: 'Chat',
+                        tooltip: 'Pesan',
                         padding: EdgeInsets.zero,
                         onPressed: _onChat,
                         icon: const Icon(
@@ -250,7 +252,7 @@ class _MsmeApplicantProfileScreenState
                         ),
                         child: Row(
                           children: [
-                            _buildProfileMetric('4.9', 'Rating'),
+                            _buildProfileMetric('4.9', 'Penilaian'),
                             _buildMetricDivider(),
                             _buildProfileMetric('4', 'Proyek'),
                             _buildMetricDivider(),
@@ -335,7 +337,9 @@ class _MsmeApplicantProfileScreenState
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFFBEB),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFFDE68A)),
+                              border: Border.all(
+                                color: const Color(0xFFFDE68A),
+                              ),
                             ),
                             child: const Text(
                               '95% cocok',
@@ -430,11 +434,11 @@ class _MsmeApplicantProfileScreenState
                         client: 'Koperasi Pasar Genteng',
                         verifiedBadge: 'Diverifikasi Mentor',
                         isMentorVerified: true,
-                        quote: '"Dipakai 40 pedagang setiap hari tanpa kendala."',
+                        quote:
+                            '"Dipakai 40 pedagang setiap hari tanpa kendala."',
                         tech: 'Flutter · SQLite',
                         rating: '5.0',
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=300&q=80',
+                        imageUrl: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=300&q=80',
                       ),
                       const SizedBox(width: 14),
                       _buildRealProjectCard(
@@ -445,8 +449,7 @@ class _MsmeApplicantProfileScreenState
                         quote: '"Pesanan ganda hilang, karyawan mudah memakainya."',
                         tech: 'Laravel · MySQL',
                         rating: '5.0',
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80',
+                        imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80',
                       ),
                       const SizedBox(width: 14),
                       _buildRealProjectCard(
@@ -457,8 +460,7 @@ class _MsmeApplicantProfileScreenState
                         quote: '"Penjualan via WhatsApp naik sejak katalog dipakai."',
                         tech: 'Flutter · Firebase',
                         rating: '4.8',
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=300&q=80',
+                        imageUrl: 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=300&q=80',
                       ),
                     ],
                   ),
@@ -497,7 +499,9 @@ class _MsmeApplicantProfileScreenState
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.primaryNavy : Colors.white,
+                            color: isSelected
+                                ? AppColors.primaryNavy
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isSelected
@@ -508,7 +512,9 @@ class _MsmeApplicantProfileScreenState
                           child: Text(
                             _certTabs[index],
                             style: TextStyle(
-                              color: isSelected ? Colors.white : AppColors.darkSlate,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.darkSlate,
                               fontWeight: isSelected
                                   ? FontWeight.bold
                                   : FontWeight.w600,
@@ -768,7 +774,9 @@ class _MsmeApplicantProfileScreenState
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            color: AppColors.primaryNavy.withValues(
+                              alpha: 0.25,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -866,11 +874,8 @@ class _MsmeApplicantProfileScreenState
     ),
   );
 
-  Widget _buildMetricDivider() => Container(
-    width: 1,
-    height: 24,
-    color: const Color(0xFFE2E8F0),
-  );
+  Widget _buildMetricDivider() =>
+      Container(width: 1, height: 24, color: const Color(0xFFE2E8F0));
 
   Widget _buildRealProjectCard({
     required String title,
@@ -941,8 +946,8 @@ class _MsmeApplicantProfileScreenState
                         fontSize: 10.5,
                         fontWeight: FontWeight.bold,
                         color: isMentorVerified
-                          ? const Color(0xFFB45309)
-                          : const Color(0xFF047857),
+                            ? const Color(0xFFB45309)
+                            : const Color(0xFF047857),
                       ),
                     ),
                   ],
@@ -1031,9 +1036,7 @@ class _MsmeApplicantProfileScreenState
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: isMentor
-                ? const Color(0xFFFEF3C7)
-                : const Color(0xFFEFF6FF),
+            color: isMentor ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -1106,12 +1109,8 @@ class _MsmeApplicantProfileScreenState
       const Spacer(),
       Text(
         proof,
-        style: const TextStyle(
-          fontSize: 12,
-          color: AppColors.secondarySlate,
-        ),
+        style: const TextStyle(fontSize: 12, color: AppColors.secondarySlate),
       ),
     ],
   );
 }
-

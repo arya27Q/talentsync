@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
 
@@ -19,11 +19,7 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
   int _selectedValidity = 1; // 0: 30 hari, 1: 60 hari, 2: 90 hari
   bool _isGuaranteed = true;
 
-  final List<String> _voucherTypes = [
-    'Gratis produk',
-    'Diskon',
-    'Paket hemat',
-  ];
+  final List<String> _voucherTypes = ['Gratis produk', 'Diskon', 'Paket hemat'];
 
   final List<String> _validities = ['30 hari', '60 hari', '90 hari'];
 
@@ -78,7 +74,7 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Top–Up Barter',
+                'Isi Saldo Barter',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -133,8 +129,7 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
                       ),
                       children: [
                         TextSpan(
-                          text:
-                              'Voucher tampil di Reward Hub mahasiswa, dan saldo bisa kamu pakai untuk membayar proyek.',
+                          text: 'Voucher tampil di Katalog Hadiah mahasiswa, dan saldo bisa kamu pakai untuk membayar proyek.',
                           style: TextStyle(
                             fontWeight: FontWeight.normal,
                             color: Color(0xFF475569),
@@ -150,39 +145,33 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
 
           const SizedBox(height: 16),
 
-          // Showcase Carousel: Contoh Produk & Voucher Mitra yang Laris di Reward Hub
+          // Showcase Carousel: Contoh Produk & Voucher Mitra yang Laris di Katalog Hadiah
           const InteractiveImageCarousel(
             margin: EdgeInsets.zero,
             height: 175,
             items: [
               CarouselSlideItem(
-                imageUrl:
-                    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
+                imageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
                 tag: 'Voucher Kuliner',
                 tagColor: AppColors.primaryNavy,
                 title: 'Voucher Es Kopi Susu & Pastry',
-                subtitle:
-                    'Paling diminati mahasiswa saat jam istirahat atau nugas kelompok di kafe.',
+                subtitle: 'Paling diminati mahasiswa saat jam istirahat atau nugas kelompok di kafe.',
                 buttonText: 'Contoh',
               ),
               CarouselSlideItem(
-                imageUrl:
-                    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+                imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
                 tag: 'Paket Produk',
                 tagColor: Color(0xFFB45309),
                 title: 'Paket Sambal Rumahan & Frozen Food',
-                subtitle:
-                    'Dikonversi 35 TC per botol, cepat di-redeem oleh talenta proyek.',
+                subtitle: 'Dikonversi 35 TC per botol, cepat di-redeem oleh talenta proyek.',
                 buttonText: 'Contoh',
               ),
               CarouselSlideItem(
-                imageUrl:
-                    'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80',
+                imageUrl: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80',
                 tag: 'Kerajinan Tangan',
                 tagColor: Color(0xFF10B981),
                 title: 'Merchandise & Souvenir UMKM Kreatif',
-                subtitle:
-                    'Cocok sebagai reward pencapaian tugas mahasiswa berprestasi.',
+                subtitle: 'Cocok sebagai apresiasi pencapaian tugas mahasiswa berprestasi.',
                 buttonText: 'Contoh',
               ),
             ],
@@ -743,26 +732,17 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(
-      color: Color(0xFF94A3B8),
-      fontSize: 13.5,
-    ),
+    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13.5),
     filled: true,
     fillColor: Colors.white,
-    contentPadding: const EdgeInsets.symmetric(
-      horizontal: 16,
-      vertical: 14,
-    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
       borderSide: const BorderSide(color: AppColors.borderSlate),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(
-        color: AppColors.primaryNavy,
-        width: 1.5,
-      ),
+      borderSide: const BorderSide(color: AppColors.primaryNavy, width: 1.5),
     ),
   );
 }
@@ -782,4 +762,3 @@ class _FieldLabel extends StatelessWidget {
     ),
   );
 }
-

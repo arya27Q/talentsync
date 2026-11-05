@@ -38,23 +38,19 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   final List<Map<String, String>> _faqItems = [
     {
       'question': 'Berapa lama proses pencairan TimeCoin ke rekening bank?',
-      'answer':
-          'Pencairan TimeCoin diproses instan hingga maksimal 1x24 jam kerja. Mahasiswa menikmati potongan admin 0% sehingga seluruh nilai 1 TC setara Rp1.000 masuk utuh ke rekening bank Anda.',
+      'answer': 'Pencairan TimeCoin diproses instan hingga maksimal 1x24 jam kerja. Mahasiswa menikmati potongan admin 0% sehingga seluruh nilai 1 TC setara Rp1.000 masuk utuh ke rekening bank Anda.',
     },
     {
       'question': 'Bagaimana jika mitra UMKM belum memvalidasi hasil kerja?',
-      'answer':
-          'Sistem Smart Escrow TalentSync dilengkapi fitur auto-release. Apabila mitra tidak memberikan catatan revisi atau validasi dalam 3x24 jam kerja, dana TC otomatis diteruskan ke saldo Anda.',
+      'answer': 'Sistem Smart Escrow TalentSync dilengkapi fitur auto-release. Apabila mitra tidak memberikan catatan revisi atau validasi dalam 3x24 jam kerja, dana TC otomatis diteruskan ke saldo Anda.',
     },
     {
       'question': 'Apa syarat mendapatkan Badge Rekomendasi Kerja dari mentor?',
-      'answer':
-          'Mahasiswa perlu menyelesaikan minimal satu paket mentoring dengan evaluasi nilai akhir di atas 80/100 serta membuktikan artefak hasil kerja nyata yang siap dipresentasikan ke mitra UMKM.',
+      'answer': 'Mahasiswa perlu menyelesaikan minimal satu paket mentoring dengan evaluasi nilai akhir di atas 80/100 serta membuktikan artefak hasil kerja nyata yang siap dipresentasikan ke mitra UMKM.',
     },
     {
       'question': 'Apakah saya bisa menjadwalkan ulang sesi mentoring?',
-      'answer':
-          'Bisa. Anda dapat mengajukan perubahan jadwal melalui fitur chat langsung dengan mentor minimal 2 jam sebelum waktu sesi dimulai.',
+      'answer': 'Bisa. Anda dapat mengajukan perubahan jadwal melalui fitur chat langsung dengan mentor minimal 2 jam sebelum waktu sesi dimulai.',
     },
   ];
 
@@ -94,7 +90,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
           children: [
             Icon(
               item['icon'] as IconData,
-              color: isSelected ? AppColors.primaryNavy : AppColors.secondarySlate,
+              color: isSelected
+                  ? AppColors.primaryNavy
+                  : AppColors.secondarySlate,
               size: 24,
             ),
             const Spacer(),
@@ -254,7 +252,10 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             // Scrollable Content
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 children: [
                   // Search Bar
                   Container(
@@ -308,7 +309,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     physics: const NeverScrollableScrollPhysics(),
                     children: List.generate(
                       _categories.length,
-                      (index) => _buildQuickCategoryCard(index, _categories[index]),
+                      (index) =>
+                          _buildQuickCategoryCard(index, _categories[index]),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -345,9 +347,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                         border: Border.all(color: AppColors.borderSlate),
                       ),
                       child: Theme(
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent,
-                        ),
+                        data: Theme.of(context)
+                            .copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
                           iconColor: AppColors.primaryNavy,
                           collapsedIconColor: AppColors.secondarySlate,
@@ -403,7 +404,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Menghubungkan ke layanan live chat dukungan...'),
+                          content: Text(
+                            'Menghubungkan ke layanan live chat dukungan...',
+                          ),
                           backgroundColor: AppColors.primaryNavy,
                         ),
                       );
@@ -417,7 +420,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Membuka kontak WhatsApp resmi TalentSync.'),
+                          content: Text(
+                            'Membuka kontak WhatsApp resmi TalentSync.',
+                          ),
                         ),
                       );
                     },
@@ -430,7 +435,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                     onTap: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Membuka aplikasi email ke bantuan@talentsync.id.'),
+                          content: Text(
+                            'Membuka aplikasi email ke bantuan@talentsync.id.',
+                          ),
                         ),
                       );
                     },

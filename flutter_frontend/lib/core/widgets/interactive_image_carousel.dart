@@ -130,15 +130,15 @@ class _InteractiveImageCarouselState extends State<InteractiveImageCarousel> {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               Container(
-                            color: AppColors.primaryNavy,
-                            child: const Center(
-                              child: Icon(
-                                Icons.image_rounded,
-                                color: Colors.white38,
-                                size: 40,
+                                color: AppColors.primaryNavy,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image_rounded,
+                                    color: Colors.white38,
+                                    size: 40,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
                         ),
 
                         // Contrast Gradient Overlay
@@ -191,10 +191,14 @@ class _InteractiveImageCarouselState extends State<InteractiveImageCarousel> {
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.4),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.4,
+                                      ),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: Colors.white.withValues(alpha: 0.2),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.2,
+                                        ),
                                       ),
                                     ),
                                     child: Text(
@@ -357,16 +361,9 @@ class _NavButton extends StatelessWidget {
               width: 1,
             ),
           ),
-          child: Center(
-            child: Icon(
-              icon,
-              size: 18,
-              color: Colors.white,
-            ),
-          ),
+          child: Center(child: Icon(icon, size: 18, color: Colors.white)),
         ),
       ),
     );
   }
 }
-

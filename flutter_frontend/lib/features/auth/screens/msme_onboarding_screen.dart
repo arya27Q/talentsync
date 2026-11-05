@@ -124,17 +124,17 @@ class _MsmePathCard extends StatelessWidget {
   static const _steps = [
     (
       Icons.campaign_rounded,
-      'Posting proyek pakai template',
-      'Tanpa form kosong, cukup pilih kebutuhan',
+      'Publikasikan tugas dengan panduan',
+      'Tanpa formulir rumit, cukup tentukan kebutuhan',
     ),
     (
       Icons.verified_rounded,
       'Pilih mahasiswa terverifikasi',
-      'Lihat KTM, portofolio, dan endorse mentor',
+      'Lihat KTM, portofolio, dan rekomendasi mentor',
     ),
     (
       Icons.shield_rounded,
-      'Bayar per milestone via escrow',
+      'Bayar bertahap lewat brankas escrow',
       'Dana cair hanya saat hasil kamu setujui',
     ),
     (
@@ -279,18 +279,10 @@ class _MsmePathStep extends StatelessWidget {
                 color: bgColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 20,
-              ),
+              child: Icon(icon, color: iconColor, size: 20),
             ),
             if (!last)
-              Container(
-                width: 1.5,
-                height: 16,
-                color: const Color(0xFFE2E8F0),
-              ),
+              Container(width: 1.5, height: 16, color: const Color(0xFFE2E8F0)),
           ],
         ),
         const SizedBox(width: 14),
@@ -326,4 +318,3 @@ class _MsmePathStep extends StatelessWidget {
     );
   }
 }
-

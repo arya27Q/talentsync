@@ -44,7 +44,9 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
   void _onFinishSetup() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Profil usaha berhasil disimpan! Selamat datang di TalentSync.'),
+        content: Text(
+          'Profil usaha berhasil disimpan! Selamat datang di TalentSync.',
+        ),
         backgroundColor: AppColors.primaryNavy,
         behavior: SnackBarBehavior.floating,
       ),
@@ -98,7 +100,7 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Business Setup',
+                      'Pengaturan Profil Usaha',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -162,7 +164,8 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                            color: const Color(0xFF0F172A)
+                                .withValues(alpha: 0.03),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -365,7 +368,9 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
                   const SizedBox(height: 18),
 
                   // NIB (opsional, untuk badge Verified Partner)
-                  const _FieldLabel('NIB (opsional, untuk badge Verified Partner)'),
+                  const _FieldLabel(
+                    'NIB (opsional, untuk badge Verified Partner)',
+                  ),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _nibController,
@@ -401,7 +406,7 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
                         borderRadius: BorderRadius.circular(16),
                         child: const Center(
                           child: Text(
-                            'Finish Setup',
+                            'Selesaikan Pendaftaran',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -421,32 +426,25 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
     ),
   );
 
-  InputDecoration _inputDecoration(IconData icon, String hint) =>
-      InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(
-          color: Color(0xFF94A3B8),
-          fontSize: 14,
-        ),
-        prefixIcon: Icon(icon, color: AppColors.secondarySlate, size: 20),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.borderSlate),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AppColors.primaryNavy,
-            width: 1.5,
-          ),
-        ),
-      );
+  InputDecoration _inputDecoration(
+    IconData icon,
+    String hint,
+  ) => InputDecoration(
+    hintText: hint,
+    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+    prefixIcon: Icon(icon, color: AppColors.secondarySlate, size: 20),
+    filled: true,
+    fillColor: Colors.white,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: AppColors.borderSlate),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: AppColors.primaryNavy, width: 1.5),
+    ),
+  );
 }
 
 class _FieldLabel extends StatelessWidget {

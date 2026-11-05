@@ -313,7 +313,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                                     vertical: 8,
                                   ),
                                   child: Text(
-                                    'Upgrade',
+                                    'Tingkatkan',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -353,7 +353,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Slot penuh. Upgrade untuk posting proyek baru ke mahasiswa.',
+                        'Slot penuh. Tingkatkan kuota untuk mempublikasikan proyek baru ke mahasiswa.',
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
@@ -432,7 +432,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                           icon: Icons.person_add_rounded,
                           count: '2',
                           label: 'Pelamar baru',
-                          buttonLabel: 'Review',
+                          buttonLabel: 'Tinjau',
                           badgeLabel: 'Baru',
                           accentColor: const Color(0xFF0284C7),
                           onTap: () {
@@ -583,7 +583,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                   ),
                   title: '2 pelamar baru',
                   subtitle: 'Aplikasi Menu & Pre-ord...',
-                  buttonLabel: 'Review',
+                  buttonLabel: 'Tinjau',
                   onTap: () {
                     Navigator.push<void>(
                       context,
@@ -677,7 +677,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                             ),
                             child: IconButton(
                               padding: EdgeInsets.zero,
-                              tooltip: 'Chat',
+                              tooltip: 'Pesan',
                               onPressed: () {
                                 Navigator.push<void>(
                                   context,
@@ -1061,20 +1061,20 @@ class MsmeDashboardScreen extends StatelessWidget {
         id: 'msme_guide_post_task',
         title:
             'Panduan Memposting Tugas & Menentukan Imbalan TimeCoin yang Tepat',
-        subtitle: 'Tips merumuskan brief deliverable yang jelas dan menetapkan alokasi TC yang proporsional.',
+        subtitle: 'Tips merumuskan arahan tugas dan hasil kerja yang jelas serta menetapkan alokasi TC yang proporsional.',
         category: 'Manajemen Proyek',
         readTime: '3 mnt baca',
         imageUrl: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=800&q=80',
         icon: Icons.assignment_rounded,
         accentColor: AppColors.primaryNavy,
         keyPoints: [
-          'Rumuskan deliverable spesifik (contoh: 1 Master Logo vector, 10 foto katalog 4K, atau 1 landing page responsif).',
-          '1 TC bernilai setara Rp1.000. Gunakan patokan template wizard atau ajukan proyek kustom sesuai anggaran.',
+          'Rumuskan rincian hasil kerja spesifik (contoh: 1 Master Logo vector, 10 foto katalog 4K, atau 1 halaman web responsif).',
+          '1 TC bernilai setara Rp1.000. Gunakan patokan template panduan atau ajukan proyek kustom sesuai anggaran.',
           'Top-Up TimeCoin via Rupiah (Transfer Bank / QRIS) tanpa kerumitan administrasi.',
           'Imbalan disimpan aman di escrow dan hanya dicairkan setelah tugas kamu setujui.',
         ],
-        fullContent: 'Membuat tugas di TalentSync sangat mudah berkat fitur Wizard Template dan Proyek Kustom. Kunci utama mendapatkan hasil terbaik dari mahasiswa adalah menulis deskripsi tugas yang lugas serta melampirkan contoh referensi (moodboard/foto produk eksisting).\n\nSesuaikan alokasi imbalan TimeCoin (TC) dengan bobot pekerjaan (misal: 80-150 TC untuk Desain Logo, 40-90 TC untuk Foto Produk UMKM). Dana TC yang kamu siapkan akan masuk ke sistem escrow TalentSync, memberikan rasa aman bagi kedua belah pihak.',
-        proTip: 'Tentukan tenggat waktu (deadline) yang realistis minimal 3-5 hari agar mahasiswa memiliki waktu memadai untuk konsultasi dengan mentor sebelum pengumpulan final.',
+        fullContent: 'Membuat tugas di TalentSync sangat mudah berkat fitur Panduan Template dan Proyek Kustom. Kunci utama mendapatkan hasil terbaik dari mahasiswa adalah menulis deskripsi tugas yang lugas serta melampirkan contoh referensi (moodboard/foto produk eksisting).\n\nSesuaikan alokasi imbalan TimeCoin (TC) dengan bobot pekerjaan (misal: 80-150 TC untuk Desain Logo, 40-90 TC untuk Foto Produk UMKM). Dana TC yang kamu siapkan akan masuk ke sistem escrow TalentSync, memberikan rasa aman bagi kedua belah pihak.',
+        proTip: 'Tentukan batas akhir (tenggat waktu) yang realistis minimal 3-5 hari agar mahasiswa memiliki waktu memadai untuk konsultasi dengan mentor sebelum pengumpulan final.',
       ),
       InAppArticle(
         id: 'msme_guide_badge_talents',
@@ -1089,7 +1089,7 @@ class MsmeDashboardScreen extends StatelessWidget {
           'Mahasiswa ber-badge telah menyelesaikan uji studi kasus dengan skor minimal 80 dari Peer Mentor.',
           'Meminimalkan risiko hasil kerja tidak sesuai standar atau kesalahan teknis fatal.',
           'Gunakan fitur "Tolak & Arahkan Bimbingan" untuk membina pelamar yang potensial namun belum siap.',
-          'Fitur filter pelamar ber-badge otomatis tersedia bagi pemegang akun Premium UMKM.',
+          'Fitur penyaringan pelamar ber-lencana rekomendasi otomatis tersedia bagi pemegang akun Premium UMKM.',
         ],
         fullContent: 'Di TalentSync, mahasiswa tidak hanya mengunggah klaim keahlian sepihak. Mahasiswa yang memiliki Badge Rekomendasi Mentor telah melalui proses uji kualifikasi ketat di Ruang Belajar bersama Peer Mentor berpengalaman.\n\nJika kamu menerima lamaran dari mahasiswa yang belum ber-badge dan hasil portofolionya belum meyakinkan, kamu bisa menggunakan tombol "Tolak & Arahkan Bimbingan". Sistem akan mengirimkan pesan edukatif yang membimbing mahasiswa tersebut untuk mengikuti mentoring terlebih dahulu sebelum melamar kembali di usahamu.',
         proTip: 'Pelamar ber-badge mentor memiliki tingkat keberhasilan menyelesaikan proyek tepat waktu sebesar 96% tanpa perlu revisi berulang.',
@@ -1106,11 +1106,11 @@ class MsmeDashboardScreen extends StatelessWidget {
         keyPoints: [
           'Dana TimeCoin terkunci di brankas escrow selama masa pengerjaan proyek.',
           'UMKM memegang kendali penuh validasi hasil kerja sebelum dana dilepas.',
-          'Tersedia hak pengajuan revisi hingga 2x bila deliverable belum sesuai brief kesepakatan.',
+          'Tersedia hak pengajuan revisi hingga 2x bila hasil kerja belum sesuai instruksi kesepakatan.',
           'Layanan mediasi bantuan mentor pendamping jika terjadi kendala komunikasi teknis.',
         ],
         fullContent: 'Kekhawatiran terbesar pemilik UMKM saat bekerjasama dengan pekerja lepas adalah risiko dana hangus sementara hasil pekerjaan tidak selesai. TalentSync menghapus risiko tersebut melalui sistem Smart Escrow.\n\nSaat kamu menerima pelamar, TimeCoin sesuai imbalan proyek akan dibekukan sementara di rekening penampung (escrow). Mahasiswa hanya menerima transfer koin setelah kamu menekan tombol "Validasi Hasil & Transfer Imbalan". Jika ada ketidaksesuaian, kamu bisa meminta revisi atau menyarankan mahasiswa berkonsultasi dengan mentor pendamping.',
-        proTip: 'Jangan ragu memberikan review dan rating bintang 5 jika mahasiswa memberikan hasil kerja di atas ekspektasi untuk membantu membangun reputasi digital mereka.',
+        proTip: 'Jangan ragu memberikan ulasan dan penilaian bintang 5 jika mahasiswa memberikan hasil kerja di atas ekspektasi untuk membantu membangun reputasi digital mereka.',
       ),
     ];
 

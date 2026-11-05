@@ -305,10 +305,7 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Text(
               'Percakapan terenkripsi · tersimpan sebagai bukti kerja',
-              style: TextStyle(
-                color: AppColors.secondarySlate,
-                fontSize: 11.5,
-              ),
+              style: TextStyle(color: AppColors.secondarySlate, fontSize: 11.5),
             ),
           ),
 
@@ -340,9 +337,7 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
             ),
             decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(
-                top: BorderSide(color: AppColors.borderSlate),
-              ),
+              border: Border(top: BorderSide(color: AppColors.borderSlate)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -366,7 +361,9 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppColors.borderSlate),
+                                border: Border.all(
+                                  color: AppColors.borderSlate,
+                                ),
                               ),
                               child: Text(
                                 reply,
@@ -463,8 +460,9 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    AppColors.primaryNavy.withValues(alpha: 0.25),
+                                color: AppColors.primaryNavy.withValues(
+                                  alpha: 0.25,
+                                ),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),

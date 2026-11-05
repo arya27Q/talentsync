@@ -313,7 +313,7 @@ class _MsmeCreateTaskWizardScreenState
     ),
     _TemplateItem(
       title: 'Setup Media Sosial',
-      subtitle: 'Feed, bio, dan template',
+      subtitle: 'Konten feed, bio, & visual',
       price: '60–120 TC',
       icon: Icons.tag_rounded,
       isPopular: true,
@@ -325,7 +325,7 @@ class _MsmeCreateTaskWizardScreenState
       icon: Icons.camera_alt_rounded,
     ),
     _TemplateItem(
-      title: 'Landing Page',
+      title: 'Halaman Web Promosi',
       subtitle: 'Halaman pemesanan online',
       price: '150–300 TC',
       icon: Icons.language_rounded,
@@ -337,7 +337,7 @@ class _MsmeCreateTaskWizardScreenState
       icon: Icons.smartphone_rounded,
     ),
     _TemplateItem(
-      title: 'Dashboard Data',
+      title: 'Laporan & Data Usaha',
       subtitle: 'Laporan penjualan rapi',
       price: '100–200 TC',
       icon: Icons.bar_chart_rounded,
@@ -415,7 +415,7 @@ class _MsmeCreateTaskWizardScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Create Task Wizard',
+                      'Panduan Buat Tugas',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -425,7 +425,7 @@ class _MsmeCreateTaskWizardScreenState
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Langkah 1 dari 3 · Pilih template',
+                      'Langkah 1 dari 3 · Pilih Kategori Tugas',
                       style: TextStyle(
                         fontSize: 12.5,
                         color: AppColors.secondarySlate,
@@ -485,7 +485,7 @@ class _MsmeCreateTaskWizardScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Pilih kebutuhan usahamu. Detail, deliverable, dan kisaran imbalan sudah kami siapkan.',
+                    'Pilih kebutuhan usahamu. Rincian tugas, hasil kerja, dan kisaran imbalan sudah kami siapkan.',
                     style: TextStyle(
                       fontSize: 13.5,
                       color: AppColors.secondarySlate,
@@ -528,14 +528,14 @@ class _MsmeCreateTaskWizardScreenState
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                  'Buka halaman Upgrade Slot proyek.',
+                                  'Buka halaman Tambah Kuota Slot Proyek.',
                                 ),
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
                           },
                           child: const Text(
-                            'Tambah slot',
+                            'Tambah Slot',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
