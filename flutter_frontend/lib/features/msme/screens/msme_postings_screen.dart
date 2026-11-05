@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
@@ -154,6 +155,43 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
               child: Column(
                 children: [
+                  // Showcase Carousel: Standar & Dokumentasi Kualitas Proyek UMKM
+                  const InteractiveImageCarousel(
+                    margin: EdgeInsets.only(bottom: 16),
+                    height: 170,
+                    items: [
+                      CarouselSlideItem(
+                        imageUrl:
+                            'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80',
+                        tag: 'Tahap 1: Riset',
+                        tagColor: AppColors.primaryNavy,
+                        title: 'Briefing & Riset Visual Kemasan',
+                        subtitle:
+                            'Mahasiswa menyusun moodboard visual sesuai target pasar sebelum eksekusi desain.',
+                        buttonText: 'Alur',
+                      ),
+                      CarouselSlideItem(
+                        imageUrl:
+                            'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+                        tag: 'Tahap 2: Deliverable',
+                        tagColor: Color(0xFFB45309),
+                        title: 'Uji Coba Lapangan & Mockup Cetak',
+                        subtitle:
+                            'Penerapan desain pada kemasan botol sambal atau menu board kafe secara nyata.',
+                        buttonText: 'Standar',
+                      ),
+                      CarouselSlideItem(
+                        imageUrl:
+                            'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80',
+                        tag: 'Tahap 3: Escrow',
+                        tagColor: Color(0xFF10B981),
+                        title: 'Serah Terima & Pencairan TimeCoin',
+                        subtitle:
+                            'File siap cetak diserahkan dan dana escrow ditransfer dengan ulasan bintang.',
+                        buttonText: 'Ketentuan',
+                      ),
+                    ],
+                  ),
                   if (_selectedTabIndex == 0) ...[
                     // Tab 0: Rekrut (1) -> Aplikasi Menu & Pre-order Kopi
                     _buildRecruitingCard(context),
@@ -244,7 +282,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
             const SizedBox(width: 8),
             _buildTcTagChip('380 TC'),
             const SizedBox(width: 8),
-            _buildTagChip('3 SKS · 1 Bulan', const Color(0xFFF1F5F9), const Color(0xFF475569)),
+            _buildTagChip('1 Bulan', const Color(0xFFF1F5F9), const Color(0xFF475569)),
           ],
         ),
 
@@ -417,7 +455,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
             const SizedBox(width: 8),
             _buildTcTagChip('120 TC'),
             const SizedBox(width: 8),
-            _buildTagChip('2 SKS · 3 Minggu', const Color(0xFFF1F5F9), const Color(0xFF475569)),
+            _buildTagChip('3 Minggu', const Color(0xFFF1F5F9), const Color(0xFF475569)),
           ],
         ),
 
@@ -504,7 +542,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
           child: const Row(
             children: [
               Icon(
-                Icons.rate_review_outlined,
+                Icons.rate_review_rounded,
                 color: Color(0xFFB45309),
                 size: 18,
               ),
@@ -700,7 +738,7 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
             const SizedBox(width: 8),
             _buildTcTagChip('60 TC'),
             const SizedBox(width: 8),
-            _buildTagChip('1 SKS · 5 Hari', const Color(0xFFF1F5F9), const Color(0xFF475569)),
+            _buildTagChip('5 Hari', const Color(0xFFF1F5F9), const Color(0xFF475569)),
           ],
         ),
 

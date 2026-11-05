@@ -253,7 +253,7 @@ class MentorBookingDetailScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _MetricBox(
-                              icon: Icons.calendar_today_outlined,
+                              icon: Icons.calendar_today_rounded,
                               iconColor: AppColors.primaryNavy,
                               line1: booking.date,
                             ),
@@ -460,7 +460,7 @@ class MentorBookingDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
                       Icon(
-                        Icons.shield_outlined,
+                        Icons.shield_rounded,
                         color: AppColors.primaryNavy,
                         size: 20,
                       ),
@@ -568,7 +568,7 @@ class MentorBookingDetailScreen extends StatelessWidget {
                               ),
                               SizedBox(width: 8),
                               Icon(
-                                Icons.calendar_month_outlined,
+                                Icons.calendar_month_rounded,
                                 color: Colors.white,
                                 size: 18,
                               ),
@@ -657,7 +657,7 @@ class MentorBookingDetailScreen extends StatelessWidget {
                               ),
                               SizedBox(width: 8),
                               Icon(
-                                Icons.videocam_outlined,
+                                Icons.videocam_rounded,
                                 color: Colors.white,
                                 size: 20,
                               ),

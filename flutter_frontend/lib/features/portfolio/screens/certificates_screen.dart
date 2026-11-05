@@ -41,7 +41,7 @@ class CertificatesScreen extends StatelessWidget {
         issuer: 'Warung Pak Gito via TalentSync',
         category: 'Proyek UMKM',
         date: '2 Jun 2025',
-        icon: Icons.storefront_outlined,
+        icon: Icons.storefront_rounded,
         iconBg: AppColors.lightBlueSurface,
         iconColor: AppColors.primaryNavy,
         badgeBg: const Color(0xFFEFF6FF),
@@ -63,7 +63,7 @@ class CertificatesScreen extends StatelessWidget {
         issuer: 'Kerajinan Anyam Ayu via TalentSync',
         category: 'Proyek UMKM',
         date: '18 Mei 2025',
-        icon: Icons.storefront_outlined,
+        icon: Icons.storefront_rounded,
         iconBg: AppColors.lightBlueSurface,
         iconColor: AppColors.primaryNavy,
         badgeBg: const Color(0xFFEFF6FF),
@@ -351,7 +351,7 @@ class CertificatesScreen extends StatelessWidget {
                     child: const Padding(
                       padding: EdgeInsets.all(10),
                       child: Icon(
-                        Icons.explore_outlined,
+                        Icons.explore_rounded,
                         color: AppColors.secondarySlate,
                         size: 24,
                       ),
@@ -365,7 +365,7 @@ class CertificatesScreen extends StatelessWidget {
                     child: const Padding(
                       padding: EdgeInsets.all(10),
                       child: Icon(
-                        Icons.assignment_outlined,
+                        Icons.assignment_rounded,
                         color: AppColors.secondarySlate,
                         size: 24,
                       ),
@@ -379,7 +379,7 @@ class CertificatesScreen extends StatelessWidget {
                     child: const Padding(
                       padding: EdgeInsets.all(10),
                       child: Icon(
-                        Icons.account_balance_wallet_outlined,
+                        Icons.account_balance_wallet_rounded,
                         color: AppColors.secondarySlate,
                         size: 24,
                       ),

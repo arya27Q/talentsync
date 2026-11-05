@@ -1,121 +1,154 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/core/constants/app_colors.dart';
 
 class AchievementPopup {
-  static void show(BuildContext context) {
+  static void show(
+    BuildContext context, {
+    String title = 'Pencapaian Baru Terbuka!',
+    String message = 'Selamat! Kamu berhasil menyelesaikan evaluasi bimbingan.',
+    int timeCoins = 5,
+  }) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Dismiss',
-      barrierColor: Colors.black.withValues(alpha: 0.7),
-      transitionDuration: const Duration(milliseconds: 500),
+      barrierLabel: 'Tutup',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, animation, secondaryAnimation) {
         return const SizedBox();
       },
       transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final scale = CurvedAnimation(
+        final curved = CurvedAnimation(
           parent: animation,
-          curve: Curves.elasticOut,
+          curve: Curves.easeOutCubic,
         );
         return ScaleTransition(
-          scale: scale,
+          scale: curved,
           child: AlertDialog(
             backgroundColor: Colors.transparent,
             contentPadding: EdgeInsets.zero,
             elevation: 0,
             content: Container(
               width: MediaQuery.of(context).size.width * 0.85,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(32),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFF57C00).withValues(alpha: 0.3),
-                    blurRadius: 30,
-                    spreadRadius: 10,
+                    color: AppColors.darkSlate.withValues(alpha: 0.12),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Icon(
-                        Icons.toll_rounded,
-                        color: const Color(0xFFFFC107).withValues(alpha: 0.5),
-                        size: 100,
+                  // Icon Header
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFFDE68A),
+                        width: 2,
                       ),
-                      const Positioned(
-                        left: 20,
-                        top: 20,
-                        child: Icon(
-                          Icons.toll_rounded,
-                          color: Color(0xFFFFCA28),
-                          size: 40,
-                        ),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.workspace_premium_rounded,
+                        color: Color(0xFFD97706),
+                        size: 38,
                       ),
-                      const Positioned(
-                        right: 10,
-                        bottom: 10,
-                        child: Icon(
-                          Icons.toll_rounded,
-                          color: Color(0xFFFFB300),
-                          size: 60,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'MISSION ACCOMPLISHED!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF4D332D),
-                      letterSpacing: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '+5 TimeCoins Earned',
-                    style: TextStyle(
+                  const SizedBox(height: 20),
+
+                  // Title
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFF57C00),
+                      color: AppColors.darkSlate,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 8),
+
+                  // Message Description
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      color: AppColors.secondarySlate,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // TimeCoin Reward Badge
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.borderSlate),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.toll_rounded,
+                          color: AppColors.accentAmberGold,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '+$timeCoins TimeCoin Ditambahkan',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Primary Action Button
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4D332D),
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppColors.primaryNavy,
+                        borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF4D332D)
-                                .withValues(alpha: 0.3),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
+                            color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: const Center(
                         child: Text(
-                          'Awesome!',
+                          'Lanjutkan Aktivitas',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 14,
                           ),
                         ),
                       ),

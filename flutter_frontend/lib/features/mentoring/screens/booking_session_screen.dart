@@ -261,7 +261,7 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.shield_outlined,
+                            Icons.shield_rounded,
                             size: 13,
                             color: Color(0xFF16A34A),
                           ),
@@ -467,7 +467,7 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                         children: [
                           Expanded(
                             child: _buildSummaryBox(
-                              icon: Icons.videocam_outlined,
+                              icon: Icons.videocam_rounded,
                               label: 'Platform',
                               value: 'Google Meet',
                             ),
@@ -475,7 +475,7 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: _buildSummaryBox(
-                              icon: Icons.description_outlined,
+                              icon: Icons.description_rounded,
                               label: 'Fasilitas',
                               value: 'Rekaman & Notion',
                             ),
@@ -520,7 +520,7 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                       Row(
                         children: [
                           const Icon(
-                            Icons.account_balance_wallet_outlined,
+                            Icons.account_balance_wallet_rounded,
                             size: 20,
                             color: AppColors.primaryNavy,
                           ),
@@ -743,7 +743,7 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                       const Row(
                         children: [
                           Icon(
-                            Icons.shield_outlined,
+                            Icons.shield_rounded,
                             size: 20,
                             color: AppColors.primaryNavy,
                           ),
@@ -900,7 +900,7 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                             ),
                             SizedBox(width: 8),
                             Icon(
-                              Icons.lock_outline_rounded,
+                              Icons.lock_rounded,
                               color: Colors.white,
                               size: 16,
                             ),

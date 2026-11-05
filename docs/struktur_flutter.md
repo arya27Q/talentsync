@@ -88,6 +88,13 @@ lib/
 │   │   ├── screens/                      # mentor_dashboard_screen, mentor_bookings_screen, mentor_services_screen, mentor_wallet_screen
 │   │   └── widgets/                      # mentor_ui, student_eval_card, badge_stamp_widget
 │   │
+│   ├── msme/                             # Fitur POV Khusus Mitra UMKM
+│   │   ├── controllers/                  # MsmeTaskController, MsmeApplicantController
+│   │   ├── data/                         # MsmeApiService (posting proyek, review pelamar, validasi)
+│   │   ├── models/                       # MsmeStoreModel, MsmeTaskWizardModel
+│   │   ├── screens/                      # msme_dashboard_screen, msme_postings_screen, msme_review_applicants_screen, msme_review_submission_screen, msme_barter_screen, msme_store_profile_screen
+│   │   └── widgets/                      # msme_bottom_nav, applicant_card, milestone_tile
+│   │
 │   ├── wallet/                           # Fitur Dompet TimeCoin, Mutasi & Cash-Out
 │   │   ├── controllers/                  # WalletController, CashOutController
 │   │   ├── data/                         # WalletApiService (saldo, ledger transaksi, withdraw)

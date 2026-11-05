@@ -114,22 +114,22 @@ class _StudentMainLayoutState extends State<StudentMainLayout> {
                 children: [
                   _buildNavItem(
                     icon: Icons.explore_rounded,
-                    label: 'Explore',
+                    label: 'Eksplorasi',
                     index: 0,
                   ),
                   _buildNavItem(
-                    icon: Icons.assignment_outlined,
-                    label: 'My Tasks',
+                    icon: Icons.assignment_rounded,
+                    label: 'Tugas Saya',
                     index: 1,
                   ),
                   _buildNavItem(
-                    icon: Icons.account_balance_wallet_outlined,
-                    label: 'Wallet',
+                    icon: Icons.account_balance_wallet_rounded,
+                    label: 'Dompet',
                     index: 2,
                   ),
                   _buildNavItem(
                     icon: Icons.person_outline_rounded,
-                    label: 'Profile',
+                    label: 'Profil',
                     index: 3,
                   ),
                 ],

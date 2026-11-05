@@ -1039,7 +1039,7 @@ class _MsmeApplicantProfileScreenState
           child: Icon(
             isMentor
                 ? Icons.military_tech_rounded
-                : Icons.workspace_premium_outlined,
+                : Icons.workspace_premium_rounded,
             color: isMentor ? const Color(0xFFF59E0B) : AppColors.primaryNavy,
             size: 22,
           ),

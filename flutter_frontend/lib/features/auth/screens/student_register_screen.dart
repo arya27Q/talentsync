@@ -12,19 +12,19 @@ class StudentRegisterScreen extends StatelessWidget {
     return SharedAuthLayout(
       title: 'Daftar Mahasiswa',
       children: [
-        buildFloatingTextField('Nama Lengkap', Icons.person_outline),
-        buildFloatingTextField('Email Kampus / Pribadi', Icons.email_outlined),
+        buildFloatingTextField('Nama Lengkap', Icons.person_outline_rounded),
+        buildFloatingTextField('Email Kampus / Pribadi', Icons.email_rounded),
         buildFloatingTextField(
           'NIM (Nomor Induk Mahasiswa)',
-          Icons.badge_outlined,
+          Icons.badge_rounded,
         ),
         buildFloatingTextField(
           'Password',
-          Icons.lock_outline,
+          Icons.lock_outline_rounded,
           isPassword: true,
         ),
         const SizedBox(height: 10),
-        buildUploadButton('Unggah Foto KTM', Icons.upload_file, () {
+        buildUploadButton('Unggah Foto KTM', Icons.upload_file_rounded, () {
           // TODO: Implement image_picker
         }),
         const SizedBox(height: 20),

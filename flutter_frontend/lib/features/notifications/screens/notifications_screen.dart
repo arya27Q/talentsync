@@ -336,7 +336,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildNavIcon(
-                    icon: Icons.explore_outlined,
+                    icon: Icons.explore_rounded,
                     onTap: () {
                       Navigator.pushNamedAndRemoveUntil(
                         context,
@@ -346,7 +346,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     },
                   ),
                   _buildNavIcon(
-                    icon: Icons.assignment_outlined,
+                    icon: Icons.assignment_rounded,
                     onTap: () {
                       Navigator.pushReplacementNamed(
                         context,
@@ -355,7 +355,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     },
                   ),
                   _buildNavIcon(
-                    icon: Icons.account_balance_wallet_outlined,
+                    icon: Icons.account_balance_wallet_rounded,
                     onTap: () {
                       Navigator.pushNamed(context, AppRoutes.wallet);
                     },

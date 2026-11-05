@@ -471,7 +471,7 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                           Row(
                             children: const [
                               Icon(
-                                Icons.shield_outlined,
+                                Icons.shield_rounded,
                                 size: 14,
                                 color: AppColors.primaryNavy,
                               ),

@@ -235,7 +235,7 @@ class StudentOnboardingScreen extends StatelessWidget {
                                   subtitle: '1 TC setara Rp1.000',
                                 ),
                                 _buildTimelineItem(
-                                  icon: Icons.account_balance_wallet_outlined,
+                                  icon: Icons.account_balance_wallet_rounded,
                                   iconBg: AppColors.lightBlueSurface,
                                   iconColor: AppColors.primaryNavy,
                                   title: 'Cairkan atau belanjakan',

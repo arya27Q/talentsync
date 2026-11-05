@@ -1,4 +1,4 @@
-# 🧠 GEMINI.MD — TalentSync Knowledge Base & Agent Guidelines
+﻿# 🧠 GEMINI.MD — TalentSync Knowledge Base & Agent Guidelines
 
 Dokumen ini adalah **pedoman memori utama (living documentation)** bagi asisten AI (Gemini / Antigravity) saat mengelola, mengembangkan, dan memodifikasi proyek **TalentSync**. Berkas ini merangkum seluruh hasil analisis, aturan baku desain, preferensi pengguna, arsitektur teknis, serta log penyelesaian masalah (*troubleshooting log*) agar agen **TIDAK PERLU menganalisis ulang dari awal** dan dapat langsung bertindak secara konsisten.
 
@@ -209,16 +209,55 @@ Bagian ini mencatat setiap masalah teknis yang pernah dihadapi agar agen langsun
 | 2026-11-02 | Warning deprecated `activeColor` pada `Switch` di Flutter 3.31+ | Flutter SDK versi terbaru mengganti `activeColor` dengan `activeThumbColor`. | Gunakan `activeThumbColor: ...` pada widget `Switch`. |
 | 2026-11-02 | Unused element `_buildNavIcon` di `switch_to_mentor_screen.dart` | Method sisa refactoring UI bottom navigation. | Hapus method tidak terpakai agar `flutter analyze` 100% bersih tanpa warning. |
 | 2026-11-02 | Layout overflow pada chip estimasi waktu lamaran | Teks panjang pada layar sempit melebihi batas container horizontal. | Bungkus dengan `Expanded` dan `FittedBox(fit: BoxFit.scaleDown)` agar teks otomatis menyesuaikan ukuran layar tanpa overflow. |
+| 2026-11-04 | Hapus referensi SKS & ubah auth mahasiswa ke KTM | Konsep kurikulum kampus SKS dihilangkan agar fokus pada ekosistem proyek nyata & portofolio; login mahasiswa diarahkan via NIM/KTM (tanpa SSO). | Ganti metrik SKS menjadi 'Proyek Selesai', hapus filter konversi SKS, ubah form login mahasiswa menjadi NIM/KTM, dan hapus SSO kampus. |
+| 2026-11-04 | Standardisasi Bahasa Indonesia & Footer Nav | Masih terdapat istilah bahasa Inggris (Explore, My Tasks, Wallet, Profile) pada footer mahasiswa. | Ganti seluruh label bottom nav menjadi 'Eksplorasi', 'Tugas Saya', 'Dompet', dan 'Profil'. |
+| 2026-11-04 | Redesain Pendaftaran Mentor Peer (Bukan Profesional) | Halaman register mentor sebelumnya bertuliskan 'Mentor Profesional' dengan form CV korporat. | Rombak total `mentor_register_screen.dart` menjadi Peer Mentor (mahasiswa senior/praktisi muda) dengan tarif terjangkau TC, bukti portofolio, dan kode etik bimbingan. |
+| 2026-11-04 | Standardisasi Icon Rounded & Banner Showcase Mentor | Konsistensi ikon Style #1 (Material Icons Rounded) dan penambahan banner ruang kolaborasi visual di dashboard mentor. | Terapkan seluruh icon ke Icons.*_rounded, perbaiki typo getter icon, dan sematkan _buildVisualCollaborationBanner foto kerja kolaboratif bergradien gelap. |
+| 2026-11-04 | Standardisasi 100% Seluruh Halaman ke Style #1 | Menyelaraskan seluruh modul (Auth, Mahasiswa, Mitra UMKM, Project, Mentoring, Portfolio, Wallet, Workspace) ke Material Icons Rounded & font bawaan Flutter. | Konversi 52 jenis icon varian outlined ke Icons.*_rounded di 48 berkas layar tanpa mengubah struktur logika bisnis, rute, atau layout yang sudah ada. |
+| 2026-11-04 | Penggantian Icon Petir & Penambahan Interactive Carousel Gambar | Menghilangkan seluruh icon petir (bolt) ke icon kerja/progress profesional dan menambahkan carousel foto interaktif dengan tombol geser di Dashboard Mahasiswa, Dashboard UMKM, Store Profile UMKM, Postings UMKM, & Barter UMKM. | Ganti Icons.bolt_rounded ke timelapse/assignment/verified_user, buat InteractiveImageCarousel di core/widgets, dan sematkan galeri visual interaktif dengan kontrol prev/next & slide dots. |
+| 2026-11-05 | Spacing Chip Barter, Format Saldo TC/Rupiah & Navigasi Mentor | Chip voucher pada layar barter UMKM dempet saat membungkus baris, teks kuota sosial belum mencantumkan nominal Rupiah, saldo mentor menampilkan Rupiah di atas TC, 3 kartu metrik mentor tingginya tidak presisi dan memiliki interaksi klik yang tidak diinginkan. | Tambahkan runSpacing: 10 pada Wrap voucher barter UMKM, ubah teks kuota sosial menjadi Setara Rp520.000, posisikan TC di bagian atas dengan Rupiah di bawahnya pada dashboard mentor, buat 3 kartu metrik menjadi display-only dengan IntrinsicHeight & SizedBox(height: 28), serta bangun kartu navigasi kerja mentor tersendiri dengan tombol aksi eksplisit (_buildQuickNavButton). |
+| 2026-11-05 | Aksesibilitas Tombol Logout Mahasiswa & Ekosistem Segitiga | Mahasiswa kesulitan keluar dari sesi akun karena dashboard utama tidak memiliki tombol logout dan pada profil opsi logout tertimbun di bawah serta gear salah membuka editProfile. | Tambahkan tombol Logout merah eksplisit di header Dashboard Mahasiswa, header Profil Mahasiswa (berdampingan dengan Settings), sediakan kartu dedicated Sesi Akun di bagian bawah profil, pasang dialog konfirmasi _showLogoutConfirmation, serta integrasikan UI jembatan ekosistem (Tolak & Arahkan Bimbingan Mentor oleh UMKM, Banner Pendampingan Mentor di Kanban). |
+| 2026-11-05 | Efek Loading Transisi Login ke Beranda (3 POV) | Perpindahan dari login menuju dashboard terjadi seketika tanpa indikator visual, berpotensi memicu double tap atau kebingungan pengguna. | Pasang state _isLoading asinkron (~1100ms) dengan spinner CircularProgressIndicator + micro-copy verifikasi peran ('Memverifikasi Mahasiswa...', 'Memverifikasi Mitra UMKM...', 'Memverifikasi Mentor...'), kunci input layar dengan AbsorbPointer, dan nonaktifkan tombol selama proses autentikasi berlangsung. |
+| 2026-11-05 | Fitur Proyek Kustom di Create Task Wizard UMKM | Layar Create Task Wizard UMKM awalnya hanya menyediakan 6 template baku tanpa jalan keluar bagi UMKM yang memiliki kebutuhan proyek spesifik (misal video reels/TikTok, SOP inventaris toko, terjemahan menu, audit pembukuan). | Tambahkan kartu template 'Kebutuhan Kustom' (ikon tune_rounded), sematkan banner callout eksplisit di bawah grid ('Tidak menemukan kebutuhan usahamu? Tulis Proyek Kustom Sendiri'), dan sediakan modal form interaktif _showCustomProjectDialog untuk menentukan judul, kategori keahlian, alokasi imbalan TC, serta ringkasan tugas bebas. |
+| 2026-11-05 | In-App Guide & Artikel Interaktif Berfoto di 3 Dashboard | Dashboard terasa kaku dan pengguna baru belum memahami fitur kunci (pencairan TC 0% admin, perolehan badge mentor, switch role mentor, smart escrow, posting proyek kustom, standar QA evaluasi). | Bangun widget modular InAppGuideSection di core/widgets lengkap dengan InAppArticle & bottom sheet reader interaktif, lalu sematkan carousel artikel edukatif berfoto Unsplash di Dashboard Mahasiswa, Dashboard UMKM, dan Dashboard Mentor. |
+| 2026-11-05 | Fix White Screen: Horizontal Viewport Unbounded Width | Widget InAppGuideSection sempat terpanggil di dalam Row kartu rekomendasi/tahap kerja sehingga menerima lebar horizontal tak hingga (w <= Infinity) yang memicu crash render Flutter (layar putih). | Relokasi pemanggilan widget ke Column utama di luar Row, serta bungkus horizontal carousel dengan LayoutBuilder + width: availableWidth (fallback MediaQuery.sizeOf) agar kebal terhadap batasan unbounded. |
+| 2026-11-05 | Tombol Navigasi Cepat 3 Kartu Metrik Dashboard Mitra UMKM | 3 kartu metrik UMKM sebelumnya pasif tanpa tombol aksi eksplisit, menyulitkan UMKM untuk langsung melompat mengelola proyek atau mereview pelamar. | Tambahkan header seksi 'Navigasi Cepat & Status' dengan badge 'Pilih Aksi', bungkus 3 kartu dengan IntrinsicHeight, tambahkan tombol aksi solid eksplisit di bagian bawah masing-masing kartu ('Kelola' -> Postingan Proyek, 'Review' -> Review Pelamar, 'Tinjau' -> Review Pengajuan Hasil) lengkap dengan animasi tap InkWell dan visual badge indikator status. |
 
 ---
 
-## 🏛️ 5. Logika Bisnis Inti (Ekosistem Hybrid & TimeCoin)
+## 🏛️ 5. Logika Bisnis Inti (Ekosistem Segitiga Hybrid & TimeCoin)
 
-* **3 Entitas Pengguna:**
-  1. **Mahasiswa:** Mengikuti mentoring (bayar TC), melamar proyek UMKM (syarat portofolio / badge rekomendasi mentor), menerima transfer TC, bebas *cash-out* ke Rupiah (**0% potongan admin**), dan dapat membuka mode *Switch as a Mentor* jika telah menyelesaikan $\ge 5$ proyek.
-  2. **Mitra UMKM:** Posting proyek dengan imbalan TC, menyeleksi mahasiswa, memvalidasi hasil kerja, memberi rating & ulasan bintang, berlangganan paket Premium (opsional) untuk kuota ekstra & filter pelamar ber-badge.
-  3. **Mentor:** Membuka kelas mentoring dengan tarif TC, memberikan *Badge Rekomendasi Kerja (Endorse)* bagi murid yang kompeten, mencairkan TC ke Rupiah (*Freemium* dipotong biaya admin 10%, *Premium* 0% admin).
+* **3 Entitas Pengguna & Ekosistem Segitiga (Proposal Bab II & Wireframe Hal 15):**
+  1. **Mahasiswa:**
+     - Syarat wajib melamar proyek UMKM: Memiliki **Portofolio Terverifikasi** ATAU **Badge Rekomendasi dari Mentor**.
+     - Jika belum memiliki portofolio: Wajib mencari bimbingan mentor terlebih dahulu (`AppRoutes.findMentors`), menyelesaikan latihan studi kasus di Ruang Belajar, hingga mendapatkan Badge Rekomendasi.
+     - Pengerjaan proyek UMKM menghasilkan imbalan TimeCoin (TC) melalui sistem *escrow*.
+     - Bebas melakukan pencairan (*Cash-Out*) TC ke Rupiah dengan **0% potongan biaya administrasi** ($1\text{ TC} = \text{Rp}1.000$).
+     - Mahasiswa dapat beralih peran menjadi *Peer Mentor* melalui fitur **Switch as a Mentor** setelah menyelesaikan minimal $\ge 5$ proyek UMKM nyata dengan reputasi baik.
+  2. **Mitra UMKM:**
+     - Mendanai imbalan proyek dengan membeli kredit TimeCoin melalui fitur **Top-Up TimeCoin via Rupiah**.
+     - Menyeleksi pelamar berdasarkan riwayat proyek nyata dan kepemilikan Badge Mentor.
+     - Menyediakan aksi penolakan edukatif: **"Tolak & Arahkan Bimbingan Mentor"** bagi pelamar yang belum siap.
+     - Meminta revisi hasil kerja (*deliverable*) dengan opsi menyarankan mahasiswa berkonsultasi dengan mentor pendamping.
+     - Berlangganan paket **Premium UMKM** untuk mendapatkan kuota ekstra hingga 500 TC/bulan, bebas biaya administrasi saat top-up, dan filter pelamar ber-badge mentor.
+  3. **Peer Mentor (Mahasiswa Senior / Praktisi Muda):**
+     - Membuka kelas bimbingan & konsultasi 1-on-1 dengan tarif TC terjangkau.
+     - Bertindak sebagai **Quality Assurance (Penjamin Mutu)** bagi UMKM: Menguji tugas murid (skor $\ge 80$) dan menerbitkan **Badge Rekomendasi Kerja (Endorse)**.
+     - Memperoleh TC dari mahasiswa dan mencairkannya ke Rupiah (*Freemium* dipotong biaya admin 10%, *Premium* 0% admin).
 * **Konversi Referensi:** $1\text{ TC} \approx \text{Rp}1.000$.
+
+* **Pusat Akses Konsultasi di POV Mahasiswa:**
+  1. *Dashboard Mahasiswa:* Seksi dedicated "Konsultasi & Bimbingan" (kartu mentor aktif, jadwal live bimbingan, tombol Jadwal Saya, tombol Masuk Sesi, dan link Cari Mentor).
+  2. *Workspace Kanban:* Banner bantuan teknis "Mengalami Kendala Teknis Proyek? Konsultasi dengan Mentor" tepat di bawah kolom Kanban.
+  3. *Submission Screen:* Banner pra-pengumpulan "Konsultasi Sebelum Mengumpulkan" untuk review mutu pengerjaan sebelum diserahkan ke UMKM.
+  4. *Katalog Mentoring:* Navigasi langsung ke `/mentors` dengan 10 layar pendukung di `lib/features/mentoring/screens/`.
+
+* **Standar Titik Akses Logout Mahasiswa:**
+  - Header Dashboard Mahasiswa (di sebelah ikon lonceng notifikasi).
+  - Header Profil Mahasiswa (di sebelah ikon gear pengaturan).
+  - Kartu dedicated "Sesi Akun Mahasiswa" di bagian bawah layar profil.
+  - Menu Pengaturan Mahasiswa (`AppRoutes.settings`).
+  - Menu Privasi & Keamanan (`AppRoutes.privacySecurity`).
 
 ---
 

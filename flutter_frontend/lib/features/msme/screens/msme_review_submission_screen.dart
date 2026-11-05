@@ -25,7 +25,9 @@ class _MsmeReviewSubmissionScreenState
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Tahap 2 disetujui! 45 TC telah ditransfer ke Salsa Putri.'),
+        content: Text(
+          'Tahap 2 disetujui! 45 TC telah ditransfer ke Salsa Putri.',
+        ),
         backgroundColor: AppColors.primaryNavy,
         behavior: SnackBarBehavior.floating,
       ),
@@ -68,9 +70,7 @@ class _MsmeReviewSubmissionScreenState
   void _openChat() {
     Navigator.push<void>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const MsmeChatScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const MsmeChatScreen()),
     );
   }
 
@@ -98,7 +98,8 @@ class _MsmeReviewSubmissionScreenState
                         border: Border.all(color: AppColors.borderSlate),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                            color: const Color(0xFF0F172A)
+                                .withValues(alpha: 0.04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -150,7 +151,8 @@ class _MsmeReviewSubmissionScreenState
                         border: Border.all(color: AppColors.borderSlate),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                            color: const Color(0xFF0F172A)
+                                .withValues(alpha: 0.04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -161,7 +163,7 @@ class _MsmeReviewSubmissionScreenState
                         padding: EdgeInsets.zero,
                         onPressed: _openChat,
                         icon: const Icon(
-                          Icons.chat_bubble_outline_rounded,
+                          Icons.chat_bubble_rounded,
                           color: AppColors.darkSlate,
                           size: 20,
                         ),
@@ -345,7 +347,7 @@ class _MsmeReviewSubmissionScreenState
                                 Row(
                                   children: [
                                     const Icon(
-                                      Icons.lock_outline_rounded,
+                                      Icons.lock_rounded,
                                       color: Color(0xFFB45309),
                                       size: 16,
                                     ),
@@ -367,7 +369,7 @@ class _MsmeReviewSubmissionScreenState
 
                             // File 1: PDF
                             _buildAttachmentTile(
-                              icon: Icons.picture_as_pdf_outlined,
+                              icon: Icons.picture_as_pdf_rounded,
                               title: 'menu-board-final.pdf',
                               meta: '8,2 MB',
                             ),
@@ -375,7 +377,7 @@ class _MsmeReviewSubmissionScreenState
 
                             // File 2: ZIP
                             _buildAttachmentTile(
-                              icon: Icons.folder_zip_outlined,
+                              icon: Icons.folder_zip_rounded,
                               title: 'aset-menu-board.zip',
                               meta: 'AI, PNG, SVG · 24 MB',
                             ),
@@ -411,8 +413,7 @@ class _MsmeReviewSubmissionScreenState
                                   ),
                                   children: [
                                     TextSpan(
-                                      text:
-                                          'Menu board ukuran A1 dan versi digital 1080x1350 sudah siap. Warna mengikuti panduan brand dari tahap 1.',
+                                      text: 'Menu board ukuran A1 dan versi digital 1080x1350 sudah siap. Warna mengikuti panduan brand dari tahap 1.',
                                       style: TextStyle(
                                         fontWeight: FontWeight.normal,
                                         color: Color(0xFF475569),
@@ -779,4 +780,3 @@ class _MsmeReviewSubmissionScreenState
     );
   }
 }
-

@@ -236,7 +236,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'PDF · 2,4 MB  |  Dibagikan 8 Jul',
+                      'PDF \u00B7 2,4 MB  |  Dibagikan 8 Jul',
                       style: TextStyle(
                         fontSize: 10,
                         color: Color(0xFF94A3B8),
@@ -344,7 +344,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Video · 25 mnt  |  Dibagikan 8 Jul',
+                      'Video \u00B7 25 mnt  |  Dibagikan 8 Jul',
                       style: TextStyle(
                         fontSize: 10,
                         color: Color(0xFF94A3B8),
@@ -571,7 +571,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   ),
                   SizedBox(width: 6),
                   Text(
-                    'Tenggat 14 Jul · 2 hari lagi',
+                    'Tenggat 14 Jul \u00B7 2 hari lagi',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -730,7 +730,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                   ),
                   SizedBox(width: 6),
                   Text(
-                    'Tenggat 18 Jul · 6 hari lagi',
+                    'Tenggat 18 Jul \u00B7 6 hari lagi',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.secondarySlate,
@@ -882,7 +882,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Icon(
-                Icons.rocket_launch_outlined,
+                Icons.rocket_launch_rounded,
                 color: AppColors.primaryNavy,
                 size: 20,
               ),
@@ -991,7 +991,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
               ),
               const SizedBox(height: 2),
               const Text(
-                'Klien mentor · Koperasi Pasar Genteng',
+                'Klien mentor \u00B7 Koperasi Pasar Genteng',
                 style: TextStyle(fontSize: 11, color: AppColors.secondarySlate),
               ),
               const SizedBox(height: 8),
@@ -1039,7 +1039,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    '10 Jun – 28 Jun 2025',
+                    '10 Jun \u00B7 28 Jun 2025',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.secondarySlate,
@@ -1097,7 +1097,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     child: Row(
                       children: const [
                         Icon(
-                          Icons.bolt_rounded,
+                          Icons.timelapse_rounded,
                           size: 12,
                           color: AppColors.primaryNavy,
                         ),
@@ -1292,7 +1292,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                           ),
                           SizedBox(width: 6),
                           Icon(
-                            Icons.videocam_outlined,
+                            Icons.videocam_rounded,
                             color: Colors.white,
                             size: 16,
                           ),
@@ -1424,7 +1424,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.visibility_outlined,
+                          Icons.visibility_rounded,
                           size: 15,
                           color: AppColors.primaryNavy,
                         ),
@@ -1496,7 +1496,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
         // Session 1: Terjadwal (Amber Dot)
         _buildTimelineCard(
           dotColor: const Color(0xFFF59E0B),
-          date: 'Sel, 15 Jul · 19.00',
+          date: 'Sel, 15 Jul \u00B7 19.00',
           title: 'Persiapan wawancara Flutter',
           badgeText: 'Terjadwal',
           badgeBg: const Color(0xFFFFF7ED),
@@ -1555,7 +1555,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
           iconBg: const Color(0xFFFEF3C7),
           iconColor: const Color(0xFFD97706),
           title: 'Rekomendasi Kerja: Flutter Developer',
-          subtitle: 'Rekomendasi Kerja · 8 Jul 2025 · TS-END-0087',
+          subtitle: 'Rekomendasi Kerja \u00B7 8 Jul 2025 \u00B7 TS-END-0087',
         ),
 
         _buildMentorCertificateCard(
@@ -1563,7 +1563,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
           iconBg: const Color(0xFFEFF6FF),
           iconColor: AppColors.primaryNavy,
           title: 'Lulus Bimbingan: Arsitektur Flutter & BLoC',
-          subtitle: 'Kelulusan · 8 Jul 2025 · TS-MNT-0211',
+          subtitle: 'Kelulusan \u00B7 8 Jul 2025 \u00B7 TS-MNT-0211',
         ),
       ],
     );
@@ -1642,7 +1642,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                               ),
                               SizedBox(height: 2),
                               Text(
-                                'Dimas Prasetyo · materi, tugas, proyek...',
+                                'Dimas Prasetyo \u00B7 materi, tugas, proyek...',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: AppColors.secondarySlate,
@@ -1911,7 +1911,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildNavIcon(
-                    icon: Icons.explore_outlined,
+                    icon: Icons.explore_rounded,
                     onTap: () {
                       Navigator.pushNamedAndRemoveUntil(
                         context,
@@ -1921,7 +1921,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     },
                   ),
                   _buildNavIcon(
-                    icon: Icons.assignment_outlined,
+                    icon: Icons.assignment_rounded,
                     onTap: () {
                       Navigator.pushReplacementNamed(
                         context,
@@ -1930,7 +1930,7 @@ class _RuangBelajarScreenState extends State<RuangBelajarScreen> {
                     },
                   ),
                   _buildNavIcon(
-                    icon: Icons.account_balance_wallet_outlined,
+                    icon: Icons.account_balance_wallet_rounded,
                     onTap: () {
                       Navigator.pushNamed(context, AppRoutes.wallet);
                     },

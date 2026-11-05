@@ -153,7 +153,7 @@ class CaseStudyScreen extends StatelessWidget {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.explore_outlined,
+                  Icons.explore_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -165,7 +165,7 @@ class CaseStudyScreen extends StatelessWidget {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.assignment_outlined,
+                  Icons.assignment_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -177,7 +177,7 @@ class CaseStudyScreen extends StatelessWidget {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.account_balance_wallet_outlined,
+                  Icons.account_balance_wallet_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -260,7 +260,7 @@ class CaseStudyScreen extends StatelessWidget {
                             border: Border.all(color: AppColors.borderSlate),
                           ),
                           child: const Icon(
-                            Icons.picture_as_pdf_outlined,
+                            Icons.picture_as_pdf_rounded,
                             color: AppColors.darkSlate,
                             size: 20,
                           ),

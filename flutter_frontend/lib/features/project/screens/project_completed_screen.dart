@@ -198,7 +198,7 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                               Row(
                                 children: [
                                   Icon(
-                                    Icons.account_balance_wallet_outlined,
+                                    Icons.account_balance_wallet_rounded,
                                     color: Colors.white,
                                     size: 16,
                                   ),
@@ -217,7 +217,7 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                               Row(
                                 children: [
                                   Icon(
-                                    Icons.workspace_premium_outlined,
+                                    Icons.workspace_premium_rounded,
                                     color: Colors.white,
                                     size: 16,
                                   ),

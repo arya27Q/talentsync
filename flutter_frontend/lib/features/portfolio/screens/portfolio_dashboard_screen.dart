@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
@@ -180,7 +180,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.explore_outlined,
+                  Icons.explore_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -192,7 +192,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.assignment_outlined,
+                  Icons.assignment_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -204,7 +204,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.account_balance_wallet_outlined,
+                  Icons.account_balance_wallet_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -221,7 +221,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                   Icon(Icons.person_rounded, color: Colors.white, size: 18),
                   SizedBox(width: 8),
                   Text(
-                    'Profile',
+                    'Profil',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -445,6 +445,59 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
     );
   }
 
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
+            SizedBox(width: 10),
+            Text(
+              'Keluar dari Akun?',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari akun mahasiswa? Anda harus masuk kembali dengan NIM dan kata sandi.',
+          style: TextStyle(fontSize: 13, height: 1.4, color: AppColors.secondarySlate),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal', style: TextStyle(color: AppColors.secondarySlate)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.roleSelection,
+                (route) => false,
+              );
+            },
+            child: const Text(
+              'Keluar',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -457,49 +510,86 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Bar: My Portfolio & Settings
+                  // Header Bar: Profil Saya & Settings
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'My Portfolio',
+                        'Profil Saya',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: AppColors.darkSlate,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () =>
-                            Navigator.pushNamed(context, AppRoutes.editProfile),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.05,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.settings,
+                            ),
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.darkSlate.withValues(
+                                      alpha: 0.05,
+                                    ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ],
+                              child: const Icon(
+                                Icons.settings_rounded,
+                                color: AppColors.darkSlate,
+                                size: 22,
+                              ),
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.settings_outlined,
-                            color: AppColors.darkSlate,
-                            size: 22,
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => _showLogoutConfirmation(context),
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF2F2),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: const Color(0xFFFCA5A5).withValues(
+                                    alpha: 0.5,
+                                  ),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.darkSlate.withValues(
+                                      alpha: 0.05,
+                                    ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.logout_rounded,
+                                color: Color(0xFFDC2626),
+                                size: 22,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 18),
 
-                  // 1. Profile Header Card (Top Card)
+                  // 1. Profil Header Card (Top Card)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -573,7 +663,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   const Text(
-                                    'Sistem Informasi · UNESA',
+                                    'Sistem Informasi \u00B7 UNESA',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.secondarySlate,
@@ -800,7 +890,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(
-                                      Icons.edit_outlined,
+                                      Icons.edit_rounded,
                                       size: 15,
                                       color: AppColors.darkSlate,
                                     ),
@@ -973,7 +1063,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 const Text(
-                                  '5 sesi · 3.8 jam',
+                                  '5 sesi \u00B7 3.8 jam',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.secondarySlate,
@@ -1025,7 +1115,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                             const SizedBox(width: 10),
                             const Expanded(
                               child: Text(
-                                '@aryapratama · 12 repo · baru saja',
+                                '@aryapratama \u00B7 12 repo \u00B7 baru saja',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -1247,8 +1337,10 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () =>
-                            Navigator.pushNamed(context, AppRoutes.editProfile),
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.editProfile,
+                        ),
                         child: const Text(
                           'Kelola',
                           style: TextStyle(
@@ -1290,7 +1382,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         const Divider(color: AppColors.borderSlate, height: 1),
                         const SizedBox(height: 8),
 
-                        // Skill 1: Flutter · Mahir
+                        // Skill 1: Flutter \u00B7 Mahir
                         _buildVerifiedSkillItem(
                           leadingIconWidget: Container(
                             width: 38,
@@ -1305,12 +1397,12 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                               size: 22,
                             ),
                           ),
-                          title: 'Flutter · Mahir',
-                          subtitle: 'Endorse Dimas Prasetyo · 2 proyek',
+                          title: 'Flutter \u00B7 Mahir',
+                          subtitle: 'Endorse Dimas Prasetyo \u00B7 2 proyek',
                         ),
                         const Divider(color: Color(0xFFF1F5F9), height: 1),
 
-                        // Skill 2: Laravel · Menengah
+                        // Skill 2: Laravel \u00B7 Menengah
                         _buildVerifiedSkillItem(
                           leadingIconWidget: Container(
                             width: 38,
@@ -1325,12 +1417,12 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                               size: 22,
                             ),
                           ),
-                          title: 'Laravel · Menengah',
+                          title: 'Laravel \u00B7 Menengah',
                           subtitle: 'Divalidasi 2 proyek UMKM',
                         ),
                         const Divider(color: Color(0xFFF1F5F9), height: 1),
 
-                        // Skill 3: MySQL · Menengah
+                        // Skill 3: MySQL \u00B7 Menengah
                         _buildVerifiedSkillItem(
                           leadingIconWidget: Container(
                             width: 38,
@@ -1345,12 +1437,12 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                               size: 22,
                             ),
                           ),
-                          title: 'MySQL · Menengah',
+                          title: 'MySQL \u00B7 Menengah',
                           subtitle: 'Divalidasi Warung Pak Gito',
                         ),
                         const Divider(color: Color(0xFFF1F5F9), height: 1),
 
-                        // Skill 4: Dart · Mahir
+                        // Skill 4: Dart \u00B7 Mahir
                         _buildVerifiedSkillItem(
                           leadingIconWidget: Container(
                             width: 38,
@@ -1365,12 +1457,12 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                               size: 20,
                             ),
                           ),
-                          title: 'Dart · Mahir',
+                          title: 'Dart \u00B7 Mahir',
                           subtitle: '7 repositori di GitHub',
                         ),
                         const Divider(color: Color(0xFFF1F5F9), height: 1),
 
-                        // Skill 5: Figma · Dasar (Belum ada bukti)
+                        // Skill 5: Figma \u00B7 Dasar (Belum ada bukti)
                         _buildVerifiedSkillItem(
                           leadingIconWidget: Container(
                             width: 38,
@@ -1385,7 +1477,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                               size: 20,
                             ),
                           ),
-                          title: 'Figma · Dasar',
+                          title: 'Figma \u00B7 Dasar',
                           subtitle: 'Belum ada bukti terverifikasi',
                           trailingWidget: GestureDetector(
                             onTap: () {
@@ -1444,7 +1536,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                   // Project Card 1: Sistem reservasi meja
                   _buildProjectCard(
                     title: 'Sistem reservasi meja',
-                    subtitle: 'Warung Pak Gito · 3 minggu',
+                    subtitle: 'Warung Pak Gito \u00B7 3 minggu',
                     rating: '5.0',
                     tags: ['Laravel', 'MySQL'],
                   ),
@@ -1452,7 +1544,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                   // Project Card 2: Katalog digital produk
                   _buildProjectCard(
                     title: 'Katalog digital produk',
-                    subtitle: 'Kerajinan Anyam Ayu · 2 minggu',
+                    subtitle: 'Kerajinan Anyam Ayu \u00B7 2 minggu',
                     rating: '4.8',
                     tags: ['Flutter', 'Firebase'],
                   ),
@@ -1460,9 +1552,84 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                   // Project Card 3: Landing page promo
                   _buildProjectCard(
                     title: 'Landing page promo',
-                    subtitle: 'Laundry Bersih · 6 hari',
+                    subtitle: 'Laundry Bersih \u00B7 6 hari',
                     rating: '4.9',
                     tags: ['Figma', 'HTML'],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 6. Kartu Sesi Akun & Logout
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFFEE2E2)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.darkSlate.withValues(alpha: 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sesi Akun Mahasiswa',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Keluar dari sesi akun mahasiswa jika Anda ingin berganti akun atau beralih ke peran Mitra UMKM / Mentor.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        GestureDetector(
+                          onTap: () => _showLogoutConfirmation(context),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF2F2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFFCA5A5),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.logout_rounded,
+                                  color: Color(0xFFDC2626),
+                                  size: 18,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Keluar dari Akun Mahasiswa',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFDC2626),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

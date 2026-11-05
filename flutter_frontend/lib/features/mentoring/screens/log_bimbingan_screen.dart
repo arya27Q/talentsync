@@ -601,7 +601,7 @@ class LogBimbinganScreen extends StatelessWidget {
                                       ),
                                       SizedBox(width: 6),
                                       Icon(
-                                        Icons.videocam_outlined,
+                                        Icons.videocam_rounded,
                                         color: Colors.white,
                                         size: 16,
                                       ),
@@ -642,7 +642,7 @@ class LogBimbinganScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildNavIcon(
-                    icon: Icons.explore_outlined,
+                    icon: Icons.explore_rounded,
                     onTap: () => Navigator.pushNamedAndRemoveUntil(
                       context,
                       AppRoutes.studentDashboard,
@@ -650,14 +650,14 @@ class LogBimbinganScreen extends StatelessWidget {
                     ),
                   ),
                   _buildNavIcon(
-                    icon: Icons.assignment_outlined,
+                    icon: Icons.assignment_rounded,
                     onTap: () => Navigator.pushReplacementNamed(
                       context,
                       AppRoutes.myProjects,
                     ),
                   ),
                   _buildNavIcon(
-                    icon: Icons.account_balance_wallet_outlined,
+                    icon: Icons.account_balance_wallet_rounded,
                     onTap: () => Navigator.pushNamed(context, AppRoutes.wallet),
                   ),
                   _buildNavIcon(

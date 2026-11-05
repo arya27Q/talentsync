@@ -381,7 +381,7 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.explore_outlined,
+                  Icons.explore_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -393,7 +393,7 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.assignment_outlined,
+                  Icons.assignment_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -664,7 +664,7 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.account_balance_wallet_outlined,
+                                  Icons.account_balance_wallet_rounded,
                                   color: AppColors.darkSlate,
                                   size: 18,
                                 ),
@@ -697,14 +697,14 @@ class _WalletDashboardScreenState extends State<WalletDashboardScreen> {
                       ),
                       const SizedBox(width: 10),
                       _buildQuickCard(
-                        icon: Icons.school_outlined,
+                        icon: Icons.school_rounded,
                         label: 'Cari Mentor',
                         onTap: () =>
                             Navigator.pushNamed(context, AppRoutes.findMentors),
                       ),
                       const SizedBox(width: 10),
                       _buildQuickCard(
-                        icon: Icons.menu_book_outlined,
+                        icon: Icons.menu_book_rounded,
                         label: 'Mentor Saya',
                         onTap: () => Navigator.pushNamed(
                           context,

@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
 
 class MsmeStoreProfileScreen extends StatelessWidget {
   const MsmeStoreProfileScreen({super.key});
@@ -682,6 +683,46 @@ class MsmeStoreProfileScreen extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
+        // Showcase Carousel: Galeri Foto Suasana Toko & Produk
+        const InteractiveImageCarousel(
+          margin: EdgeInsets.zero,
+          height: 180,
+          items: [
+            CarouselSlideItem(
+              imageUrl:
+                  'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
+              tag: 'Suasana Toko',
+              tagColor: AppColors.primaryNavy,
+              title: 'Barista & Area Seduh Kopi Tepi Kali',
+              subtitle:
+                  'Area pelayanan ramah pelanggan dengan standar higienis dan racikan kopi berkualitas.',
+              buttonText: 'Galeri',
+            ),
+            CarouselSlideItem(
+              imageUrl:
+                  'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=800&q=80',
+              tag: 'Produk Unggulan',
+              tagColor: Color(0xFFB45309),
+              title: 'Biji Kopi Sangrai & Kemasan Kraft',
+              subtitle:
+                  'Hasil desain kemasan karya mahasiswa yang meningkatkan daya tarik penjualan online.',
+              buttonText: 'Produk',
+            ),
+            CarouselSlideItem(
+              imageUrl:
+                  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+              tag: 'Ruang Kolaborasi',
+              tagColor: Color(0xFF10B981),
+              title: 'Dapur Kerja & Diskusi Proyek',
+              subtitle:
+                  'Ruang temu kreatif mahasiswa dan pemilik toko saat perancangan prototipe produk.',
+              buttonText: 'Lokasi',
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
         // 2. Subscription Plan Card matching Screenshot 1
         Container(
           width: double.infinity,
@@ -827,7 +868,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
             children: [
               // 1. Edit Detail Usaha
               _buildStoreMenuRow(
-                icon: Icons.edit_outlined,
+                icon: Icons.edit_rounded,
                 title: 'Edit Detail Usaha',
                 onTap: () {
                   Navigator.pushNamed(context, AppRoutes.msmeRegister);
@@ -837,7 +878,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
 
               // 2. Dokumen & Verifikasi
               _buildStoreMenuRow(
-                icon: Icons.badge_outlined,
+                icon: Icons.badge_rounded,
                 title: 'Dokumen & Verifikasi',
                 onTap: () => _showDocumentsModal(context),
               ),
@@ -845,7 +886,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
 
               // 3. Riwayat TimeCoin
               _buildStoreMenuRow(
-                icon: Icons.receipt_long_outlined,
+                icon: Icons.receipt_long_rounded,
                 title: 'Riwayat TimeCoin',
                 onTap: () => _showTimeCoinHistoryModal(context),
               ),

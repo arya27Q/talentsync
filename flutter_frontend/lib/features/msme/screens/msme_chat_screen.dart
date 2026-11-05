@@ -219,7 +219,7 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
-                        Icons.rate_review_outlined,
+                        Icons.rate_review_rounded,
                         color: AppColors.primaryNavy,
                         size: 20,
                       ),
@@ -435,7 +435,7 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
-                      Icons.picture_as_pdf_outlined,
+                      Icons.picture_as_pdf_rounded,
                       color: AppColors.primaryNavy,
                       size: 20,
                     ),

@@ -69,12 +69,23 @@ class _MentorMainLayoutState extends State<MentorMainLayout> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.canvasWhite,
-    body: IndexedStack(index: _index, children: _pages),
-    bottomNavigationBar: MentorBottomNav(
-      selectedIndex: _index,
-      onSelected: _selectTab,
-    ),
-  );
+  Widget build(BuildContext context) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        // Font bawaan Flutter Material Typography resmi (gaya ke-2 yang elegan & presisi)
+        textTheme: Typography.material2021().black.apply(
+          bodyColor: AppColors.darkSlate,
+          displayColor: AppColors.darkSlate,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.canvasWhite,
+        body: IndexedStack(index: _index, children: _pages),
+        bottomNavigationBar: MentorBottomNav(
+          selectedIndex: _index,
+          onSelected: _selectTab,
+        ),
+      ),
+    );
+  }
 }

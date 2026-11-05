@@ -248,7 +248,7 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
                         child: Row(
                           children: [
                             const Icon(
-                              Icons.account_balance_outlined,
+                              Icons.account_balance_rounded,
                               color: AppColors.secondarySlate,
                               size: 20,
                             ),

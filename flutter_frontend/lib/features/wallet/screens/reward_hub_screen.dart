@@ -31,37 +31,37 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
       title: 'Free Coffee',
       provider: 'Kopi Tepi Kali',
       tcPrice: 15,
-      icon: Icons.local_cafe_outlined,
+      icon: Icons.local_cafe_rounded,
     ),
     RewardItem(
       title: 'E-Wallet Cash\nRp25.000',
       provider: 'GoPay / OVO',
       tcPrice: 25,
-      icon: Icons.account_balance_wallet_outlined,
+      icon: Icons.account_balance_wallet_rounded,
     ),
     RewardItem(
       title: 'Kelas online Flutter',
       provider: 'Mitra edukasi',
       tcPrice: 60,
-      icon: Icons.menu_book_outlined,
+      icon: Icons.menu_book_rounded,
     ),
     RewardItem(
       title: 'Cetak skripsi 1\neksemplar',
       provider: 'Fotokopi Ketintang',
       tcPrice: 40,
-      icon: Icons.print_outlined,
+      icon: Icons.print_rounded,
     ),
     RewardItem(
       title: 'Paket makan siang',
       provider: 'Sambal Mbok Jum',
       tcPrice: 20,
-      icon: Icons.lunch_dining_outlined,
+      icon: Icons.lunch_dining_rounded,
     ),
     RewardItem(
       title: 'Sertifikat\nkompetensi',
       provider: 'TalentSync',
       tcPrice: 75,
-      icon: Icons.military_tech_outlined,
+      icon: Icons.military_tech_rounded,
     ),
   ];
 
@@ -329,7 +329,7 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.explore_outlined,
+                  Icons.explore_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -341,7 +341,7 @@ class _RewardHubScreenState extends State<RewardHubScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.assignment_outlined,
+                  Icons.assignment_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),

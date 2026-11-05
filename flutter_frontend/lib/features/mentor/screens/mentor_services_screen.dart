@@ -744,7 +744,7 @@ class _ServiceCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(
-                Icons.school_outlined,
+                Icons.school_rounded,
                 color: AppColors.primaryNavy,
               ),
             ),
@@ -803,7 +803,7 @@ class _ServiceCard extends StatelessWidget {
         Row(
           children: [
             const Icon(
-              Icons.schedule_outlined,
+              Icons.schedule_rounded,
               size: 16,
               color: AppColors.secondarySlate,
             ),

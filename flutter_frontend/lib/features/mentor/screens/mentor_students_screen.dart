@@ -95,7 +95,7 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
                 ),
                 alignment: Alignment.center,
                 child: const Icon(
-                  Icons.thumb_up_alt_outlined,
+                  Icons.thumb_up_alt_rounded,
                   color: AppColors.darkSlate,
                   size: 22,
                 ),
@@ -153,7 +153,7 @@ class _RecommendationDraftCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.assignment_outlined, color: AppColors.primaryNavy),
+            const Icon(Icons.assignment_rounded, color: AppColors.primaryNavy),
             const SizedBox(width: 9),
             const Expanded(
               child: Text(
@@ -427,7 +427,7 @@ class _StudentCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
                         Icon(
-                          Icons.thumb_up_alt_outlined,
+                          Icons.thumb_up_alt_rounded,
                           color: AppColors.primaryNavy,
                           size: 18,
                         ),

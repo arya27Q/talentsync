@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 
@@ -105,6 +105,70 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
     );
   }
 
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
+            SizedBox(width: 10),
+            Text(
+              'Keluar dari Akun?',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari akun mahasiswa? Anda harus masuk kembali dengan NIM dan kata sandi.',
+          style: TextStyle(
+            fontSize: 13,
+            height: 1.4,
+            color: AppColors.secondarySlate,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Batal',
+              style: TextStyle(color: AppColors.secondarySlate),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.roleSelection,
+                (route) => false,
+              );
+            },
+            child: const Text(
+              'Keluar',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,7 +190,7 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
                     child: const Icon(
-                      Icons.settings_outlined,
+                      Icons.settings_rounded,
                       color: AppColors.darkSlate,
                       size: 22,
                     ),
@@ -325,7 +389,7 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  Icons.visibility_outlined,
+                                  Icons.visibility_rounded,
                                   color: Colors.white,
                                   size: 16,
                                 ),
@@ -416,7 +480,7 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                   // Section 3: Proyek & Portofolio
                   _buildSectionHeader('PROYEK & PORTOFOLIO'),
                   _buildMenuItem(
-                    icon: Icons.assignment_outlined,
+                    icon: Icons.assignment_rounded,
                     title: 'Proyek Saya',
                     subtitle: 'Kasir Toko Bu Sri · Tahap 2 Aktif',
                     onTap: () =>
@@ -440,7 +504,7 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                     ),
                   ),
                   _buildMenuItem(
-                    icon: Icons.workspace_premium_outlined,
+                    icon: Icons.workspace_premium_rounded,
                     title: 'Sertifikat & Rekomendasi',
                     subtitle: 'Badge rekomendasi kerja & bukti kelulusan',
                     iconColor: AppColors.accentAmberGold,
@@ -448,7 +512,7 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                         Navigator.pushNamed(context, AppRoutes.certificates),
                   ),
                   _buildMenuItem(
-                    icon: Icons.folder_special_outlined,
+                    icon: Icons.folder_special_rounded,
                     title: 'Studi Kasus Proyek',
                     subtitle: 'Dokumentasi visual UI/UX & problem solving',
                     onTap: () =>
@@ -458,14 +522,14 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                   // Section 4: Finansial & TimeCoin
                   _buildSectionHeader('FINANSIAL & TIMECOIN'),
                   _buildMenuItem(
-                    icon: Icons.account_balance_wallet_outlined,
+                    icon: Icons.account_balance_wallet_rounded,
                     title: 'Dompet TimeCoin',
                     subtitle: 'Saldo 240 TC · Escrow aman',
                     iconColor: AppColors.accentAmberGold,
                     onTap: () => Navigator.pushNamed(context, AppRoutes.wallet),
                   ),
                   _buildMenuItem(
-                    icon: Icons.military_tech_outlined,
+                    icon: Icons.military_tech_rounded,
                     title: 'Reward Hub & Misi',
                     subtitle: 'Klaim bonus reputasi & achievement',
                     onTap: () =>
@@ -475,21 +539,21 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                   // Section 5: Pengaturan & Bantuan
                   _buildSectionHeader('PENGATURAN & BANTUAN'),
                   _buildMenuItem(
-                    icon: Icons.person_outline_rounded,
+                    icon: Icons.person_rounded,
                     title: 'Edit Profil Mahasiswa',
                     subtitle: 'Biodata, semester, & keahlian teknis',
                     onTap: () =>
                         Navigator.pushNamed(context, AppRoutes.editProfile),
                   ),
                   _buildMenuItem(
-                    icon: Icons.lock_outline_rounded,
+                    icon: Icons.lock_rounded,
                     title: 'Privasi & Keamanan',
                     subtitle: 'PIN dompet, kata sandi, & data pribadi',
                     onTap: () =>
                         Navigator.pushNamed(context, AppRoutes.privacySecurity),
                   ),
                   _buildMenuItem(
-                    icon: Icons.help_outline_rounded,
+                    icon: Icons.help_rounded,
                     title: 'Pusat Bantuan & Resolusi',
                     subtitle: 'FAQ, panduan escrow, & layanan CS',
                     onTap: () =>
@@ -507,11 +571,7 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                       size: 20,
                     ),
                     onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.roleSelection,
-                        (route) => false,
-                      );
+                      _showLogoutConfirmation(context);
                     },
                   ),
 

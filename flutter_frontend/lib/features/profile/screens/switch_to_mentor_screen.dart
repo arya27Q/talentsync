@@ -30,7 +30,7 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
     {
       'title': 'Modul offline-sync aplikasi koperasi',
       'subtitle': 'Proyek nyata · skor 92',
-      'icon': Icons.rocket_launch_outlined,
+      'icon': Icons.rocket_launch_rounded,
       'iconColor': AppColors.primaryNavy,
       'iconBg': Color(0xFFEFF6FF),
       'selected': true,

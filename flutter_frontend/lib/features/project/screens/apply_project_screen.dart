@@ -87,7 +87,7 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Lamaran Anda telah diteruskan ke Sambal Bu Rudi. Silakan pantau status seleksi di My Tasks.',
+              'Lamaran Anda telah diteruskan ke Sambal Bu Rudi. Silakan pantau status seleksi di Tugas Saya.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -478,7 +478,7 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                               ),
                               SizedBox(width: 14),
                               Icon(
-                                Icons.shield_outlined,
+                                Icons.shield_rounded,
                                 size: 14,
                                 color: AppColors.primaryNavy,
                               ),
@@ -930,7 +930,7 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
-                            Icons.shield_outlined,
+                            Icons.shield_rounded,
                             size: 22,
                             color: AppColors.primaryNavy,
                           ),

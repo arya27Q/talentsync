@@ -180,7 +180,7 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
                             child: Icon(
                               _hasUploadedLogo
                                   ? Icons.check_circle_rounded
-                                  : Icons.add_photo_alternate_outlined,
+                                  : Icons.add_photo_alternate_rounded,
                               color: _hasUploadedLogo
                                   ? const Color(0xFF10B981)
                                   : AppColors.primaryNavy,
@@ -227,7 +227,7 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
                     controller: _businessNameController,
                     textInputAction: TextInputAction.next,
                     decoration: _inputDecoration(
-                      Icons.storefront_outlined,
+                      Icons.storefront_rounded,
                       'Nama usaha anda',
                     ),
                   ),
@@ -318,7 +318,7 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
                     controller: _addressController,
                     textInputAction: TextInputAction.next,
                     decoration: _inputDecoration(
-                      Icons.location_on_outlined,
+                      Icons.location_on_rounded,
                       'Alamat fisik usaha',
                     ),
                   ),
@@ -372,7 +372,7 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
                     decoration: _inputDecoration(
-                      Icons.badge_outlined,
+                      Icons.badge_rounded,
                       '13 digit Nomor Induk Berusaha',
                     ),
                   ),

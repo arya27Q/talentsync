@@ -123,27 +123,27 @@ class _MentorPathCard extends StatelessWidget {
 
   static const _steps = [
     (
-      Icons.storefront_outlined,
+      Icons.storefront_rounded,
       'Buka layanan mentoring',
       'Atur topik, durasi, dan harga TC',
     ),
     (
-      Icons.calendar_today_outlined,
+      Icons.calendar_today_rounded,
       'Terima booking & GMeet',
       'Jadwal fleksibel, tautan otomatis',
     ),
     (
-      Icons.menu_book_outlined,
+      Icons.menu_book_rounded,
       'Ajar, beri materi & tugas',
       'Langsung masuk ruang belajar murid',
     ),
     (
-      Icons.thumb_up_alt_outlined,
+      Icons.thumb_up_alt_rounded,
       'Rekomendasikan murid ke UMKM',
       'Bantu murid terbaik dapat proyek nyata',
     ),
     (
-      Icons.payments_outlined,
+      Icons.payments_rounded,
       'Tukar TimeCoin jadi Rupiah',
       'Cash-out ke rekening kapan saja',
     ),

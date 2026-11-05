@@ -226,7 +226,7 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
-                          Icons.event_available_outlined,
+                          Icons.event_available_rounded,
                           color: AppColors.secondarySlate,
                           size: 42,
                         ),
@@ -468,7 +468,7 @@ class _BookingCard extends StatelessWidget {
               Row(
                 children: [
                   const Icon(
-                    Icons.calendar_today_outlined,
+                    Icons.calendar_today_rounded,
                     size: 14,
                     color: AppColors.secondarySlate,
                   ),
@@ -655,7 +655,7 @@ class _BookingCard extends StatelessWidget {
                           ),
                           SizedBox(width: 8),
                           Icon(
-                            Icons.videocam_outlined,
+                            Icons.videocam_rounded,
                             color: Colors.white,
                             size: 20,
                           ),

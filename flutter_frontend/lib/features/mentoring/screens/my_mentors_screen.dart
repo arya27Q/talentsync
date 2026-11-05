@@ -240,7 +240,7 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                             ),
                             child: const Center(
                               child: Icon(
-                                Icons.person_add_outlined,
+                                Icons.person_add_rounded,
                                 color: AppColors.darkSlate,
                                 size: 20,
                               ),
@@ -269,7 +269,7 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                         ),
                         const SizedBox(width: 10),
                         _buildTopStatCard(
-                          icon: Icons.workspace_premium_outlined,
+                          icon: Icons.workspace_premium_rounded,
                           count: '3',
                           label: 'Sertifikat',
                           onTap: () {
@@ -566,7 +566,7 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                 },
                               ),
                               _buildQuickChip(
-                                icon: Icons.workspace_premium_outlined,
+                                icon: Icons.workspace_premium_rounded,
                                 label: 'Sertifikat (2)',
                                 onTap: () {
                                   Navigator.pushNamed(
@@ -576,7 +576,7 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                                 },
                               ),
                               _buildQuickChip(
-                                icon: Icons.rocket_launch_outlined,
+                                icon: Icons.rocket_launch_rounded,
                                 label: 'Proyek (2)',
                                 onTap: () {
                                   Navigator.pushNamed(
@@ -600,7 +600,7 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                             child: const Row(
                               children: [
                                 Icon(
-                                  Icons.assignment_outlined,
+                                  Icons.assignment_rounded,
                                   size: 16,
                                   color: Color(0xFFEA580C),
                                 ),
@@ -1019,7 +1019,7 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildNavIcon(
-                    icon: Icons.explore_outlined,
+                    icon: Icons.explore_rounded,
                     onTap: () {
                       Navigator.pushNamedAndRemoveUntil(
                         context,
@@ -1029,7 +1029,7 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                     },
                   ),
                   _buildNavIcon(
-                    icon: Icons.assignment_outlined,
+                    icon: Icons.assignment_rounded,
                     onTap: () {
                       Navigator.pushReplacementNamed(
                         context,
@@ -1038,7 +1038,7 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
                     },
                   ),
                   _buildNavIcon(
-                    icon: Icons.account_balance_wallet_outlined,
+                    icon: Icons.account_balance_wallet_rounded,
                     onTap: () {
                       Navigator.pushNamed(context, AppRoutes.wallet);
                     },

@@ -20,7 +20,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   final List<String> _skills = ['Flutter', 'Laravel', 'MySQL', 'Dart', 'Figma'];
 
-  bool _isPublicProfile = true;
+  bool _isPublicProfil = true;
   bool _isOpenForProjects = true;
 
   @override
@@ -47,7 +47,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
   }
 
-  void _saveProfile() {
+  void _saveProfil() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Perubahan profil berhasil disimpan!'),
@@ -87,7 +87,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.explore_outlined,
+                  Icons.explore_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -99,7 +99,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.assignment_outlined,
+                  Icons.assignment_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -111,7 +111,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.account_balance_wallet_outlined,
+                  Icons.account_balance_wallet_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -128,7 +128,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Icon(Icons.person_rounded, color: Colors.white, size: 18),
                   SizedBox(width: 8),
                   Text(
-                    'Profile',
+                    'Profil',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -186,7 +186,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       const Text(
-                        'Edit Profile',
+                        'Edit Profil',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -194,7 +194,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: _saveProfile,
+                        onTap: _saveProfil,
                         child: const Padding(
                           padding: EdgeInsets.symmetric(
                             horizontal: 8,
@@ -478,14 +478,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               ),
                             ),
                             Switch(
-                              value: _isPublicProfile,
+                              value: _isPublicProfil,
                               activeThumbColor: Colors.white,
                               activeTrackColor: AppColors.primaryNavy,
                               inactiveThumbColor: Colors.white,
                               inactiveTrackColor: const Color(0xFFE2E8F0),
                               onChanged: (val) {
                                 setState(() {
-                                  _isPublicProfile = val;
+                                  _isPublicProfil = val;
                                 });
                               },
                             ),
@@ -544,7 +544,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   // Button Simpan Perubahan
                   GestureDetector(
-                    onTap: _saveProfile,
+                    onTap: _saveProfil,
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 16),

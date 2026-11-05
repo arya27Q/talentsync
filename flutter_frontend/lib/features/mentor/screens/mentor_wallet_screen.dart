@@ -245,7 +245,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                         ),
                         SizedBox(width: 8),
                         Icon(
-                          Icons.account_balance_outlined,
+                          Icons.account_balance_rounded,
                           color: Colors.white,
                           size: 20,
                         ),

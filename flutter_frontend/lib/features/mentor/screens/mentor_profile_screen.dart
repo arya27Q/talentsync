@@ -156,7 +156,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                   ),
                   alignment: Alignment.center,
                   child: const Icon(
-                    Icons.edit_outlined,
+                    Icons.edit_rounded,
                     color: AppColors.darkSlate,
                     size: 22,
                   ),

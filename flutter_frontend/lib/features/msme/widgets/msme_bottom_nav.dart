@@ -44,7 +44,7 @@ class MsmeBottomNav extends StatelessWidget {
           ),
           _NavItem(
             icon: Icons.campaign_rounded,
-            unselectedIcon: Icons.campaign_outlined,
+            unselectedIcon: Icons.campaign_rounded,
             label: 'Postingan',
             selected: selectedIndex == 1,
             onTap: () => onSelected(1),
@@ -57,7 +57,7 @@ class MsmeBottomNav extends StatelessWidget {
           ),
           _NavItem(
             icon: Icons.storefront_rounded,
-            unselectedIcon: Icons.storefront_outlined,
+            unselectedIcon: Icons.storefront_rounded,
             label: 'Toko',
             selected: selectedIndex == 3,
             onTap: () => onSelected(3),

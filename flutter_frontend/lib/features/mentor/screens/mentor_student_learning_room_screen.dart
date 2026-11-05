@@ -489,7 +489,7 @@ class _MaterialResourceCard extends StatelessWidget {
   final VoidCallback onTap;
 
   IconData get _iconData {
-    if (resource.type == 'PDF') return Icons.picture_as_pdf_outlined;
+    if (resource.type == 'PDF') return Icons.picture_as_pdf_rounded;
     if (resource.type == 'Video') return Icons.play_circle_outline_rounded;
     return Icons.link_rounded;
   }
@@ -840,7 +840,7 @@ class _CertificateResourceCard extends StatelessWidget {
           child: Icon(
             isAmber
                 ? Icons.workspace_premium_rounded
-                : Icons.verified_outlined,
+                : Icons.verified_rounded,
             color: isAmber
                 ? const Color(0xFFD97706)
                 : AppColors.primaryNavy,

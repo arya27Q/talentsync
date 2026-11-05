@@ -270,7 +270,7 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
                         ),
                         alignment: Alignment.center,
                         child: const Icon(
-                          Icons.menu_book_outlined,
+                          Icons.menu_book_rounded,
                           color: AppColors.primaryNavy,
                           size: 20,
                         ),

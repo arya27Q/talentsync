@@ -42,7 +42,7 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.school_outlined,
+              Icons.workspace_premium_rounded,
               size: 14,
               color: AppColors.darkSlate,
             ),
@@ -636,7 +636,7 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                     Row(
                       children: [
                         const Text(
-                          'Konversi SKS',
+                          'Sertifikat Mentor',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -676,7 +676,7 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                       description: 'Merancang ulang label kemasan sambal botol dan membuat katalog online sederhana yang bisa memamerkan produk UMKM...',
                       tcReward: '300',
                       tags: ['UI/UX Design', 'Figma'],
-                      sksText: 'Konversi 2 SKS',
+                      sksText: 'Sertifikat & Portofolio',
                       deadline: 'Tenggat: 3 hari lagi',
                       location: 'Hybrid · Rungkut',
                       businessIcon: Icons.restaurant_rounded,
@@ -688,10 +688,10 @@ class _ExploreProjectsScreenState extends State<ExploreProjectsScreen> {
                       description: 'Halaman pemesanan batik tulis custom dengan galeri motif, estimasi harga, dan formulir pesanan interaktif...',
                       tcReward: '450',
                       tags: ['Frontend Web', 'React'],
-                      sksText: 'Konversi 3 SKS',
+                      sksText: 'Rekomendasi Kerja',
                       deadline: 'Tenggat: 7 hari lagi',
                       location: 'Remote · Gubeng',
-                      businessIcon: Icons.palette_outlined,
+                      businessIcon: Icons.palette_rounded,
                       deadlineColor: const Color(0xFFF59E0B),
                     ),
                   ],

@@ -180,15 +180,15 @@ class MentorBottomNav extends StatelessWidget {
   final ValueChanged<int> onSelected;
 
   static const _items = [
-    (Icons.home_rounded, Icons.home_outlined, 'Beranda'),
-    (Icons.calendar_month_rounded, Icons.calendar_month_outlined, 'Booking'),
-    (Icons.groups_rounded, Icons.groups_outlined, 'Murid'),
+    (Icons.home_rounded, Icons.home_rounded, 'Beranda'),
+    (Icons.calendar_month_rounded, Icons.calendar_month_rounded, 'Booking'),
+    (Icons.groups_rounded, Icons.groups_rounded, 'Murid'),
     (
       Icons.account_balance_wallet_rounded,
-      Icons.account_balance_wallet_outlined,
-      'Wallet',
+      Icons.account_balance_wallet_rounded,
+      'Dompet',
     ),
-    (Icons.person_rounded, Icons.person_outline_rounded, 'Profil'),
+    (Icons.person_rounded, Icons.person_rounded, 'Profil'),
   ];
 
   @override

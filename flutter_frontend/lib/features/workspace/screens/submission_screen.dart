@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 
@@ -430,7 +430,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.explore_outlined,
+                  Icons.explore_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -447,7 +447,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                   Icon(Icons.assignment_rounded, color: Colors.white, size: 18),
                   SizedBox(width: 8),
                   Text(
-                    'My Tasks',
+                    'Tugas Saya',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -463,7 +463,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.account_balance_wallet_outlined,
+                  Icons.account_balance_wallet_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -475,7 +475,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.person_outline_rounded,
+                  Icons.person_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -558,7 +558,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                             ],
                           ),
                           child: const Icon(
-                            Icons.view_kanban_outlined,
+                            Icons.view_kanban_rounded,
                             color: AppColors.darkSlate,
                             size: 20,
                           ),
@@ -575,14 +575,14 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                     runSpacing: 8,
                     children: [
                       _buildTopBadge(
-                        icon: Icons.check_circle_outline_rounded,
+                        icon: Icons.check_circle_rounded,
                         label: 'Lamaran diterima & kontrak aktif',
                         bgColor: const Color(0xFFDCFCE7),
                         textColor: const Color(0xFF15803D),
                         iconColor: const Color(0xFF15803D),
                       ),
                       _buildTopBadge(
-                        icon: Icons.lock_outline_rounded,
+                        icon: Icons.lock_rounded,
                         label: 'Smart Escrow aktif',
                         bgColor: const Color(0xFFEEF2FF),
                         textColor: const Color(0xFF3730A3),
@@ -595,7 +595,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
 
                   // Project Title Block
                   const Text(
-                    'Toko Bu Sri · Klaster Ritel',
+                    'Toko Bu Sri \u00B7 Klaster Ritel',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -733,7 +733,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                     const Row(
                                       children: [
                                         Icon(
-                                          Icons.check_circle_outline_rounded,
+                                          Icons.check_circle_rounded,
                                           size: 14,
                                           color: Color(0xFF15803D),
                                         ),
@@ -785,7 +785,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                     const Row(
                                       children: [
                                         Icon(
-                                          Icons.lock_outline_rounded,
+                                          Icons.lock_rounded,
                                           size: 14,
                                           color: AppColors.secondarySlate,
                                         ),
@@ -913,7 +913,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
-                                'Selesai · 30 TC',
+                                'Selesai \u00B7 30 TC',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -952,7 +952,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                           child: const Row(
                             children: [
                               Icon(
-                                Icons.folder_zip_outlined,
+                                Icons.folder_zip_rounded,
                                 color: AppColors.primaryNavy,
                                 size: 22,
                               ),
@@ -970,7 +970,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                       ),
                                     ),
                                     Text(
-                                      'Screens-v1.zip · 12,4 MB',
+                                      'Screens-v1.zip \u00B7 12,4 MB',
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: AppColors.secondarySlate,
@@ -991,7 +991,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                     ),
                   ),
 
-                  // MILESTONE 2 (Siap diisi · 50 TC) — (From User Screenshot)
+                  // MILESTONE 2 (Siap diisi \u00B7 50 TC) â€” (From User Screenshot)
                   Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(18),
@@ -1064,7 +1064,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
-                                'Siap diisi · 50 TC',
+                                'Siap diisi \u00B7 50 TC',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -1130,7 +1130,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                               ),
                               _buildFormatTab(
                                 2,
-                                Icons.description_outlined,
+                                Icons.description_rounded,
                                 'Catatan',
                               ),
                             ],
@@ -1246,7 +1246,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                     ),
                   ),
 
-                  // MILESTONE 3 (Terkunci · 40 TC) — (From User Screenshot)
+                  // MILESTONE 3 (Terkunci \u00B7 40 TC) â€” (From User Screenshot)
                   Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(18),
@@ -1314,7 +1314,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
-                                'Terkunci · 40 TC',
+                                'Terkunci \u00B7 40 TC',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -1430,6 +1430,80 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                     ),
                   ),
 
+                  // Pra-submission Mentor Consultation Tip
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.school_rounded,
+                          color: AppColors.primaryNavy,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Konsultasi Sebelum Mengumpulkan',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryNavy,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Ragu dengan hasil pengerjaan atau revisi UMKM? Kamu dapat berkonsultasi dengan mentor untuk review kualitas sebelum diajukan.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.secondarySlate,
+                                  height: 1.35,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              GestureDetector(
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.findMentors,
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Minta Review & Konsultasi Mentor',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primaryNavy,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Icon(
+                                      Icons.arrow_forward_rounded,
+                                      size: 12,
+                                      color: AppColors.primaryNavy,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                   // Buka Ruang Obrolan UMKM Button (From User Screenshot)
                   GestureDetector(
                     onTap: () {
@@ -1447,7 +1521,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.chat_bubble_outline_rounded,
+                            Icons.chat_bubble_rounded,
                             color: AppColors.darkSlate,
                             size: 18,
                           ),
@@ -1473,7 +1547,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: const [
                         Icon(
-                          Icons.help_outline_rounded,
+                          Icons.help_rounded,
                           size: 15,
                           color: AppColors.secondarySlate,
                         ),

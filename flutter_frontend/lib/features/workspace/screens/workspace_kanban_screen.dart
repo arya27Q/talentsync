@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 
@@ -446,7 +446,7 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.explore_outlined,
+                  Icons.explore_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -463,7 +463,7 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                   Icon(Icons.assignment_rounded, color: Colors.white, size: 18),
                   SizedBox(width: 8),
                   Text(
-                    'My Tasks',
+                    'Tugas Saya',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -479,7 +479,7 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.account_balance_wallet_outlined,
+                  Icons.account_balance_wallet_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -491,7 +491,7 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
               child: const Padding(
                 padding: EdgeInsets.all(10),
                 child: Icon(
-                  Icons.person_outline_rounded,
+                  Icons.person_rounded,
                   color: AppColors.secondarySlate,
                   size: 24,
                 ),
@@ -554,7 +554,7 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                           ),
                           SizedBox(height: 2),
                           Text(
-                            'Aplikasi kasir · Toko Bu Sri',
+                            'Aplikasi kasir \u00B7 Toko Bu Sri',
                             style: TextStyle(
                               fontSize: 12,
                               color: AppColors.secondarySlate,
@@ -576,7 +576,7 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                             border: Border.all(color: AppColors.borderSlate),
                           ),
                           child: const Icon(
-                            Icons.chat_bubble_outline_rounded,
+                            Icons.chat_bubble_rounded,
                             color: AppColors.darkSlate,
                             size: 20,
                           ),
@@ -653,7 +653,7 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                                   ),
                                   SizedBox(width: 4),
                                   Text(
-                                    'Tenggat 12 Jul · sisa 9 hari',
+                                    'Tenggat 12 Jul \u00B7 sisa 9 hari',
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: AppColors.secondarySlate,
@@ -727,6 +727,117 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // Mentor Assistance / Consultation Banner
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.school_rounded,
+                              color: AppColors.primaryNavy,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Mengalami Kendala Teknis Proyek?',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryNavy,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Kamu bisa berkonsultasi 1-on-1 dengan peer mentor berpengalaman untuk review kode, arsitektur database, atau debugging sebelum batas deadline.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.findMentors,
+                              ),
+                              icon: const Icon(
+                                Icons.person_search_rounded,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                              label: const Text(
+                                'Konsultasi Mentor',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryNavy,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            OutlinedButton.icon(
+                              onPressed: () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.myMentors,
+                              ),
+                              icon: const Icon(
+                                Icons.forum_rounded,
+                                size: 16,
+                                color: AppColors.primaryNavy,
+                              ),
+                              label: const Text(
+                                'Sesi Aktif',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryNavy,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: AppColors.primaryNavy,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),

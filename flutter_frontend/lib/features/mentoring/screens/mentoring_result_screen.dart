@@ -304,7 +304,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                           ),
                           child: const Center(
                             child: Icon(
-                              Icons.share_outlined,
+                              Icons.share_rounded,
                               color: AppColors.darkSlate,
                               size: 20,
                             ),
@@ -617,7 +617,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                               Row(
                                 children: [
                                   Icon(
-                                    Icons.shield_outlined,
+                                    Icons.shield_rounded,
                                     size: 14,
                                     color: Color(0xFF16A34A),
                                   ),
@@ -707,7 +707,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                     ),
                                     child: const Center(
                                       child: Icon(
-                                        Icons.verified_outlined,
+                                        Icons.verified_rounded,
                                         color: AppColors.primaryNavy,
                                         size: 22,
                                       ),
@@ -795,7 +795,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                               MainAxisAlignment.center,
                                           children: [
                                             Icon(
-                                              Icons.visibility_outlined,
+                                              Icons.visibility_rounded,
                                               size: 16,
                                               color: AppColors.primaryNavy,
                                             ),
@@ -828,7 +828,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                             MainAxisAlignment.center,
                                         children: [
                                           Icon(
-                                            Icons.picture_as_pdf_outlined,
+                                            Icons.picture_as_pdf_rounded,
                                             size: 16,
                                             color: AppColors.primaryNavy,
                                           ),
@@ -882,7 +882,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                     ),
                                     child: const Center(
                                       child: Icon(
-                                        Icons.workspace_premium_outlined,
+                                        Icons.workspace_premium_rounded,
                                         color: AppColors.primaryNavy,
                                         size: 22,
                                       ),
@@ -1028,7 +1028,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                     ),
                                     child: const Center(
                                       child: Icon(
-                                        Icons.storefront_outlined,
+                                        Icons.storefront_rounded,
                                         color: AppColors.primaryNavy,
                                         size: 22,
                                       ),
@@ -1184,7 +1184,7 @@ class _MentoringResultScreenState extends State<MentoringResultScreen> {
                                             MainAxisAlignment.center,
                                         children: [
                                           Icon(
-                                            Icons.menu_book_outlined,
+                                            Icons.menu_book_rounded,
                                             size: 16,
                                             color: AppColors.primaryNavy,
                                           ),

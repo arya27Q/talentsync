@@ -142,43 +142,89 @@ flowchart LR
     MEN --> UC14
 ```
 
-### 4.2 Activity Diagram: Siklus Pengerjaan Proyek UMKM
+### 4.2 Sequence Diagram: Alur Penjamin Mutu (Mentor ➔ Mahasiswa ➔ UMKM)
+*Sesuai Proposal Bab II, Bab III, & Wireframe Hal 15: Penjaminan Kualitas Mahasiswa oleh Mentor bagi UMKM*
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor UMKM as Mitra UMKM
     actor MHS as Mahasiswa
+    actor MEN as Peer Mentor
+    actor UMKM as Mitra UMKM
     participant App as Flutter Mobile
     participant Srv as Backend Laravel
     participant DB as PostgreSQL DB
 
-    UMKM->>App: Input Detail Proyek & Kuota TC
-    App->>Srv: POST /api/projects
-    Srv->>DB: Insert Project (Status: OPEN)
-    DB-->>App: Proyek Berhasil Dipublikasikan
+    %% 1. Mahasiswa belum berportofolio mengambil mentoring
+    Note over MHS,MEN: Fase 1: Mahasiswa Mengikuti Bimbingan & Uji Studi Kasus
+    MHS->>App: Pilih Mentor & Booking Sesi Bimbingan (Bayar TC)
+    App->>Srv: POST /api/mentoring/booking
+    Srv->>DB: Lock Saldo TC Mahasiswa & Buat Jadwal Bimbingan
+    MEN->>App: Buka Live Mentoring & Berikan Tugas Studi Kasus
+    MHS->>App: Unggah Tugas Praktik ke Ruang Belajar
+    MEN->>App: Periksa Hasil Kerja (Skor >= 80) & Klik "Beri Badge Rekomendasi"
+    App->>Srv: POST /api/mentoring/endorse-student
+    Srv->>DB: Simpan Badge Rekomendasi Kerja pada Profil Mahasiswa
 
-    MHS->>App: Cari Proyek & Klik "Apply"
+    %% 2. UMKM memposting proyek dengan dana TC dari Top-Up
+    Note over UMKM,MHS: Fase 2: Publikasi Proyek & Seleksi Terpercaya
+    UMKM->>App: Top-Up TC via Rupiah & Publikasi Lowongan Proyek
+    App->>Srv: POST /api/projects (Escrow TC dialokasikan)
+    MHS->>App: Lamar Proyek UMKM (Melampirkan Badge Mentor)
     App->>Srv: POST /api/projects/{id}/apply
-    Srv->>DB: Insert Application (Status: PENDING)
-
-    UMKM->>App: Tinjau Pelamar & Terima Mahasiswa
-    App->>Srv: POST /api/applications/{id}/accept
-    Srv->>DB: Update Project Status (IN_PROGRESS)
-
-    MHS->>App: Perbarui Kanban & Unggah Deliverable
-    App->>Srv: POST /api/projects/{id}/deliverable
-    Srv->>DB: Insert Deliverable & Notify UMKM
-
-    UMKM->>App: Evaluasi Hasil Kerja & Beri Rating/Ulasan
-    App->>Srv: POST /api/projects/{id}/approve-and-transfer
-    critical Database Transaction
-        Srv->>DB: Kurangi Saldo TC UMKM
-        Srv->>DB: Tambah Saldo TC Mahasiswa
-        Srv->>DB: Catat Buku Besar Transaksi (COMPLETED)
-        Srv->>DB: Update Proyek (Status: DONE)
+    UMKM->>App: Buka Review Pelamar: Lihat Label "Direkomendasikan Mentor Dimas"
+    alt Pelamar Memiliki Badge / Portofolio Terverifikasi
+        UMKM->>App: Klik "Terima Pelamar"
+        App->>Srv: POST /api/applications/{id}/accept
+        Srv->>DB: Status Proyek: IN_PROGRESS
+    else Pelamar Belum Berkompeten / Tanpa Badge
+        UMKM->>App: Klik "Tolak & Arahkan Bimbingan Mentor"
+        App->>Srv: POST /api/applications/{id}/reject-and-refer-mentor
+        Srv-->>MHS: Notifikasi Rekomendasi Mengikuti Bimbingan Mentor Terlebih Dahulu
     end
-    Srv-->>App: Proyek Selesai & Notifikasi Saldo Masuk
+```
+
+### 4.3 Sequence Diagram: Siklus Pengerjaan Proyek & Revisi Terpandu Mentor
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor MHS as Mahasiswa
+    actor MEN as Peer Mentor
+    actor UMKM as Mitra UMKM
+    participant App as Flutter Mobile
+    participant Srv as Backend Laravel
+    participant DB as PostgreSQL DB
+
+    Note over MHS,UMKM: Fase 3: Pengerjaan di Kanban & Bantuan Konsultasi
+    MHS->>App: Update Kartu Tugas di Workspace Kanban
+    opt Mahasiswa Mengalami Kendala Teknis / Menghadapi Revisi
+        MHS->>App: Klik "Konsultasi Mentor" di Workspace Kanban
+        App->>MEN: Notifikasi Sesi Tanya-Jawab / Live Debugging
+        MEN-->>MHS: Arahan Solusi Teknis & Best Practice Arsitektur
+    end
+
+    MHS->>App: Unggah Deliverable Akhir ke Submission Screen
+    App->>Srv: POST /api/projects/{id}/deliverable
+    Srv-->>UMKM: Notifikasi Berkas Siap Diperiksa
+
+    alt UMKM Meminta Revisi
+        UMKM->>App: Form Revisi: Beri Catatan & Centang "Sarankan Konsultasi Mentor"
+        App->>Srv: POST /api/projects/{id}/request-revision
+        Srv-->>MHS: Notifikasi Revisi + Tautan Rekomendasi Mentor
+    else UMKM Menyetujui Hasil Kerja
+        UMKM->>App: Klik "Validasi Hasil & Transfer TimeCoin" + Beri Rating Bintang
+        App->>Srv: POST /api/projects/{id}/approve-and-transfer
+        critical Transaksi Database Finansial (ACID)
+            Srv->>DB: Rilis Escrow TC UMKM
+            Srv->>DB: Kredit Saldo TC Mahasiswa
+            Srv->>DB: Catat Buku Besar Mutasi (COMPLETED)
+            Srv->>DB: Catat Proyek Selesai ke Project History Mahasiswa
+        end
+        Srv-->>MHS: Saldo TC Bertambah & Proyek Resmi Tercatat
+    end
+
+    Note over MHS: Pemanfaatan TC: Bebas Cash-Out ke Rupiah (0% Admin) / Switch as a Mentor jika >= 5 Proyek
 ```
 
 ---

@@ -123,17 +123,17 @@ class _MsmePathCard extends StatelessWidget {
 
   static const _steps = [
     (
-      Icons.campaign_outlined,
+      Icons.campaign_rounded,
       'Posting proyek pakai template',
       'Tanpa form kosong, cukup pilih kebutuhan',
     ),
     (
-      Icons.verified_outlined,
+      Icons.verified_rounded,
       'Pilih mahasiswa terverifikasi',
       'Lihat KTM, portofolio, dan endorse mentor',
     ),
     (
-      Icons.shield_outlined,
+      Icons.shield_rounded,
       'Bayar per milestone via escrow',
       'Dana cair hanya saat hasil kamu setujui',
     ),

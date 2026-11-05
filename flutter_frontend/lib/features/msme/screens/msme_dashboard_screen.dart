@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
+import 'package:flutter_frontend/core/widgets/in_app_guide_section.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
@@ -87,7 +89,8 @@ class MsmeDashboardScreen extends StatelessWidget {
                         border: Border.all(color: AppColors.borderSlate),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                            color: const Color(0xFF0F172A)
+                                .withValues(alpha: 0.04),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -169,10 +172,11 @@ class MsmeDashboardScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Termasuk kuota sosial 100 TC · berlaku s.d. 31 Jul',
+                        'Setara Rp520.000',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
+                          color: const Color(0xFF93C5FD),
                           fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 18),
@@ -186,7 +190,9 @@ class MsmeDashboardScreen extends StatelessWidget {
                               onTap: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Menu Top Up TimeCoin dibuka.'),
+                                    content: Text(
+                                      'Menu Top Up TimeCoin dibuka.',
+                                    ),
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
@@ -277,7 +283,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                                 ),
                                 SizedBox(height: 2),
                                 Text(
-                                  'Slot proyek 2/2 · admin top up 5%',
+                                  'Slot proyek 2/2 \u00B7 admin top up 5%',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.secondarySlate,
@@ -360,36 +366,157 @@ class MsmeDashboardScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // 3 Metric Cards
+                // Section: Navigasi Cepat & Status Pekerjaan
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: _buildMetricCard(
-                        icon: Icons.bolt_rounded,
-                        count: '2',
-                        label: 'Proyek aktif',
+                    const Text(
+                      'Navigasi Cepat & Status',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.darkSlate,
+                        letterSpacing: -0.2,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildMetricCard(
-                        icon: Icons.person_add_outlined,
-                        count: '2',
-                        label: 'Pelamar baru',
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3.5,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildMetricCard(
-                        icon: Icons.rate_review_outlined,
-                        count: '1',
-                        label: 'Perlu ditinjau',
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.touch_app_rounded,
+                            size: 12,
+                            color: AppColors.primaryNavy,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Pilih Aksi',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryNavy,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
+
+                // 3 Metric Quick-Nav Cards
+                IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildMetricCard(
+                          icon: Icons.assignment_rounded,
+                          count: '2',
+                          label: 'Proyek aktif',
+                          buttonLabel: 'Kelola',
+                          accentColor: AppColors.primaryNavy,
+                          onTap: onOpenPostings,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildMetricCard(
+                          icon: Icons.person_add_rounded,
+                          count: '2',
+                          label: 'Pelamar baru',
+                          buttonLabel: 'Review',
+                          badgeLabel: 'Baru',
+                          accentColor: const Color(0xFF0284C7),
+                          onTap: () {
+                            Navigator.push<void>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const MsmeReviewApplicantsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildMetricCard(
+                          icon: Icons.rate_review_rounded,
+                          count: '1',
+                          label: 'Perlu ditinjau',
+                          buttonLabel: 'Tinjau',
+                          badgeLabel: 'Tugas',
+                          accentColor: const Color(0xFFD97706),
+                          onTap: () {
+                            Navigator.push<void>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const MsmeReviewSubmissionScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Showcase Carousel: Talenta Mahasiswa Siap Diberdayakan
+                InteractiveImageCarousel(
+                  margin: EdgeInsets.zero,
+                  height: 180,
+                  items: [
+                    CarouselSlideItem(
+                      imageUrl: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80',
+                      tag: 'Talenta Desain',
+                      tagColor: AppColors.primaryNavy,
+                      title: 'Desain Kemasan & Mockup Produk',
+                      subtitle: 'Mahasiswa DKV & Desain siap merancang identitas visual kemasan produk tokomu.',
+                      buttonText: 'Buat Tugas',
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.msmeCreateTask,
+                      ),
+                    ),
+                    CarouselSlideItem(
+                      imageUrl: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=800&q=80',
+                      tag: 'Aplikasi & Web',
+                      tagColor: const Color(0xFF0284C7),
+                      title: 'Aplikasi Kasir & Sistem Reservasi',
+                      subtitle: 'Digitalisasi sistem kasir dan inventaris bersama mahasiswa Sistem Informasi.',
+                      buttonText: 'Buat Tugas',
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.msmeCreateTask,
+                      ),
+                    ),
+                    CarouselSlideItem(
+                      imageUrl: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80',
+                      tag: 'Garansi Escrow',
+                      tagColor: const Color(0xFF10B981),
+                      title: 'Kemitraan Aman & Terlindungi',
+                      subtitle: 'Imbalan TimeCoin hanya cair setelah kamu memvalidasi hasil kerja mahasiswa.',
+                      buttonText: 'Pelajari',
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.msmeUpgradePro,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 22),
 
                 // Section: Perlu tindakan
                 const Text(
@@ -425,7 +552,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                     ),
                   ),
                   title: 'Salsa Putri mengajukan hasil',
-                  subtitle: 'Tahap 2: Menu board final · 45 TC',
+                  subtitle: 'Tahap 2: Menu board final \u00B7 45 TC',
                   buttonLabel: 'Tinjau',
                   onTap: () {
                     Navigator.push<void>(
@@ -461,7 +588,8 @@ class MsmeDashboardScreen extends StatelessWidget {
                     Navigator.push<void>(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const MsmeReviewApplicantsScreen(),
+                        builder: (context) =>
+                            const MsmeReviewApplicantsScreen(),
                       ),
                     );
                   },
@@ -530,7 +658,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                                 ),
                                 SizedBox(height: 3),
                                 Text(
-                                  'Salsa Putri · UNESA',
+                                  'Salsa Putri \u00B7 UNESA',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.secondarySlate,
@@ -554,7 +682,8 @@ class MsmeDashboardScreen extends StatelessWidget {
                                 Navigator.push<void>(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const MsmeChatScreen(),
+                                    builder: (context) =>
+                                        const MsmeChatScreen(),
                                   ),
                                 );
                               },
@@ -597,6 +726,11 @@ class MsmeDashboardScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 24),
+
+                // Section: Panduan & Wawasan Mitra UMKM
+                _buildMsmeGuideSection(),
               ],
             ),
           ),
@@ -693,43 +827,128 @@ class MsmeDashboardScreen extends StatelessWidget {
     required IconData icon,
     required String count,
     required String label,
-  }) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-    decoration: BoxDecoration(
-      color: Colors.white,
+    required String buttonLabel,
+    required VoidCallback onTap,
+    Color accentColor = AppColors.primaryNavy,
+    String? badgeLabel,
+  }) => Material(
+    color: Colors.transparent,
+    child: InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: AppColors.borderSlate),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFF0F172A).withValues(alpha: 0.03),
-          blurRadius: 8,
-          offset: const Offset(0, 3),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.borderSlate),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: AppColors.primaryNavy, size: 20),
-        const SizedBox(height: 10),
-        Text(
-          count,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.darkSlate,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: accentColor, size: 18),
+                    ),
+                    if (badgeLabel != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          badgeLabel,
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.bold,
+                            color: accentColor,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  count,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.secondarySlate,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 6.5),
+              decoration: BoxDecoration(
+                color: accentColor,
+                borderRadius: BorderRadius.circular(9),
+                boxShadow: [
+                  BoxShadow(
+                    color: accentColor.withValues(alpha: 0.22),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    buttonLabel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                    size: 11,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.secondarySlate,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+      ),
     ),
   );
 
@@ -835,5 +1054,71 @@ class MsmeDashboardScreen extends StatelessWidget {
       ),
     ),
   );
-}
 
+  Widget _buildMsmeGuideSection() {
+    const msmeArticles = [
+      InAppArticle(
+        id: 'msme_guide_post_task',
+        title:
+            'Panduan Memposting Tugas & Menentukan Imbalan TimeCoin yang Tepat',
+        subtitle: 'Tips merumuskan brief deliverable yang jelas dan menetapkan alokasi TC yang proporsional.',
+        category: 'Manajemen Proyek',
+        readTime: '3 mnt baca',
+        imageUrl: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=800&q=80',
+        icon: Icons.assignment_rounded,
+        accentColor: AppColors.primaryNavy,
+        keyPoints: [
+          'Rumuskan deliverable spesifik (contoh: 1 Master Logo vector, 10 foto katalog 4K, atau 1 landing page responsif).',
+          '1 TC bernilai setara Rp1.000. Gunakan patokan template wizard atau ajukan proyek kustom sesuai anggaran.',
+          'Top-Up TimeCoin via Rupiah (Transfer Bank / QRIS) tanpa kerumitan administrasi.',
+          'Imbalan disimpan aman di escrow dan hanya dicairkan setelah tugas kamu setujui.',
+        ],
+        fullContent: 'Membuat tugas di TalentSync sangat mudah berkat fitur Wizard Template dan Proyek Kustom. Kunci utama mendapatkan hasil terbaik dari mahasiswa adalah menulis deskripsi tugas yang lugas serta melampirkan contoh referensi (moodboard/foto produk eksisting).\n\nSesuaikan alokasi imbalan TimeCoin (TC) dengan bobot pekerjaan (misal: 80-150 TC untuk Desain Logo, 40-90 TC untuk Foto Produk UMKM). Dana TC yang kamu siapkan akan masuk ke sistem escrow TalentSync, memberikan rasa aman bagi kedua belah pihak.',
+        proTip: 'Tentukan tenggat waktu (deadline) yang realistis minimal 3-5 hari agar mahasiswa memiliki waktu memadai untuk konsultasi dengan mentor sebelum pengumpulan final.',
+      ),
+      InAppArticle(
+        id: 'msme_guide_badge_talents',
+        title: 'Mengapa Harus Memilih Pelamar Ber-Badge Rekomendasi Mentor?',
+        subtitle: 'Jaminan kualitas kerja nyata: mahasiswa yang telah diuji dan divalidasi oleh mentor senior.',
+        category: 'Seleksi Talenta',
+        readTime: '4 mnt baca',
+        imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80',
+        icon: Icons.verified_user_rounded,
+        accentColor: Color(0xFF0D9488),
+        keyPoints: [
+          'Mahasiswa ber-badge telah menyelesaikan uji studi kasus dengan skor minimal 80 dari Peer Mentor.',
+          'Meminimalkan risiko hasil kerja tidak sesuai standar atau kesalahan teknis fatal.',
+          'Gunakan fitur "Tolak & Arahkan Bimbingan" untuk membina pelamar yang potensial namun belum siap.',
+          'Fitur filter pelamar ber-badge otomatis tersedia bagi pemegang akun Premium UMKM.',
+        ],
+        fullContent: 'Di TalentSync, mahasiswa tidak hanya mengunggah klaim keahlian sepihak. Mahasiswa yang memiliki Badge Rekomendasi Mentor telah melalui proses uji kualifikasi ketat di Ruang Belajar bersama Peer Mentor berpengalaman.\n\nJika kamu menerima lamaran dari mahasiswa yang belum ber-badge dan hasil portofolionya belum meyakinkan, kamu bisa menggunakan tombol "Tolak & Arahkan Bimbingan". Sistem akan mengirimkan pesan edukatif yang membimbing mahasiswa tersebut untuk mengikuti mentoring terlebih dahulu sebelum melamar kembali di usahamu.',
+        proTip: 'Pelamar ber-badge mentor memiliki tingkat keberhasilan menyelesaikan proyek tepat waktu sebesar 96% tanpa perlu revisi berulang.',
+      ),
+      InAppArticle(
+        id: 'msme_guide_smart_escrow',
+        title: 'Sistem Smart Escrow: Cara Aman Kolaborasi Tanpa Risiko',
+        subtitle: 'Proteksi transaksi 100%: dana imbalan baru ditransfer setelah hasil pekerjaan disetujui.',
+        category: 'Keamanan Transaksi',
+        readTime: '3 mnt baca',
+        imageUrl: 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=800&q=80',
+        icon: Icons.shield_rounded,
+        accentColor: Color(0xFFD97706),
+        keyPoints: [
+          'Dana TimeCoin terkunci di brankas escrow selama masa pengerjaan proyek.',
+          'UMKM memegang kendali penuh validasi hasil kerja sebelum dana dilepas.',
+          'Tersedia hak pengajuan revisi hingga 2x bila deliverable belum sesuai brief kesepakatan.',
+          'Layanan mediasi bantuan mentor pendamping jika terjadi kendala komunikasi teknis.',
+        ],
+        fullContent: 'Kekhawatiran terbesar pemilik UMKM saat bekerjasama dengan pekerja lepas adalah risiko dana hangus sementara hasil pekerjaan tidak selesai. TalentSync menghapus risiko tersebut melalui sistem Smart Escrow.\n\nSaat kamu menerima pelamar, TimeCoin sesuai imbalan proyek akan dibekukan sementara di rekening penampung (escrow). Mahasiswa hanya menerima transfer koin setelah kamu menekan tombol "Validasi Hasil & Transfer Imbalan". Jika ada ketidaksesuaian, kamu bisa meminta revisi atau menyarankan mahasiswa berkonsultasi dengan mentor pendamping.',
+        proTip: 'Jangan ragu memberikan review dan rating bintang 5 jika mahasiswa memberikan hasil kerja di atas ekspektasi untuk membantu membangun reputasi digital mereka.',
+      ),
+    ];
+
+    return const InAppGuideSection(
+      padding: EdgeInsets.zero,
+      title: 'Panduan & Wawasan Mitra UMKM',
+      subtitle: 'Kiat posting proyek berkualitas, sistem garansi escrow, dan seleksi mahasiswa',
+      articles: msmeArticles,
+    );
+  }
+}

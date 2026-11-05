@@ -302,7 +302,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           ),
                           child: const Center(
                             child: Icon(
-                              Icons.share_outlined,
+                              Icons.share_rounded,
                               color: AppColors.darkSlate,
                               size: 20,
                             ),
@@ -451,7 +451,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           const Row(
                             children: [
                               Icon(
-                                Icons.business_center_outlined,
+                                Icons.business_center_rounded,
                                 size: 14,
                                 color: AppColors.secondarySlate,
                               ),
@@ -573,13 +573,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  Icons.school_outlined,
+                                  Icons.workspace_premium_rounded,
                                   size: 14,
                                   color: AppColors.darkSlate,
                                 ),
                                 SizedBox(width: 6),
                                 Text(
-                                  'Konversi 2 SKS',
+                                  'Sertifikat & Portofolio',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -666,7 +666,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               Row(
                                 children: [
                                   Icon(
-                                    Icons.location_on_outlined,
+                                    Icons.location_on_rounded,
                                     size: 15,
                                     color: AppColors.secondarySlate,
                                   ),
@@ -801,7 +801,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Icon(
-                                Icons.shield_outlined,
+                                Icons.shield_rounded,
                                 size: 16,
                                 color: AppColors.primaryNavy,
                               ),

@@ -551,7 +551,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                               Row(
                                 children: [
                                   Icon(
-                                    Icons.videocam_outlined,
+                                    Icons.videocam_rounded,
                                     size: 16,
                                     color: AppColors.secondarySlate,
                                   ),
@@ -642,23 +642,23 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                         ),
                         const SizedBox(height: 12),
                         _buildDeliverableItem(
-                          icon: Icons.assignment_turned_in_outlined,
+                          icon: Icons.assignment_turned_in_rounded,
                           title: 'Audit file & case study PDF',
                           subtitle:
                               'Penilaian siap tender dengan standar industri',
                         ),
                         _buildDeliverableItem(
-                          icon: Icons.forum_outlined,
+                          icon: Icons.forum_rounded,
                           title: 'Simulasi tanya-jawab klien UMKM',
                           subtitle: 'Persiapan pitching dan mitigasi revisi saat wawancara',
                         ),
                         _buildDeliverableItem(
-                          icon: Icons.verified_outlined,
+                          icon: Icons.verified_rounded,
                           title: 'Lencana "Mentor Verified" di profil',
                           subtitle: 'Tertera di profil mahasiswa untuk dilihat mitra UMKM',
                         ),
                         _buildDeliverableItem(
-                          icon: Icons.video_library_outlined,
+                          icon: Icons.video_library_rounded,
                           title: 'Rekaman sesi & action plan Notion',
                           subtitle: 'Akses selamanya untuk bahan referensi pengerjaan',
                         ),

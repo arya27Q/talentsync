@@ -487,7 +487,7 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                         const Row(
                           children: [
                             Icon(
-                              Icons.bolt_rounded,
+                              Icons.verified_user_rounded,
                               size: 16,
                               color: AppColors.primaryNavy,
                             ),
@@ -676,7 +676,7 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     const Text(
-                                      'Senior Flutter Engineer · Fintech lokal',
+                                      'Senior Flutter Engineer \u00B7 Fintech lokal',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: AppColors.secondarySlate,
@@ -956,7 +956,7 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildNavIcon(
-                    icon: Icons.explore_outlined,
+                    icon: Icons.explore_rounded,
                     onTap: () {
                       Navigator.pushNamedAndRemoveUntil(
                         context,
@@ -966,7 +966,7 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
                     },
                   ),
                   _buildNavIcon(
-                    icon: Icons.assignment_outlined,
+                    icon: Icons.assignment_rounded,
                     onTap: () {
                       Navigator.pushReplacementNamed(
                         context,

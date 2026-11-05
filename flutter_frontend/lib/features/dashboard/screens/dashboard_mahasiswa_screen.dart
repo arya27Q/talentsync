@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
+import 'package:flutter_frontend/core/widgets/in_app_guide_section.dart';
 
 class DashboardMahasiswaScreen extends StatelessWidget {
   const DashboardMahasiswaScreen({super.key});
@@ -62,13 +64,13 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                     Row(
                       children: [
                         const Icon(
-                          Icons.bolt_rounded,
+                          Icons.timelapse_rounded,
                           size: 15,
                           color: AppColors.primaryNavy,
                         ),
                         const SizedBox(width: 3),
                         Text(
-                          'Aktif · $businessName',
+                          'Aktif \u00B7 $businessName',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -201,6 +203,70 @@ class DashboardMahasiswaScreen extends StatelessWidget {
     );
   }
 
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
+            SizedBox(width: 10),
+            Text(
+              'Keluar dari Akun?',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari akun mahasiswa? Anda harus masuk kembali dengan NIM dan kata sandi.',
+          style: TextStyle(
+            fontSize: 13,
+            height: 1.4,
+            color: AppColors.secondarySlate,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Batal',
+              style: TextStyle(color: AppColors.secondarySlate),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.roleSelection,
+                (route) => false,
+              );
+            },
+            child: const Text(
+              'Keluar',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -267,50 +333,89 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                       ],
                     ),
 
-                    // Notification Icon with Yellow Dot
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, AppRoutes.notifications);
-                      },
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.cardSurface,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.darkSlate.withValues(
-                                alpha: 0.05,
-                              ),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            const Icon(
-                              Icons.notifications_none_rounded,
-                              size: 24,
-                              color: AppColors.darkSlate,
-                            ),
-                            Positioned(
-                              top: 11,
-                              right: 12,
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.accentAmberGold,
-                                  shape: BoxShape.circle,
+                    Row(
+                      children: [
+                        // Notification Icon with Yellow Dot
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.notifications,
+                            );
+                          },
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppColors.cardSurface,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.notifications_none_rounded,
+                                  size: 24,
+                                  color: AppColors.darkSlate,
+                                ),
+                                Positioned(
+                                  top: 11,
+                                  right: 12,
+                                  child: Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.accentAmberGold,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+
+                        // Quick Logout Button
+                        GestureDetector(
+                          onTap: () => _showLogoutConfirmation(context),
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF2F2),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: const Color(0xFFFCA5A5)
+                                    .withValues(alpha: 0.5),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.darkSlate.withValues(
+                                    alpha: 0.05,
+                                  ),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.logout_rounded,
+                              size: 22,
+                              color: Color(0xFFDC2626),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -398,7 +503,7 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'SKS terkumpul',
+                                'Proyek Selesai',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -407,7 +512,7 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                               ),
                               SizedBox(height: 6),
                               Text(
-                                '6 SKS',
+                                '3 Proyek',
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
@@ -481,7 +586,7 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                                 child: const Column(
                                   children: [
                                     Icon(
-                                      Icons.school_outlined,
+                                      Icons.school_rounded,
                                       color: Colors.white,
                                       size: 20,
                                     ),
@@ -544,7 +649,47 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+
+              // Showcase Carousel: Kolaborasi UMKM & Peluang Proyek
+              InteractiveImageCarousel(
+                margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                height: 180,
+                items: [
+                  CarouselSlideItem(
+                    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+                    tag: 'Kemitraan UMKM',
+                    tagColor: AppColors.primaryNavy,
+                    title: 'Dapur Produksi Sambal & Kuliner',
+                    subtitle: 'Bantu digitalisasi UMKM lokal Surabaya: desain label kemasan & katalog online.',
+                    buttonText: 'Eksplorasi',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.exploreProjects),
+                  ),
+                  CarouselSlideItem(
+                    imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80',
+                    tag: 'Bimbingan 1-on-1',
+                    tagColor: AppColors.accentAmberGold,
+                    title: 'Review Portofolio Bersama Mentor',
+                    subtitle: 'Dapatkan badge verifikasi keahlian sebelum melamar tender proyek UMKM.',
+                    buttonText: 'Cari Mentor',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.findMentors),
+                  ),
+                  CarouselSlideItem(
+                    imageUrl: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80',
+                    tag: 'Proyek Baru',
+                    tagColor: const Color(0xFF10B981),
+                    title: 'Aplikasi Menu & Kasir Tepi Kali',
+                    subtitle: 'Imbalan 380 TC dengan sistem pencairan fleksibel 0% biaya admin.',
+                    buttonText: 'Detail',
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.exploreProjects),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
 
               // 3. Section: Proyek aktif (2)
               Padding(
@@ -565,7 +710,7 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                         Navigator.pushNamed(context, AppRoutes.myProjects);
                       },
                       child: const Text(
-                        'My Tasks',
+                        'Tugas Saya',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -602,14 +747,241 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                       progress: 0.33,
                       nextStep: 'Panduan brand & aset grafis',
                       daysLeft: '4 hari lagi',
-                      businessIcon: Icons.shopping_bag_outlined,
+                      businessIcon: Icons.shopping_bag_rounded,
                       deadlineColor: const Color(0xFFDC2626),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+
+              // Section: Layanan Konsultasi & Mentoring
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Konsultasi & Bimbingan',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.findMentors);
+                      },
+                      child: const Text(
+                        'Cari mentor',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryNavy,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Active Mentoring / Consultation Banner Card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.borderSlate),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.darkSlate.withValues(alpha: 0.04),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.school_rounded,
+                                color: AppColors.primaryNavy,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'Dimas Prasetyo, S.Kom',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFEF3C7),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Text(
+                                        'Senior Peer',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFFB45309),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                const Text(
+                                  'Sesi Bimbingan Proyek & Review Portofolio',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.secondarySlate,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.event_available_rounded,
+                              size: 14,
+                              color: AppColors.primaryNavy,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Jadwal Konsultasi: Hari ini \u00B7 19.30 WIB',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.darkSlate,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.myMentors,
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.list_alt_rounded,
+                                size: 16,
+                                color: AppColors.primaryNavy,
+                              ),
+                              label: const Text(
+                                'Jadwal Saya',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryNavy,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                  color: AppColors.primaryNavy,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.ruangBelajar,
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.meeting_room_rounded,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                              label: const Text(
+                                'Masuk Sesi',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryNavy,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
 
               // 4. Section: Rekomendasi untukmu
               Padding(
@@ -797,10 +1169,80 @@ class DashboardMahasiswaScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
+              const SizedBox(height: 24),
+
+              // 5. Section: Panduan & Tips Mahasiswa TalentSync
+              _buildStudentGuideSection(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStudentGuideSection() {
+    const studentArticles = [
+      InAppArticle(
+        id: 'student_guide_cashout',
+        title: 'Panduan Aman Mencairkan TimeCoin ke Rupiah (0% Biaya Admin)',
+        subtitle: 'Ketahui cara menarik TC hasil proyek langsung ke rekening bank atau e-wallet tanpa potongan.',
+        category: 'Keuangan',
+        readTime: '3 mnt baca',
+        imageUrl: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=800&q=80',
+        icon: Icons.payments_rounded,
+        accentColor: Color(0xFF0D9488),
+        keyPoints: [
+          '1 TC setara Rp1.000 utuh tanpa manipulasi kurs.',
+          'Pencairan dana bagi Mahasiswa 100% bebas biaya administrasi (0% admin fee).',
+          'Sistem Escrow menjamin dana aman tersimpan hingga UMKM menyetujui tugas akhirmu.',
+          'Waktu pemrosesan transfer maksimal 1x24 jam kerja.',
+        ],
+        fullContent: 'Setiap kali kamu menyelesaikan proyek UMKM dan hasil deliverable telah disetujui, dana TimeCoin (TC) yang tersimpan di brankas Escrow akan otomatis ditransfer ke Dompet TalentSync milikmu.\n\nKamu dapat mencairkan saldo TC kapan saja melalui menu Dompet > Tarik Rupiah. Pilih bank tujuan (BCA, Mandiri, BNI, BRI) atau e-wallet (GoPay, OVO, DANA). Mahasiswa mendapatkan keistimewaan 0% potongan biaya administrasi, sehingga seluruh hasil jerih payahmu diterima 100% utuh.',
+        proTip: 'Pastikan nama pemilik rekening bank atau e-wallet sesuai dengan nama lengkap pada Kartu Tanda Mahasiswa (KTM) agar verifikasi transfer berjalan otomatis tanpa penundaan.',
+      ),
+      InAppArticle(
+        id: 'student_guide_badge',
+        title: 'Belum Punya Portofolio? Raih Badge Rekomendasi Mentor',
+        subtitle: 'Syarat wajib melamar proyek UMKM: portofolio terverifikasi atau badge rekomendasi mentor.',
+        category: 'Karier & Mentor',
+        readTime: '4 mnt baca',
+        imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80',
+        icon: Icons.verified_rounded,
+        accentColor: AppColors.primaryNavy,
+        keyPoints: [
+          'UMKM memprioritaskan pelamar dengan Portofolio Terverifikasi atau Badge Mentor.',
+          'Sesi bimbingan 1-on-1 dengan Peer Mentor bertarif terjangkau menggunakan TimeCoin.',
+          'Selesaikan latihan studi kasus dan raih skor evaluasi minimal >= 80 untuk membuka badge.',
+          'Badge otomatis terpasang di profil dan langsung membuka akses seluruh proyek UMKM.',
+        ],
+        fullContent: 'Jika kamu baru bergabung dan belum memiliki rekam jejak portofolio proyek riil, jangan khawatir! TalentSync menyediakan jalur percepatan bimbingan bersama Peer Mentor (mahasiswa senior berprestasi atau praktisi muda).\n\nCukup buka menu Mentoring, pilih mentor dengan spesialisasi yang kamu minati (UI/UX, Web Dev, Mobile Flutter, Copywriting, Desain Grafis), lalu pesan sesi bimbingan. Di Ruang Belajar, mentor akan menguji kemampuanmu melalui simulasi kasus nyata UMKM. Begitu kamu meraih nilai minimal 80, mentor akan menerbitkan Badge Rekomendasi yang membuktikan bahwa kamu siap kerja!',
+        proTip: 'Pelamar yang menyertakan Badge Rekomendasi Mentor memiliki tingkat penerimaan 3.5x lebih tinggi oleh mitra UMKM dibanding pelamar tanpa verifikasi.',
+      ),
+      InAppArticle(
+        id: 'student_guide_switch_mentor',
+        title: 'Peluang Switch as a Mentor Setelah Selesaikan 5 Proyek',
+        subtitle: 'Tingkatkan peranmu menjadi Peer Mentor dan dapatkan penghasilan TimeCoin tambahan.',
+        category: 'Peluang',
+        readTime: '3 mnt baca',
+        imageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80',
+        icon: Icons.school_rounded,
+        accentColor: Color(0xFFD97706),
+        keyPoints: [
+          'Syarat: Menyelesaikan minimal 5 proyek UMKM nyata dengan reputasi baik.',
+          'Fleksibilitas mengatur tarif sesi bimbingan TimeCoin sendiri.',
+          'Bantu adik tingkat atau mahasiswa baru menguasai keahlian praktis.',
+          'Tersedia opsi upgrade ke Akun Mentor Premium untuk 0% biaya admin cash-out.',
+        ],
+        fullContent: 'TalentSync dirancang sebagai ekosistem pertumbuhan talenta yang berkelanjutan. Ketika kamu telah membuktikan keahlianmu dengan menuntaskan 5 proyek UMKM nyata dan mendapatkan rating positif, kamu memenuhi kualifikasi untuk beralih peran menjadi Peer Mentor.\n\nMelalui menu Profil > Beralih Menjadi Mentor (Switch as a Mentor), daftarkan keahlian utamamu, unggah bukti portofolio terbaik, dan tentukan jadwal serta tarif bimbinganmu. Kamu bisa mengajar adik tingkat, memberikan review tugas, dan mencairkan imbalan TimeCoin yang kamu dapatkan.',
+        proTip: 'Menjadi Peer Mentor tidak hanya menambah saldo TimeCoin, tetapi juga memperkuat portofolio kepemimpinan (leadership & mentoring) saat kamu melamar kerja di industri nanti.',
+      ),
+    ];
+
+    return const InAppGuideSection(
+      title: 'Panduan & Kiat Sukses Mahasiswa',
+      subtitle: 'Pelajari alur pengerjaan proyek, pencairan TimeCoin, dan bimbingan mentor',
+      articles: studentArticles,
     );
   }
 }

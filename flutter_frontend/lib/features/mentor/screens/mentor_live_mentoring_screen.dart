@@ -383,7 +383,7 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
                         ),
                         alignment: Alignment.center,
                         child: const Icon(
-                          Icons.timer_outlined,
+                          Icons.timer_rounded,
                           color: Color(0xFFD97706),
                           size: 28,
                         ),
@@ -430,7 +430,7 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
                   children: [
                     Expanded(
                       child: _SessionAction(
-                        icon: Icons.picture_as_pdf_outlined,
+                        icon: Icons.picture_as_pdf_rounded,
                         label: 'Bagikan materi',
                         onTap: _addMaterial,
                       ),
@@ -446,7 +446,7 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: _SessionAction(
-                        icon: Icons.assignment_outlined,
+                        icon: Icons.assignment_rounded,
                         label: 'Beri tugas',
                         onTap: _addTask,
                       ),

@@ -21,6 +21,97 @@ class _MsmeReviewApplicantsScreenState
     'Rating 4.8+',
   ];
 
+  void _onRejectAndRecommendMentor(String name) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.school_rounded, color: Color(0xFFD97706)),
+            SizedBox(width: 10),
+            Text(
+              'Tolak & Rekomendasikan Mentor',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Pelamar  belum memiliki portofolio/badge yang sesuai. Kirimkan arahan ramah agar mahasiswa mengikuti bimbingan mentor sebelum melamar kembali:',
+              style: const TextStyle(
+                fontSize: 12.5,
+                color: AppColors.secondarySlate,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.lightbulb_rounded, color: Color(0xFFB45309), size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Saran: Bimbingan Arsitektur Flutter & Desain UI/UX bersama Mentor Dimas Prasetyo.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF92400E),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal', style: TextStyle(color: AppColors.secondarySlate)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD97706),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Saran bimbingan mentor berhasil dikirim ke .'),
+                  backgroundColor: AppColors.primaryNavy,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: const Text(
+              'Kirim Rekomendasi',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _onAccept(String name) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -241,7 +332,7 @@ class _MsmeReviewApplicantsScreenState
                           ),
                         ),
                         const Icon(
-                          Icons.check_circle_outline_rounded,
+                          Icons.check_circle_rounded,
                           color: Color(0xFF10B981),
                           size: 24,
                         ),
@@ -592,7 +683,7 @@ class _MsmeReviewApplicantsScreenState
                       tooltip: 'Chat pelamar',
                       onPressed: () => _onChat(name),
                       icon: const Icon(
-                        Icons.chat_bubble_outline_rounded,
+                        Icons.chat_bubble_rounded,
                         color: AppColors.darkSlate,
                         size: 20,
                       ),
@@ -664,6 +755,37 @@ class _MsmeReviewApplicantsScreenState
                   ),
                 ],
               ),
+              if (mentorRecommendation == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        side: const BorderSide(color: Color(0xFFFDE68A)),
+                        backgroundColor: const Color(0xFFFFFBEB),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: const Icon(
+                        Icons.school_rounded,
+                        color: Color(0xFFD97706),
+                        size: 16,
+                      ),
+                      label: const Text(
+                        'Tolak & Arahkan Bimbingan Mentor',
+                        style: TextStyle(
+                          color: Color(0xFFB45309),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      onPressed: () => _onRejectAndRecommendMentor(name),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

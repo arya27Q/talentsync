@@ -35,9 +35,9 @@ class MentorCashOutScreen extends StatefulWidget {
 class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
   final _amountController = TextEditingController(text: '200');
   static const _accounts = [
-    ('BCA', '7721', Icons.account_balance_outlined),
-    ('Mandiri', '0394', Icons.account_balance_outlined),
-    ('GoPay', '0812', Icons.account_balance_wallet_outlined),
+    ('BCA', '7721', Icons.account_balance_rounded),
+    ('Mandiri', '0394', Icons.account_balance_rounded),
+    ('GoPay', '0812', Icons.account_balance_wallet_rounded),
   ];
   String _selectedAccount = 'BCA';
 
@@ -469,7 +469,7 @@ class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
             height: 50,
             child: FilledButton.icon(
               onPressed: _confirmCashOut,
-              icon: const Icon(Icons.account_balance_outlined),
+              icon: const Icon(Icons.account_balance_rounded),
               label: const Text(
                 'Withdraw to Bank (Cash-Out)',
                 style: TextStyle(fontWeight: FontWeight.w800),

@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 
 class MsmeCreateTaskWizardScreen extends StatefulWidget {
-  const MsmeCreateTaskWizardScreen({
-    super.key,
-    this.onCompleted,
-  });
+  const MsmeCreateTaskWizardScreen({super.key, this.onCompleted});
 
   final VoidCallback? onCompleted;
 
@@ -14,15 +11,305 @@ class MsmeCreateTaskWizardScreen extends StatefulWidget {
       _MsmeCreateTaskWizardScreenState();
 }
 
-class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen> {
+class _MsmeCreateTaskWizardScreenState
+    extends State<MsmeCreateTaskWizardScreen> {
   int _selectedTemplateIndex = 1; // Default to Setup Media Sosial (Populer)
+  String? _customProjectTitle;
+  String? _customProjectCategory;
+  String? _customProjectPrice;
+  String? _customProjectDesc;
+
+  void _showCustomProjectDialog() {
+    final titleController = TextEditingController(
+      text: _customProjectTitle ?? '',
+    );
+    final priceController = TextEditingController(
+      text: _customProjectPrice ?? '100',
+    );
+    final descController = TextEditingController(
+      text: _customProjectDesc ?? '',
+    );
+    String selectedCategory = _customProjectCategory ?? 'Lainnya';
+
+    final categories = [
+      'Desain & Grafis',
+      'Video & Media',
+      'Web & Aplikasi',
+      'Penulisan & Konten',
+      'Administrasi & Data',
+      'Pemasaran Digital',
+      'Lainnya',
+    ];
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.fromLTRB(
+            24,
+            20,
+            24,
+            MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.borderSlate,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Row(
+                  children: [
+                    Icon(
+                      Icons.tune_rounded,
+                      color: AppColors.primaryNavy,
+                      size: 22,
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      'Buat Proyek Kustom UMKM',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Tentukan detail kebutuhan pekerjaan dan alokasi imbalan TimeCoin yang sesuai untuk usahamu.',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: AppColors.secondarySlate,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Judul Proyek
+                const Text(
+                  'Nama / Judul Kebutuhan',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: Video Reels Menu Resto',
+                    hintStyle: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.secondarySlate,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.borderSlate,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // Kategori
+                const Text(
+                  'Kategori Bidang',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: categories.map((cat) {
+                    final isSel = selectedCategory == cat;
+                    return InkWell(
+                      onTap: () {
+                        setModalState(() {
+                          selectedCategory = cat;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSel
+                              ? AppColors.primaryNavy
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          cat,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isSel ? Colors.white : AppColors.darkSlate,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 14),
+
+                // Anggaran TC
+                const Text(
+                  'Alokasi Imbalan TimeCoin (TC)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'Contoh: 120',
+                    suffixText:
+                        'TC (~Rp${(int.tryParse(priceController.text) ?? 100) * 1000})',
+                    suffixStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryNavy,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.borderSlate,
+                      ),
+                    ),
+                  ),
+                  onChanged: (_) => setModalState(() {}),
+                ),
+                const SizedBox(height: 14),
+
+                // Deskripsi Singkat
+                const Text(
+                  'Deskripsi Singkat / Kebutuhan Utama',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: descController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'Tulis ringkasan hasil yang diharapkan dari mahasiswa...',
+                    hintStyle: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.secondarySlate,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.borderSlate,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Tombol Simpan
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryNavy,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: () {
+                      final title = titleController.text.trim();
+                      if (title.isEmpty) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Silakan masukkan nama/judul proyek kustom.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      setState(() {
+                        _customProjectTitle = title;
+                        _customProjectCategory = selectedCategory;
+                        _customProjectPrice =
+                            priceController.text.trim().isEmpty
+                            ? '100'
+                            : priceController.text.trim();
+                        _customProjectDesc = descController.text.trim();
+                        _selectedTemplateIndex =
+                            _templates.length - 1; // custom index
+                      });
+                      Navigator.pop(ctx);
+                    },
+                    child: const Text(
+                      'Gunakan Proyek Kustom Ini',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   final List<_TemplateItem> _templates = const [
     _TemplateItem(
       title: 'Desain Logo',
       subtitle: 'Logo dan panduan warna',
       price: '80–150 TC',
-      icon: Icons.draw_outlined,
+      icon: Icons.draw_rounded,
     ),
     _TemplateItem(
       title: 'Setup Media Sosial',
@@ -35,7 +322,7 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
       title: 'Foto Produk',
       subtitle: 'Foto katalog siap jual',
       price: '40–90 TC',
-      icon: Icons.camera_alt_outlined,
+      icon: Icons.camera_alt_rounded,
     ),
     _TemplateItem(
       title: 'Landing Page',
@@ -55,14 +342,25 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
       price: '100–200 TC',
       icon: Icons.bar_chart_rounded,
     ),
+    _TemplateItem(
+      title: 'Kebutuhan Kustom',
+      subtitle: 'Tentukan judul, tugas, & imbalan sendiri',
+      price: 'Bebas / Fleksibel',
+      icon: Icons.tune_rounded,
+      isCustom: true,
+    ),
   ];
 
   void _onNext() {
     final selected = _templates[_selectedTemplateIndex];
+    final String chosenTitle = selected.isCustom && _customProjectTitle != null
+        ? _customProjectTitle!
+        : selected.title;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Template "${selected.title}" dipilih. Melanjutkan ke detail tugas...',
+          'Proyek "$chosenTitle" dipilih. Melanjutkan ke detail tugas...',
         ),
         backgroundColor: AppColors.primaryNavy,
         behavior: SnackBarBehavior.floating,
@@ -206,9 +504,7 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFFBEB),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: const Color(0xFFFDE68A),
-                      ),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
                     ),
                     child: Row(
                       children: [
@@ -231,7 +527,9 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Buka halaman Upgrade Slot proyek.'),
+                                content: Text(
+                                  'Buka halaman Upgrade Slot proyek.',
+                                ),
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
@@ -273,6 +571,9 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
                           setState(() {
                             _selectedTemplateIndex = index;
                           });
+                          if (item.isCustom) {
+                            _showCustomProjectDialog();
+                          }
                         },
                         borderRadius: BorderRadius.circular(20),
                         child: AnimatedContainer(
@@ -293,9 +594,8 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
                                     ? AppColors.primaryNavy.withValues(
                                         alpha: 0.1,
                                       )
-                                    : const Color(0xFF0F172A).withValues(
-                                        alpha: 0.03,
-                                      ),
+                                    : const Color(0xFF0F172A)
+                                          .withValues(alpha: 0.03),
                                 blurRadius: isSelected ? 12 : 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -326,7 +626,9 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
                                   ),
                                   const Spacer(),
                                   Text(
-                                    item.title,
+                                    item.isCustom && _customProjectTitle != null
+                                        ? _customProjectTitle!
+                                        : item.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
@@ -337,7 +639,10 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
                                   ),
                                   const SizedBox(height: 3),
                                   Text(
-                                    item.subtitle,
+                                    item.isCustom &&
+                                            _customProjectCategory != null
+                                        ? 'Kategori: $_customProjectCategory'
+                                        : item.subtitle,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
@@ -348,7 +653,9 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    item.price,
+                                    item.isCustom && _customProjectPrice != null
+                                        ? '$_customProjectPrice TC'
+                                        : item.price,
                                     style: const TextStyle(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w700,
@@ -387,6 +694,89 @@ class _MsmeCreateTaskWizardScreenState extends State<MsmeCreateTaskWizardScreen>
                         ),
                       );
                     },
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // Callout Banner: "Tidak menemukan yang sesuai?"
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.edit_note_rounded,
+                              color: AppColors.primaryNavy,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Tidak menemukan kebutuhan usahamu?',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryNavy,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Kamu bisa membuat proyek kustom dengan menentukan nama pekerjaan, bidang keahlian, dan anggaran imbalan TimeCoin sendiri.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedTemplateIndex = _templates.length - 1;
+                            });
+                            _showCustomProjectDialog();
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.primaryNavy),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_circle_outline_rounded,
+                                  size: 16,
+                                  color: AppColors.primaryNavy,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Tulis Proyek Kustom Sendiri',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryNavy,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -453,6 +843,7 @@ class _TemplateItem {
     required this.price,
     required this.icon,
     this.isPopular = false,
+    this.isCustom = false,
   });
 
   final String title;
@@ -460,5 +851,5 @@ class _TemplateItem {
   final String price;
   final IconData icon;
   final bool isPopular;
+  final bool isCustom;
 }
-

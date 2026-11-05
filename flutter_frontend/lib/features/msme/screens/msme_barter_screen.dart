@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
 
 class MsmeBarterScreen extends StatefulWidget {
   const MsmeBarterScreen({super.key});
@@ -147,6 +148,46 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
             ),
           ),
 
+          const SizedBox(height: 16),
+
+          // Showcase Carousel: Contoh Produk & Voucher Mitra yang Laris di Reward Hub
+          const InteractiveImageCarousel(
+            margin: EdgeInsets.zero,
+            height: 175,
+            items: [
+              CarouselSlideItem(
+                imageUrl:
+                    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
+                tag: 'Voucher Kuliner',
+                tagColor: AppColors.primaryNavy,
+                title: 'Voucher Es Kopi Susu & Pastry',
+                subtitle:
+                    'Paling diminati mahasiswa saat jam istirahat atau nugas kelompok di kafe.',
+                buttonText: 'Contoh',
+              ),
+              CarouselSlideItem(
+                imageUrl:
+                    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+                tag: 'Paket Produk',
+                tagColor: Color(0xFFB45309),
+                title: 'Paket Sambal Rumahan & Frozen Food',
+                subtitle:
+                    'Dikonversi 35 TC per botol, cepat di-redeem oleh talenta proyek.',
+                buttonText: 'Contoh',
+              ),
+              CarouselSlideItem(
+                imageUrl:
+                    'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80',
+                tag: 'Kerajinan Tangan',
+                tagColor: Color(0xFF10B981),
+                title: 'Merchandise & Souvenir UMKM Kreatif',
+                subtitle:
+                    'Cocok sebagai reward pencapaian tugas mahasiswa berprestasi.',
+                buttonText: 'Contoh',
+              ),
+            ],
+          ),
+
           const SizedBox(height: 18),
 
           // Form Card
@@ -173,6 +214,7 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 10,
+                  runSpacing: 10,
                   children: List.generate(_voucherTypes.length, (index) {
                     final bool isSelected = _selectedVoucherType == index;
                     return InkWell(
@@ -386,7 +428,7 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
-                          Icons.add_photo_alternate_outlined,
+                          Icons.add_photo_alternate_rounded,
                           color: AppColors.primaryNavy,
                           size: 22,
                         ),

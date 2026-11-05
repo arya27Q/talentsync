@@ -416,7 +416,7 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                                 ),
                                 child: const Center(
                                   child: Icon(
-                                    Icons.timer_outlined,
+                                    Icons.timer_rounded,
                                     color: Color(0xFFD97706),
                                     size: 22,
                                   ),
@@ -648,7 +648,7 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildNavIcon(
-                    icon: Icons.explore_outlined,
+                    icon: Icons.explore_rounded,
                     onTap: () {
                       Navigator.pushNamedAndRemoveUntil(
                         context,
@@ -658,7 +658,7 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                     },
                   ),
                   _buildNavIcon(
-                    icon: Icons.assignment_outlined,
+                    icon: Icons.assignment_rounded,
                     onTap: () {
                       Navigator.pushReplacementNamed(
                         context,
@@ -667,7 +667,7 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                     },
                   ),
                   _buildNavIcon(
-                    icon: Icons.account_balance_wallet_outlined,
+                    icon: Icons.account_balance_wallet_rounded,
                     onTap: () {
                       Navigator.pushNamed(context, AppRoutes.wallet);
                     },

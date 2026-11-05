@@ -394,7 +394,7 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
-                        Icons.flag_outlined,
+                        Icons.flag_rounded,
                         color: AppColors.primaryNavy,
                         size: 18,
                       ),

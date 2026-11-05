@@ -473,7 +473,7 @@ class _ProjectChoice extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: const Icon(
-                Icons.storefront_outlined,
+                Icons.storefront_rounded,
                 color: Color(0xFFC2410C),
                 size: 22,
               ),

@@ -173,7 +173,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                Icons.bolt_rounded,
+                                Icons.timelapse_rounded,
                                 size: 12,
                                 color: AppColors.primaryNavy,
                               ),
@@ -192,7 +192,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            '· $businessName · $locationMode',
+                            '$businessName \u00B7 $locationMode',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -263,7 +263,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                'Tahap $currentStage/$totalStages · $progressPercent%',
+                'Tahap $currentStage/$totalStages \u00B7 $progressPercent%',
                 style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -483,7 +483,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                   ),
                   child: const Center(
                     child: Icon(
-                      Icons.view_kanban_outlined,
+                      Icons.view_kanban_rounded,
                       color: AppColors.darkSlate,
                       size: 20,
                     ),
@@ -613,7 +613,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Sambal Bu Rudi · Lamaran dikirim kemarin',
+            'Sambal Bu Rudi \u00B7 Lamaran dikirim kemarin',
             style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
           ),
           const SizedBox(height: 14),
@@ -758,7 +758,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            '$client · Diselesaikan $date',
+            '$client \u00B7 Diselesaikan $date',
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.secondarySlate,
@@ -830,7 +830,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'My Tasks',
+                      'Tugas Saya',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
@@ -861,7 +861,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                           alignment: Alignment.center,
                           children: [
                             const Icon(
-                              Icons.notifications_outlined,
+                              Icons.notifications_rounded,
                               color: AppColors.darkSlate,
                               size: 22,
                             ),
@@ -891,7 +891,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                 child: Row(
                   children: [
                     _buildMetricCard(
-                      icon: Icons.bolt_rounded,
+                      icon: Icons.timelapse_rounded,
                       iconColor: AppColors.primaryNavy,
                       value: '2',
                       label: 'Proyek aktif',
@@ -905,10 +905,10 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                     ),
                     const SizedBox(width: 10),
                     _buildMetricCard(
-                      icon: Icons.school_outlined,
+                      icon: Icons.school_rounded,
                       iconColor: const Color(0xFF10B981),
-                      value: '6 SKS',
-                      label: 'Terkumpul',
+                      value: '3 Proyek',
+                      label: 'Selesai',
                     ),
                   ],
                 ),
@@ -1021,7 +1021,7 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                         client: 'Depot Makan Barokah',
                         earnedTc: 150,
                         rating: '5.0',
-                        feedback: 'Sangat puas, konversi SKS disetujui kampus.',
+                        feedback: 'Sangat puas, hasil kerja rapi dan sesuai kebutuhan.',
                         date: '1 minggu lalu',
                       ),
                       _buildSelesaiCard(

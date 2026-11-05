@@ -1,171 +1,151 @@
 # Dokumentasi Arsitektur Bisnis & Ekosistem Aplikasi TalentSync
-**Sistem:** Ekosistem Hybrid (Kredit Internal TimeCoin & Rupiah)  
-**Entitas Pengguna:** Mahasiswa, Mitra UMKM, dan Mentor  
-**Stack Teknologi:** Flutter (Mobile), Laravel (Backend RESTful API), PostgreSQL (Database)
+**Sistem:** Ekosistem Segitiga Hybrid (Kredit Internal TimeCoin & Rupiah)  
+**Entitas Pengguna:** Mahasiswa, Mitra UMKM, dan Mentor (Peer Mentor / Senior)  
+**Stack Teknologi:** Flutter (Mobile), Laravel (Backend RESTful API), PostgreSQL (Database)  
+**Dokumen Rujukan:** Proposal Proyek TalentSync (S1 Sistem Informasi, Fakultas Teknik, UNESA 2026)  
 
 ---
 
 ## 1. Pengantar dan Konsep Utama
-**TalentSync** dirancang sebagai aplikasi mobile kolaboratif yang menghubungkan **Mahasiswa**, **Mitra UMKM**, dan **Mentor** dalam satu ekosistem digital terpadu. Konsep aplikasi ini dibangun di atas tiga pilar utama: **Belajar (Mentoring)**, **Mengerjakan Proyek Nyata (Project Execution)**, dan **Membangun Reputasi (Portofolio & Endorsement)**.
 
-### Konsep Ekosistem Hybrid (TimeCoin & Rupiah)
-Aplikasi mengusung konsep **Ekosistem Hybrid** yang menggabungkan kegiatan pembelajaran dan pelaksanaan proyek melalui dua mekanisme nilai yang berbeda:
-1. **TimeCoin (TC) — Kredit Internal Aplikasi:**
-   Digunakan untuk pencatatan nilai dan transaksi internal di dalam ekosistem TalentSync:
-   * **Bagi Mahasiswa:** Digunakan untuk mendaftar kelas/sesi mentoring, diperoleh sebagai imbalan setelah menyelesaikan proyek UMKM, atau ditukarkan dengan *voucher promo/reward* di dalam aplikasi.
-   * **Bagi Mitra UMKM:** Digunakan sebagai anggaran imbalan proyek atau apresiasi kepada mahasiswa berdasarkan kesepakatan tugas.
-   * **Bagi Mentor:** Diterima sebagai kredit atas kegiatan bimbingan/kelas mentoring yang diselenggarakan.
-2. **Rupiah (IDR) — Satuan Nilai Pembayaran Eksternal:**
-   Digunakan untuk transaksi di luar mekanisme kredit internal (apabila fitur pembayaran dan pencairan diaktifkan), meliputi:
-   * Pembelian paket layanan **Langganan Premium** (bagi UMKM dan Mentor).
-   * **Top-Up TimeCoin** sebagai modal awal mengikuti kelas mentoring.
-   * **Pencairan (*Cash-Out*) TimeCoin ke Rupiah** ke rekening bank (dengan estimasi nilai konversi pada rancangan antarmuka: `1 TC = Rp1.000`).
+**TalentSync** adalah platform kolaborasi terpadu berbasis *mobile* yang menghubungkan **Mahasiswa**, **Mitra UMKM**, dan **Mentor** dalam satu ekosistem digital yang saling menguntungkan (*triangular ecosystem*).
 
-> **Catatan Implementasi Tahap Awal:** Pada tahap pengembangan awal (MVP akademik), TimeCoin diperlakukan sebagai kredit internal aplikasi dengan validasi saldo dan riwayat transaksi penuh di sisi server (*backend*), bukan sebagai uang elektronik umum secara otomatis.
+Aplikasi ini mengatasi problem fundamental dalam dunia kerja mahasiswa dan digitalisasi UMKM:
+* **Problem UMKM:** UMKM membutuhkan bantuan digitalisasi (aplikasi kasir, website, desain kemasan, pembukuan digital), tetapi ragu/takut mempekerjakan mahasiswa karena belum mengetahui kualitas aslinya (*unverified quality* & risiko hasil kerja terbengkalai).
+* **Problem Mahasiswa:** Mahasiswa membutuhkan pengalaman proyek nyata dan penghasilan tambahan, namun sering ditolak karena belum memiliki portofolio kerja profesional.
+* **Solusi TalentSync:** Menghadirkan **Mentor sebagai Kurator & Penjamin Kualitas (Quality Assurance)** yang membimbing mahasiswa, menguji kompetensi, dan menerbitkan **Badge Rekomendasi Kerja (*Endorsement*)** sehingga UMKM merasa aman dan yakin 100% saat mempekerjakan mahasiswa.
 
 ---
 
-## 2. Arsitektur Interaksi Antarperan & Alur Kerja Ekosistem
+## 2. Arsitektur Ekosistem Segitiga (The Triangular Ecosystem)
 
-Berikut adalah representasi visual dari interaksi tiga peran utama beserta perputaran **TimeCoin (TC)** dan **Rupiah** berdasarkan rancangan *User Flow* dan *Activity Diagram* sistem:
+Hubungan antara ketiga pihak digerakkan oleh perputaran **Kredit Internal TimeCoin (TC)** dan **Mata Uang Rupiah (IDR)** dengan rasio konversi referensi **1 TC $\approx$ Rp1.000**.
 
 ```mermaid
 flowchart TD
     %% Styling
-    classDef umkm fill:#f9d0c4,stroke:#333,stroke-width:2px;
-    classDef mhs fill:#d4e1f9,stroke:#333,stroke-width:2px;
-    classDef mentor fill:#d5f9d4,stroke:#333,stroke-width:2px;
-    classDef sys fill:#f9f8d4,stroke:#333,stroke-width:2px;
+    classDef umkm fill:#EFF6FF,stroke:#1E3A8A,stroke-width:2px;
+    classDef mhs fill:#F0FDF4,stroke:#16A34A,stroke-width:2px;
+    classDef mentor fill:#FEF3C7,stroke:#D97706,stroke-width:2px;
+    classDef sys fill:#F8FAFC,stroke:#64748B,stroke-width:2px;
 
     %% Nodes
     U[Mitra UMKM]:::umkm
     M[Mahasiswa]:::mhs
-    Men[Mentor]:::mentor
-    S[Sistem TalentSync]:::sys
+    Men[Peer Mentor]:::mentor
+    S[Sistem Escrow TalentSync]:::sys
 
-    %% Alur Pembelajaran & Endorsement
-    M -- "1. Daftar Kelas & Bayar TC" --> Men
-    Men -- "2. Bimbingan & Beri Badge Rekomendasi (Endorse)" --> M
+    %% 1. Jalur Pembelajaran & Quality Assurance
+    M -- "1. Bayar TC & Ikuti Bimbingan" --> Men
+    Men -- "2. Uji Studi Kasus & Terbitkan Badge Rekomendasi (Endorse)" --> M
 
-    %% Alur Proyek UMKM
-    U -- "3. Publikasi Proyek & Imbalan TC" --> S
-    M -- "4. Lamar Proyek (Syarat: Portofolio / Badge Mentor)" --> U
-    U -- "5. Seleksi, Pantau Progres & Validasi Hasil" --> M
-    U -- "6. Beri Rating/Ulasan & Transfer TC" --> M
+    %% 2. Jalur Proyek UMKM
+    U -- "3. Top-Up Rupiah ke TC & Posting Proyek" --> S
+    M -- "4. Lamar Proyek (Syarat: Portofolio Nyata ATAU Badge Mentor)" --> U
+    U -- "5a. Seleksi & Terima Pelamar Ber-badge" --> M
+    U -. "5b. Belum Siap? Tolak & Arahkan Bimbingan Mentor" .-> M
 
-    %% Pemanfaatan TC Mahasiswa
-    M -- "7a. Tukar TC ke Voucher Promo / Kelas Lanjutan" --> S
-    M -. "7b. Cash-Out TC ke Rupiah (0% Biaya Admin)" .-> S
-    M -- "7c. Lulus >= 5 Proyek: Aktifkan Switch as a Mentor" --> Men
+    %% 3. Pelaksanaan & Pendampingan
+    M -- "6. Kerjakan di Workspace Kanban" --> U
+    Men -. "7. Konsultasi Bantuan Teknis saat Kendala / Revisi" .-> M
+    U -- "8. Validasi Hasil Akhir & Beri Ulasan Bintang" --> S
+    S -- "9. Transfer TC ke Mahasiswa (Escrow Rilis)" --> M
 
-    %% Monetisasi & Cash-Out Mentor/UMKM
-    U -. "Langganan Premium UMKM (Kuota TC & Filter Talenta)" .-> S
-    Men -. "Cash-Out TC ke Rupiah (Freemium: Potongan 10% | Premium: 0% Admin)" .-> S
+    %% 4. Pemanfaatan TC & Perputaran Nilai
+    M -. "10a. Cash-Out TC ke Rupiah (0% Biaya Admin)" .-> S
+    M -- "10b. Sudah Selesaikan >= 5 Proyek: Switch as a Mentor" --> Men
+    Men -. "11. Cash-Out TC ke Rupiah (Freemium: 10% | Premium: 0%)" .-> S
+    U -. "12. Upgrade Langganan Premium (Diskon Admin & Kuota Ekstra)" .-> S
 ```
 
-### Tiga Pilar Interaksi Antarperan
-1. **Interaksi Mahasiswa dan UMKM:**
-   * UMKM memublikasikan proyek beserta deskripsi tugas, kategori, tenggat waktu, dan imbalan TimeCoin.
-   * Mahasiswa melamar proyek dengan syarat wajib memiliki **Tautan Portofolio Eksternal** atau **Badge Rekomendasi dari Mentor**.
-   * UMKM menyeleksi kandidat berdasarkan *Project History*, portofolio, dan *Badge* dari Mentor.
-   * Mahasiswa mengerjakan proyek dan memperbarui progres melalui **Project Management** & **Activity Tracker**.
-   * UMKM memeriksa hasil kerja (*deliverable*), meminta revisi jika belum sesuai, atau memvalidasi hasil akhir disertai pemberian *rating*, ulasan, dan transfer TimeCoin. Proyek otomatis tercatat di **Project History** mahasiswa.
-2. **Interaksi Mahasiswa dan Mentor:**
-   * Mentor membuka kelas bimbingan lengkap dengan topik, jadwal, tautan *video call*, dan tarif TimeCoin.
-   * Mahasiswa mendaftar kelas menggunakan saldo TimeCoin.
-   * Selama/setelah kelas, Mentor mengevaluasi tugas peserta dan dapat memberikan **Badge Rekomendasi Kerja (*Endorsement*)** kepada mahasiswa yang kompeten sebagai modal melamar proyek UMKM.
-3. **Interaksi Mentor dan UMKM:**
-   * Mentor membantu menyiapkan kesiapan keterampilan mahasiswa sesuai kebutuhan proyek UMKM.
-   * Melalui fitur **Talent Recommendation** dan **Endorsement Murid**, mentor menjembatani UMKM dalam menemukan kandidat mahasiswa yang sudah tervalidasi keahliannya.
+---
+
+## 3. Detail Tiga Skenario Alur Interaksi Antarperan
+
+### 🎯 Skenario 1: Penjamin Kualitas (Mentor ➔ Mahasiswa ➔ UMKM)
+*Berdasarkan Dokumen Proposal Bab II & Wireframe Hal 15 (Quality Assurance Loop)*
+
+1. **Mahasiswa Mengikuti Kelas / Sesi Konsultasi:**  
+   Mahasiswa yang belum memiliki portofolio proyek nyata wajib mencari mentor terlebih dahulu di katalog bimbingan ([`FindMentorsScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/find_mentors_screen.dart)).
+2. **Ujian & Penilaian Kompetensi:**  
+   Mentor memberikan modul materi, latihan studi kasus, serta sesi tanya-jawab interaktif melalui *Live Video Call* atau obrolan chat. Mahasiswa mengunggah tugas di Ruang Belajar ([`RuangBelajarScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/ruang_belajar_screen.dart)).
+3. **Penerbitan Badge Rekomendasi Kerja (*Endorse*):**  
+   Jika mahasiswa lulus evaluasi dengan skor $\ge 80$, mentor menerbitkan sertifikat dan **Badge Rekomendasi Mentor** ([`MentoringResultScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/mentoring_result_screen.dart)).
+4. **Melamar Proyek UMKM dengan Kredibilitas Tinggi:**  
+   Ketika mahasiswa melamar pekerjaan di Mitra UMKM, profil lamaran menampilkan tanda centang hijau verifikasi: *"Direkomendasikan oleh Mentor Dimas Prasetyo (Senior Engineer)"*. UMKM mendapatkan kepastian mutu tanpa rasa ragu.
 
 ---
 
-## 3. Peran, Hak Akses, dan Fitur *Switch as a Mentor*
-
-Sistem membagi pengguna ke dalam tiga peran utama dengan mekanisme verifikasi dan hak akses yang terstruktur:
-
-### 1. Mahasiswa
-* **Verifikasi:** Menggunakan bukti identitas akademik yang valid seperti **Kartu Tanda Mahasiswa (KTM)**.
-* **Hak Akses & Fungsi Utama:**
-  * Membuat dan mengelola profil serta galeri portofolio.
-  * Menjelajahi, mencari, dan melamar proyek UMKM.
-  * Memperbarui progres tugas pada *Project Management* & *Activity Tracker* serta mengunggah hasil pekerjaan (*deliverable*).
-  * Mengikuti kelas atau sesi mentoring dan menerima *Badge Rekomendasi* dari Mentor.
-  * Menerima penilaian/ulasan serta imbalan TimeCoin dari UMKM ke dalam *Project History*.
-  * Mengelola dompet TimeCoin (riwayat transaksi, penukaran voucher promo, atau pencairan).
-
-### 2. Mitra UMKM
-* **Verifikasi:** Menggunakan informasi usaha dan bukti pendukung yang relevan.
-* **Hak Akses & Fungsi Utama:**
-  * Membuat dan mengelola profil usaha.
-  * Memublikasikan proyek beserta deskripsi, keahlian yang dibutuhkan, tenggat waktu, dan imbalan TimeCoin.
-  * Meninjau profil, *Project History*, portofolio, dan *Badge Rekomendasi* calon pelaksana.
-  * Mengaktifkan *Filter Talenta* (khusus Premium) untuk menyaring kandidat bergelar *Badge Rekomendasi Mentor*.
-  * Memantau status pengerjaan proyek (dibuka, menunggu seleksi, berlangsung, revisi, selesai), mengunduh *deliverable*, dan memberikan penilaian akhir.
-
-### 3. Mentor
-* **Verifikasi:** Pemeriksaan informasi bidang keahlian dan bukti portofolio pendukung yang relevan.
-* **Hak Akses & Fungsi Utama:**
-  * Mengelola profil keahlian, membuat kelas/sesi mentoring, serta mengatur jadwal dan biaya TimeCoin.
-  * Mengelola daftar murid, membagikan tautan sesi bimbingan (*video call*), dan memeriksa tugas peserta.
-  * Memberikan evaluasi serta **Badge Rekomendasi Kerja (*Endorse*)** kepada mahasiswa agar direkomendasikan ke UMKM.
-  * Melihat riwayat kelas dan mengelola pencairan (*Cash-Out*) saldo TimeCoin.
-
-### Fitur *Switch as a Mentor* (Mahasiswa Menjadi Mentor)
-Mahasiswa yang memiliki kompetensi unggul dapat mengajukan diri menjadi mentor melalui fitur **Switch as a Mentor** pada halaman Profil:
-* **Syarat Aktivasi:** Mahasiswa telah menyelesaikan minimal **5 proyek UMKM** dengan *rating* dan tingkat penyelesaian yang baik, serta melengkapi bidang keahlian dan portofolio pendukung.
-* **Mekanisme:** Saat tombol *toggle* **Mode Mentor** diaktifkan dan disetujui sistem, mahasiswa mendapatkan akses ke fitur pengelolaan kelas untuk mulai mengajar mahasiswa lain dan memperoleh TimeCoin yang dapat dicairkan ke Rupiah.
+### 🛡️ Skenario 2: Seleksi, Penolakan Edukatif & Bantuan Revisi (UMKM ➔ Mahasiswa & Mentor)
+1. **Penyaringan Pelamar oleh UMKM:**  
+   Saat membuka lowongan proyek, UMKM meninjau pelamar.
+2. **Aksi Edukatif — Tolak & Arahkan Bimbingan Mentor:**  
+   Jika pelamar belum memiliki portofolio dan belum ber-badge mentor, UMKM menekan tombol **`Tolak & Arahkan Bimbingan Mentor`** pada layar seleksi ([`MsmeReviewApplicantsScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/msme/screens/msme_review_applicants_screen.dart)). Sistem memberikan notifikasi ramah dan tautan langsung agar mahasiswa mengambil mentoring terlebih dahulu untuk meningkatkan keahliannya.
+3. **Pendampingan Teknis saat Revisi Proyek:**  
+   Jika hasil kerja *deliverable* mahasiswa masih memiliki bug atau kekurangan desain, UMKM mengajukan catatan revisi dengan opsi **"Sarankan Konsultasi dengan Mentor Pendamping"** ([`MsmeReviewSubmissionScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/msme/screens/msme_review_submission_screen.dart)). Mahasiswa di Workspace Kanban dapat langsung menekan tombol **`Konsultasi Mentor`** untuk berdiskusi 1-on-1 dengan mentor guna menyelesaikan revisi tepat waktu.
 
 ---
 
-## 4. Skema Distribusi Awal TimeCoin (Onboarding)
-
-Setiap perubahan saldo TimeCoin harus divalidasi oleh server dan tercatat di dalam tabel `TimeCoin Wallets` serta `TimeCoin Transactions` (mencakup sumber transaksi, tujuan, jumlah kredit, waktu, dan status).
-
-| Entitas Pengguna | Skema Saldo Awal | Ketentuan & Mekanisme Perolehan |
-| :--- | :---: | :--- |
-| **Mahasiswa** | **0 TC** *(atau Bonus Sambutan)* | Bonus sambutan hanya diberikan apabila kebijakan *onboarding* verifikasi KTM diterapkan. Mahasiswa memperoleh TC utama dari penyelesaian proyek UMKM (atau melalui *Top-Up* TC untuk modal kelas). |
-| **Mitra UMKM** | **Hingga 20 TC / bulan** | Kuota dasar (*Freemium*) untuk memublikasikan proyek, dibatasi berdasarkan periode bulanan dan aturan penggunaan. Dapat ditingkatkan melalui paket Premium (misal hingga 500 TC/bulan). |
-| **Mentor** | **0 TC** | Saldo awal mutlak nol. Kredit TimeCoin diperoleh secara organik dari mahasiswa yang mendaftar pada aktivitas kelas/mentoring. |
+### 💼 Skenario 3: Pertumbuhan Mahasiswa Menjadi Mentor (*Switch as a Mentor*)
+1. **Akumulasi Portofolio Nyata:**  
+   Mahasiswa mengerjakan tugas-tugas dari berbagai UMKM (misal kasir digital, branding kemasan, katalog online).
+2. **Syarat Kelulusan $\ge 5$ Proyek:**  
+   Setelah mahasiswa berhasil menyelesaikan minimal **5 proyek UMKM terverifikasi** dengan rating bintang yang baik, sistem secara otomatis mengaktifkan fitur toggle **Mode Mentor** pada profil mahasiswa ([`SwitchToMentorScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/profile/screens/switch_to_mentor_screen.dart)).
+3. **Mulai Membimbing Mahasiswa Junior:**  
+   Mahasiswa naik level menjadi *Peer Mentor* (mahasiswa senior/praktisi muda), membuka kelas bimbingan bertarif TC, dan membantu membimbing adik tingkatnya agar siap bekerja pada proyek UMKM berikutnya.
 
 ---
 
-## 5. Rencana Model Monetisasi (Pendekatan Freemium)
+## 4. Arsitektur Finansial & Perputaran TimeCoin (TC)
 
-Model bisnis TalentSync dirancang menggunakan pendekatan **Freemium** untuk menjaga aksesibilitas bagi mahasiswa sekaligus memberikan nilai tambah bagi Mitra UMKM dan Mentor.
+TalentSync menerapkan sistem moneter internal yang transparan dan adil bagi seluruh pihak:
 
-### A. Mitra UMKM
-* **Freemium (Dasar):** Mendapatkan kuota dasar hingga **20 TC per bulan** untuk memublikasikan proyek dengan batas penggunaan standar.
-* **Premium (Berlangganan):**
-  * Memperoleh kuota TimeCoin bulanan tambahan yang jauh lebih besar (contoh: hingga **500 TC**).
-  * Fitur **undangan langsung (*direct invite*)** kepada mahasiswa.
-  * Akses **Filter Talenta & Rekomendasi Mentor** (hanya menerima atau memprioritaskan mahasiswa yang memiliki *Badge Rekomendasi Mentor*).
-
-### B. Mentor
-* **Freemium (Dasar):** Dapat membuka kelas dan menggunakan fitur mentoring dasar. Apabila melakukan pencairan (*Cash-Out*) TimeCoin ke Rupiah, dikenakan **potongan biaya layanan/administrasi** (contoh pada rancangan antarmuka: **10%**).
-* **Premium (Berlangganan):**
-  * Peningkatan visibilitas profil mentor pada pencarian kelas.
-  * Kuota pemberian rekomendasi talenta (*endorsement*) yang lebih besar.
-  * **Bebas Biaya Admin (Potongan 0%)** saat melakukan pencairan (*Cash-Out*) TimeCoin ke rekening bank sehingga mentor menerima nilai penuh.
-
-### C. Mahasiswa (100% Bebas Biaya)
-* **Tanpa Biaya Berlangganan:** Mahasiswa dapat mengakses seluruh fitur utama (eksplorasi proyek, portofolio, *Project History*, *Activity Tracker*, dan pendaftaran mentoring) secara gratis untuk menghilangkan hambatan dalam membangun karier.
-* **Keistimewaan *Cash-Out* 0% Admin:** Apabila fitur pencairan diterapkan, mahasiswa berhak mencairkan (*Cash-Out*) TimeCoin hasil pengerjaan proyek ke Rupiah **secara gratis (0% potongan biaya administrasi)** agar imbalan kerja mereka diterima secara utuh.
+| Peran | Sumber Perolehan Nilai | Penggunaan Nilai | Kebijakan Pencairan (*Cash-Out*) & Admin |
+|---|---|---|---|
+| **Mahasiswa** | Imbalan penyelesaian proyek UMKM (dibayarkan via TC). Dapat juga melakukan Top-Up TC mandiri untuk modal bimbingan. | Digunakan untuk booking sesi konsultasi/mentoring atau penukaran voucher reward. | **0% Biaya Potongan Admin:** Mahasiswa berhak mencairkan TC hasil kerja proyek ke rekening bank Rupiah secara utuh ($1\text{ TC} = \text{Rp}1.000$) tanpa potongan sepeser pun. |
+| **Mitra UMKM** | Kuota dasar bulanan (20 TC/bulan) atau membeli TC melalui fitur **Top-Up TimeCoin via Rupiah**. | Digunakan untuk mendanai imbalan proyek (*escrow*) kepada mahasiswa pelaksana. | **Model Langganan Premium:** UMKM dapat berlangganan paket Premium untuk mendapatkan kuota ekstra hingga 500 TC/bulan, bebas biaya administrasi saat top-up, dan akses filter prioritas pelamar ber-badge mentor. |
+| **Mentor** | Menerima transfer TC dari mahasiswa yang memesan kelas bimbingan / konsultasi 1-on-1. | Mengembangkan reputasi, menambah saldo dompet, atau dicairkan ke Rupiah. | **Freemium vs Premium:**<br>• *Akun Mentor Freemium:* Pencairan TC ke Rupiah dikenakan potongan admin **10%**.<br>• *Akun Mentor Premium:* Bebas biaya admin (**0% potongan**) sehingga mentor menerima pencairan utuh. |
 
 ---
 
-## 6. Ringkasan 12 Fitur Utama Sistem (Matriks IPO)
+## 5. Peta Aksesibilitas Konsultasi & Mentoring di POV Mahasiswa
 
-Seluruh ekosistem di atas didukung oleh 12 modul fungsional utama dalam perancangan sistem:
-1. **Registrasi dan Login:** Validasi data akun multi-peran beserta verifikasi identitas (KTM/Usaha/Portofolio).
-2. **Profil Pengguna:** Pengelolaan data diri, keahlian, statistik proyek selesai, *rating*, dan galeri portofolio.
-3. **Pencarian Proyek:** Eksplorasi proyek UMKM berdasarkan kata kunci atau kategori.
-4. **Pengajuan Proyek:** Pengiriman lamaran proyek dengan validasi syarat portofolio eksternal atau *Badge Rekomendasi Mentor*.
-5. **Project Management:** Pengelolaan siklus proyek (*dibuka, menunggu seleksi, berlangsung, revisi, selesai*) dan pengunggahan *deliverable*.
-6. **Project History:** Penyimpanan otomatis riwayat proyek yang telah selesai sebagai portofolio terverifikasi.
-7. **Mentoring dan Kelas:** Pengelolaan jadwal kelas, tarif TimeCoin, tautan *video call*, dan evaluasi tugas murid.
-8. **TimeCoin Wallet & Transactions:** Validasi kecukupan saldo di sisi server, transfer imbalan proyek, pembayaran kelas, penukaran voucher, dan riwayat mutasi TC.
-9. **Talent Recommendation & Endorsement:** Pencocokan keahlian mahasiswa dengan kebutuhan proyek UMKM serta pemberian *Badge Rekomendasi Kerja* oleh Mentor.
-10. **Ulasan & Rating:** Pemberian *rating* bintang dan komentar evaluasi setelah proyek atau sesi mentoring selesai.
-11. **Switch as a Mentor:** Pemeriksaan persyaratan pengalaman proyek (minimal 5 proyek selesai) untuk membuka akses fitur mentor bagi mahasiswa.
-12. **Activity Tracker:** Pencatatan detail aktivitas, status tugas, dan ringkasan perkembangan pengerjaan proyek.
+Untuk memastikan mahasiswa tidak kebingungan mencari modul bimbingan/konsultasi, TalentSync menyediakan **4 titik akses navigasi strategis**:
+
+1. **Dashboard Utama Mahasiswa ([`DashboardMahasiswaScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/dashboard/screens/dashboard_mahasiswa_screen.dart)):**
+   * Seksi dedicated **"Konsultasi & Bimbingan"** dengan kartu mentor aktif, ringkasan jadwal live consultation, tombol *Jadwal Saya*, tombol *Masuk Sesi*, dan tautan *Cari mentor*.
+2. **Papan Kerja Proyek ([`WorkspaceKanbanScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/workspace/screens/workspace_kanban_screen.dart)):**
+   * Banner bantuan teknis **"Mengalami Kendala Teknis Proyek?"** tepat di bawah kolom Kanban, menghubungkan mahasiswa langsung ke direktori peer mentor untuk sesi debugging.
+3. **Form Pengumpulan Deliverable ([`SubmissionScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/workspace/screens/submission_screen.dart)):**
+   * Banner verifikasi pra-pengumpulan **"Konsultasi Sebelum Mengumpulkan"** agar mahasiswa dapat berkonsultasi review kualitas dengan mentor sebelum hasil diserahkan ke UMKM.
+4. **Pencarian Katalog Mentor ([`FindMentorsScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/find_mentors_screen.dart)):**
+   * Akses filter kategori keahlian lengkap (Flutter, UI Design, Laravel, Machine Learning, Database) dengan informasi tarif TC, ulasan murid, dan rating bintang.
+
+---
+
+## 6. Standar Keamanan Sesi Akun & Logout Mahasiswa
+
+Aplikasi menjamin kemudahan akses keluar akun (*Logout*) dengan perlindungan konfirmasi modal agar tidak terjadi ketidaksengajaan:
+1. **Header Beranda:** Tombol ikon merah `Icons.logout_rounded` di pojok kanan atas berdampingan dengan ikon lonceng notifikasi.
+2. **Header Profil Mahasiswa:** Tombol merah `Icons.logout_rounded` berdampingan dengan tombol gear pengaturan.
+3. **Kartu Sesi Akun:** Kartu dedicated di bagian bawah layar profil (*"Sesi Akun Mahasiswa"*).
+4. **Menu Pengaturan:** Menu *"Ganti Peran / Keluar Akun"* di [`StudentSettingsScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/profile/screens/student_settings_screen.dart).
+5. **Menu Privasi & Keamanan:** Menu *"Keluar dari Akun"* di [`PrivacySecurityScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/profile/screens/privacy_security_screen.dart).
+6. **Mekanisme Reset Stack:** Memanggil `Navigator.pushNamedAndRemoveUntil(context, AppRoutes.roleSelection, (route) => false)` sehingga seluruh sesi lama dibersihkan tuntas saat pengguna keluar.
+
+---
+
+## 7. Ringkasan 10 Layar Modul Mentoring Mahasiswa
+
+| Layar | Rute Aplikasi | Deskripsi Fungsionalitas |
+|---|---|---|
+| [`FindMentorsScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/find_mentors_screen.dart) | `/mentors` | Eksplorasi daftar mentor, filter bidang keahlian, dan statistik rating |
+| [`MentorProfileScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/mentor_profile_screen.dart) | `/mentors/profile` | Profil mendalam mentor, riwayat bimbingan, review murid, dan tombol booking |
+| [`BookingSessionScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/booking_session_screen.dart) | `/mentors/booking` | Form pemilihan tanggal, jam bimbingan, topik konsultasi, & pembayaran TC |
+| [`MentoringSessionScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/mentoring_session_screen.dart) | `/mentoring/session` | Ruang tatap muka Live Video Call bimbingan interaktif mahasiswa-mentor |
+| [`MentorChatScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/mentor_chat_screen.dart) | `/mentors/chat` | Ruang obrolan pesan teks 1-on-1 dan pertukaran dokumen/kode bimbingan |
+| [`RuangBelajarScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/ruang_belajar_screen.dart) | `/mentoring/ruang-belajar` | Ruang pengerjaan tugas & studi kasus yang diarahkan mentor |
+| [`MyMentorsScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/my_mentors_screen.dart) | `/mentors/my-mentors` | Jadwal bimbingan aktif, daftar mentor terhubung, dan riwayat sesi |
+| [`LogBimbinganScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/log_bimbingan_screen.dart) | `/mentoring/log` | Catatan evaluasi, saran perbaikan, dan rangkuman poin per sesi |
+| [`MentoringResultScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/mentoring_result_screen.dart) | `/mentoring/result` | Lembar hasil bimbingan, nilai akhir, & penerbitan Badge Rekomendasi Kerja |
+| [`SelesaiBimbinganScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/mentoring/screens/selesai_bimbingan_screen.dart) | `/mentoring/selesai` | Penutupan sesi bimbingan, pemberian ulasan bintang, dan feedback ke mentor |

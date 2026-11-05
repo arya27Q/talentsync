@@ -40,7 +40,7 @@ class SharedAuthLayout extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.arrow_back,
+                          Icons.arrow_back_rounded,
                           color: AppColors.darkBrown,
                           size: 20,
                         ),

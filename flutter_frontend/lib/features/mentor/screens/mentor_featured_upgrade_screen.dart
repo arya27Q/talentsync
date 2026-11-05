@@ -202,7 +202,7 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                   child: Column(
                     children: const [
                       _BenefitItem(
-                        icon: Icons.money_off_csred_outlined,
+                        icon: Icons.money_off_csred_rounded,
                         title: '0% biaya admin cash-out',
                         detail:
                             'Paket gratis dipotong 15% setiap penukaran TC ke Rupiah',
@@ -223,7 +223,7 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                       ),
                       Divider(height: 1, color: AppColors.borderSlate),
                       _BenefitItem(
-                        icon: Icons.thumb_up_alt_outlined,
+                        icon: Icons.thumb_up_alt_rounded,
                         title: 'Prioritas permintaan UMKM',
                         detail:
                             'Rekomendasimu tampil pertama di profil pelamar',
