@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_booking.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_booking_detail_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_live_mentoring_screen.dart';
@@ -27,13 +29,50 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
   late List<MentorBooking> _pendingBookings;
   late List<MentorBooking> _scheduledBookings;
   late List<MentorBooking> _completedBookings;
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _pendingBookings = List.from(mentorBookingRequests);
-    _scheduledBookings = List.from(mentorScheduledBookings);
-    _completedBookings = List.from(mentorCompletedBookings);
+    _pendingBookings = [];
+    _scheduledBookings = [];
+    _completedBookings = [];
+    _loadBookings();
+  }
+
+  Future<void> _loadBookings() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final rows = await MentorApi.instance.enrollments();
+      if (!mounted) return;
+      final bookings = rows.map(MentorBooking.fromEnrollment).toList();
+      setState(() {
+        _pendingBookings = bookings
+            .where((booking) => booking.status == 'pending')
+            .toList();
+        _scheduledBookings = bookings
+            .where(
+              (booking) => ['accepted', 'attended'].contains(booking.status),
+            )
+            .toList();
+        _completedBookings = bookings
+            .where(
+              (booking) => [
+                'pending_confirmation',
+                'completed',
+              ].contains(booking.status),
+            )
+            .toList();
+      });
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   List<MentorBooking> get _currentBookings {
@@ -62,47 +101,36 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
     if (!mounted) return;
 
     if (result is String) {
-      setState(() {
-        if (result == 'accepted') {
-          _pendingBookings.removeWhere(
-            (b) => b.student.name == booking.student.name,
-          );
-          _scheduledBookings.insert(
-            0,
-            MentorBooking(
-              student: booking.student,
-              topic: booking.topic,
-              date: booking.date,
-              time: booking.time,
-              durationMinutes: booking.durationMinutes,
-              price: booking.price,
-              meetingUrl:
-                  'meet.google.com/tsy-${booking.student.initials.toLowerCase()}-101',
-              status: 'accepted',
-            ),
-          );
-        } else if (result == 'declined') {
-          _pendingBookings.removeWhere(
-            (b) => b.student.name == booking.student.name,
-          );
+      if (booking.enrollmentId == null) return;
+      try {
+        if (result == 'accepted' || result == 'declined') {
+          await MentorApi.instance.decideBooking(booking.enrollmentId!, result);
         } else if (result == 'completed') {
-          _scheduledBookings.removeWhere(
-            (b) => b.student.name == booking.student.name,
-          );
-          _completedBookings.insert(
-            0,
-            MentorBooking(
-              student: booking.student,
-              topic: booking.topic,
-              date: booking.date,
-              durationMinutes: booking.durationMinutes,
-              price: booking.price,
-              score: 'Nilai 85/100',
-              status: 'completed',
-            ),
+          if (booking.status == 'accepted') {
+            await MentorApi.instance.updateAttendance(
+              booking.enrollmentId!,
+              'attended',
+            );
+          }
+          final assessment = await _collectAssessment();
+          if (assessment == null) {
+            await _loadBookings();
+            return;
+          }
+          await MentorApi.instance.submitAssessment(
+            enrollmentId: booking.enrollmentId!,
+            score: assessment.$1,
+            feedback: assessment.$2,
           );
         }
-      });
+        await _loadBookings();
+        if (!mounted) return;
+      } on ApiException catch (error) {
+        if (mounted)
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(error.message)));
+        return;
+      }
 
       final notice = switch (result) {
         'accepted' => 'Booking ${booking.student.name} dikonfirmasi.',
@@ -119,15 +147,68 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
     }
   }
 
+  Future<(int, String)?> _collectAssessment() async {
+    final scoreController = TextEditingController();
+    final feedbackController = TextEditingController();
+    final result = await showDialog<(int, String)?>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Evaluasi sesi'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: scoreController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Nilai (0–100)'),
+            ),
+            TextField(
+              controller: feedbackController,
+              minLines: 2,
+              maxLines: 4,
+              decoration: const InputDecoration(labelText: 'Umpan balik'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final score = int.tryParse(scoreController.text);
+              final feedback = feedbackController.text.trim();
+              if (score == null ||
+                  score < 0 ||
+                  score > 100 ||
+                  feedback.length < 5)
+                return;
+              Navigator.pop(dialogContext, (score, feedback));
+            },
+            child: const Text('Kirim evaluasi'),
+          ),
+        ],
+      ),
+    );
+    scoreController.dispose();
+    feedbackController.dispose();
+    return result;
+  }
+
   void _openLiveMentoring(MentorBooking booking) {
+    if (booking.meetingUrl == null || booking.meetingUrl!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tautan Google Meet belum tersedia.')),
+      );
+      return;
+    }
     Navigator.pushNamed(
       context,
       AppRoutes.mentorLiveMentoring,
       arguments: MentorLiveMentoringArgs(
         student: booking.student,
-        meetingUrl: booking.meetingUrl != null
-            ? 'https://${booking.meetingUrl}'
-            : 'https://meet.google.com/tsy-arya-019',
+        meetingUrl: booking.meetingUrl,
         onSelectTab: widget.onSelectTab,
       ),
     );
@@ -155,7 +236,8 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
           // Header: Manage Bookings & + action button
           MentorPageHeader(
             title: 'Manage Bookings',
-            subtitle: '2 layanan aktif',
+            subtitle:
+                '${_pendingBookings.length} booking baru · ${_scheduledBookings.length} sesi aktif',
             trailing: GestureDetector(
               onTap: widget.onOpenServices,
               child: Container(
@@ -221,7 +303,26 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
 
           // Booking List with Scroll Padding for Bottom Navigation Bar
           Expanded(
-            child: bookings.isEmpty
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_error!, textAlign: TextAlign.center),
+                          const SizedBox(height: 12),
+                          FilledButton(
+                            onPressed: _loadBookings,
+                            child: const Text('Coba lagi'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : bookings.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -686,7 +787,7 @@ class _BookingCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  booking.score ?? 'Nilai 88/100',
+                  booking.score ?? 'Menunggu nilai',
                   style: const TextStyle(
                     color: AppColors.primaryNavy,
                     fontWeight: FontWeight.w800,

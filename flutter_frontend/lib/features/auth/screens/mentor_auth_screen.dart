@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 
 class MentorAuthScreen extends StatefulWidget {
   const MentorAuthScreen({super.key});
@@ -14,6 +16,7 @@ class _MentorAuthScreenState extends State<MentorAuthScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  final _authApi = AuthApi();
 
   @override
   void dispose() {
@@ -24,18 +27,49 @@ class _MentorAuthScreenState extends State<MentorAuthScreen> {
 
   Future<void> _signIn() async {
     if (_isLoading) return;
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Masukkan email dan kata sandi.')),
+      );
+      return;
+    }
     setState(() {
       _isLoading = true;
     });
-
-    await Future<void>.delayed(const Duration(milliseconds: 1100));
-    if (!mounted) return;
-
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRoutes.mentorDashboard,
-      (route) => false,
-    );
+    try {
+      final user = await _authApi.login(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+      if (!mounted) return;
+      if (user['role'] != 'mentor') {
+        await _authApi.logout();
+        throw const ApiException(
+          'Akun ini bukan akun mentor. Gunakan halaman masuk sesuai peran.',
+        );
+      }
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.mentorDashboard,
+        (route) => false,
+      );
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login gagal diproses. Periksa koneksi dan ulangi.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _forgotPassword() {

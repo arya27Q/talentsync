@@ -26,8 +26,9 @@ class MentorBookingDetailScreen extends StatelessWidget {
 
   MentorBooking get booking => args.booking;
   bool get isPending => args.status == 'pending';
-  bool get isAccepted => args.status == 'accepted';
-  bool get isCompleted => args.status == 'completed';
+  bool get isAccepted => args.status == 'accepted' || args.status == 'attended';
+  bool get isCompleted =>
+      args.status == 'pending_confirmation' || args.status == 'completed';
 
   void _finish(BuildContext context, String decision) {
     Navigator.pop(context, decision);
@@ -217,9 +218,7 @@ class MentorBookingDetailScreen extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      (booking.rating ?? 4.7).toStringAsFixed(
-                                        1,
-                                      ),
+                                      booking.rating?.toStringAsFixed(1) ?? '—',
                                       style: const TextStyle(
                                         color: AppColors.darkSlate,
                                         fontWeight: FontWeight.w700,
@@ -235,7 +234,9 @@ class MentorBookingDetailScreen extends StatelessWidget {
                                     const SizedBox(width: 8),
                                     Flexible(
                                       child: Text(
-                                        '${booking.completedProjects ?? 2} proyek UMKM',
+                                        booking.completedProjects == null
+                                            ? 'Data proyek belum tersedia'
+                                            : '${booking.completedProjects} proyek UMKM',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
 
 class MentorStudentChatScreen extends StatefulWidget {
@@ -17,6 +20,10 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   final List<_ChatMessage> _messages = [];
+  int? _mentorId;
+  bool _loading = true;
+  bool _sending = false;
+  String? _error;
 
   static const _quickReplies = [
     'Materi baru sudah saya unggah',
@@ -26,21 +33,7 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.student.initials == 'AP') {
-      _messages.addAll(const [
-        _ChatMessage(
-          text:
-              'Arya, materi struktur BLoC sudah saya unggah di ruang belajar.',
-          isMine: true,
-          time: 'Kemarin',
-        ),
-        _ChatMessage(
-          text: 'Siap, Mas. Kalau ada yang bingung saya tanya di sini.',
-          isMine: false,
-          time: 'Kemarin',
-        ),
-      ]);
-    }
+    _loadMessages();
   }
 
   @override
@@ -50,24 +43,66 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage([String? suggested]) {
+  Future<void> _loadMessages() async {
+    final enrollmentId = widget.student.enrollmentId;
+    if (enrollmentId == null) {
+      setState(() {
+        _loading = false;
+        _error = 'Percakapan ini belum terkait booking sesi.';
+      });
+      return;
+    }
+    try {
+      final session = await ApiClient.instance.readSessionUser();
+      final messages = await MentorApi.instance.messages(enrollmentId);
+      if (!mounted) return;
+      setState(() {
+        _mentorId = session?['id'] as int?;
+        _messages
+          ..clear()
+          ..addAll(
+            messages.map(
+              (message) => _ChatMessage.fromJson(message, _mentorId),
+            ),
+          );
+        _error = null;
+      });
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _sendMessage([String? suggested]) async {
     final message = (suggested ?? _messageController.text).trim();
-    if (message.isEmpty) return;
-    setState(() {
-      _messages.add(
-        _ChatMessage(text: message, isMine: true, time: 'Baru saja'),
+    if (message.isEmpty || _sending) return;
+    final enrollmentId = widget.student.enrollmentId;
+    if (enrollmentId == null) return;
+    setState(() => _sending = true);
+    try {
+      await MentorApi.instance.sendMessage(
+        enrollmentId: enrollmentId,
+        message: message,
       );
       if (suggested == null) _messageController.clear();
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+      await _loadMessages();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    } on ApiException catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
   }
 
   Future<void> _shareMaterial() async {
@@ -304,14 +339,32 @@ class _MentorStudentChatScreenState extends State<MentorStudentChatScreen> {
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Text(
-              'Percakapan terenkripsi · tersimpan sebagai bukti kerja',
+              'Riwayat percakapan tersimpan pada sesi mentoring',
               style: TextStyle(color: AppColors.secondarySlate, fontSize: 11.5),
             ),
           ),
 
           // Chat messages list
           Expanded(
-            child: _messages.isEmpty
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_error!, textAlign: TextAlign.center),
+                          TextButton(
+                            onPressed: _loadMessages,
+                            child: const Text('Coba lagi'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : _messages.isEmpty
                 ? const Center(
                     child: Text(
                       'Mulai percakapan dengan murid.',
@@ -498,6 +551,20 @@ class _ChatMessage {
   final String text;
   final bool isMine;
   final String time;
+
+  factory _ChatMessage.fromJson(Map<String, dynamic> data, int? mentorId) {
+    final sentAt = DateTime.tryParse(data['created_at'] as String? ?? '')
+        ?.toLocal();
+    final time = sentAt == null
+        ? ''
+        : '${sentAt.hour.toString().padLeft(2, '0')}:${sentAt.minute.toString().padLeft(2, '0')}';
+    return _ChatMessage(
+      text:
+          data['message'] as String? ?? data['attachment_url'] as String? ?? '',
+      isMine: data['sender_id'] == mentorId,
+      time: time,
+    );
+  }
 }
 
 class _MessageBubble extends StatelessWidget {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
 import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
@@ -37,36 +39,47 @@ class _MentorStudentLearningRoomScreenState
     extends State<MentorStudentLearningRoomScreen> {
   late int _selectedTab = widget.initialTab;
   late bool _recommended = widget.student.recommended;
-  final Set<String> _openedResources = {
-    'Panduan struktur folder feature-first',
-  };
+  List<Map<String, dynamic>> _assignments = const [];
+  bool _loadingAssignments = true;
+  String? _assignmentError;
 
-  static const _materials = [
-    _LearningResource(
-      title: 'Panduan struktur folder feature-first',
-      detail: 'PDF · 2,4 MB · 8 Jul',
-      type: 'PDF',
-      isOpened: true,
-    ),
-    _LearningResource(
-      title: 'Rekaman: refactor kasir kecil',
-      detail: 'Video · 25 mnt · 8 Jul',
-      type: 'Video',
-      isOpened: false,
-    ),
-    _LearningResource(
-      title: 'Repo contoh clean architecture',
-      detail: 'github.com · 9 Jul',
-      type: 'Tautan',
-      isOpened: false,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadAssignments();
+  }
+
+  Future<void> _loadAssignments() async {
+    final enrollmentId = widget.student.enrollmentId;
+    if (enrollmentId == null) {
+      setState(() {
+        _loadingAssignments = false;
+        _assignmentError = 'Data pendaftaran sesi tidak tersedia.';
+      });
+      return;
+    }
+    try {
+      final assignments = await MentorApi.instance.assignments(enrollmentId);
+      if (!mounted) return;
+      setState(() {
+        _assignments = assignments;
+        _loadingAssignments = false;
+        _assignmentError = null;
+      });
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadingAssignments = false;
+        _assignmentError = error.message;
+      });
+    }
+  }
 
   List<String> get _tabs => [
-    'Materi (${widget.student.materials})',
-    'Tugas (${widget.student.totalTasks})',
-    'Proyek (${widget.student.completedProjects})',
-    'Sertifikat (${widget.student.certificates})',
+    'Materi',
+    'Tugas (${_assignments.length})',
+    'Proyek',
+    'Sertifikat',
   ];
 
   Color get _studentColor => switch (widget.student.initials) {
@@ -75,23 +88,46 @@ class _MentorStudentLearningRoomScreenState
     _ => AppColors.primaryNavy,
   };
 
-  void _toggleRecommendation() {
-    setState(() => _recommended = !_recommended);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _recommended
-              ? '${widget.student.name} ditandai direkomendasikan ke UMKM.'
-              : 'Rekomendasi ${widget.student.name} dicabut.',
+  Future<void> _toggleRecommendation() async {
+    final enrollmentId = widget.student.enrollmentId;
+    if (enrollmentId == null || _recommended) return;
+    final notes = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Beri endorsement'),
+        content: TextField(
+          controller: notes,
+          maxLines: 3,
+          decoration: const InputDecoration(labelText: 'Catatan untuk murid'),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Kirim'),
+          ),
+        ],
       ),
     );
-  }
-
-  void _openResource(_LearningResource resource) {
-    setState(() => _openedResources.add(resource.title));
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('Membuka ${resource.title}...')));
+    if (confirmed == true && mounted) {
+      try {
+        await MentorApi.instance.endorse(enrollmentId, notes.text.trim());
+        if (!mounted) return;
+        setState(() => _recommended = true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Endorsement berhasil disimpan.')),
+        );
+      } on ApiException catch (error) {
+        if (mounted)
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+    notes.dispose();
   }
 
   @override
@@ -371,72 +407,35 @@ class _MentorStudentLearningRoomScreenState
                 const SizedBox(height: 14),
 
                 // Tab Content List
-                if (_selectedTab == 0) ...[
-                  // 1. Tab Materi (3)
-                  for (final item in _materials) ...[
-                    _MaterialResourceCard(
-                      resource: item,
-                      isOpened:
-                          _openedResources.contains(item.title) ||
-                          item.isOpened,
-                      onTap: () => _openResource(item),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                ] else if (_selectedTab == 1) ...[
-                  // 2. Tab Tugas (3) matching Screenshot 1
-                  _TaskResourceCard(
-                    title: 'Refactor repository stok barang',
-                    dueDate: 'Tenggat 14 Jul',
-                    status: 'Dikerjakan murid',
-                    statusType: _TaskStatusType.inProgress,
-                  ),
-                  const SizedBox(height: 12),
-                  _TaskResourceCard(
-                    title: 'Tulis 5 unit test untuk perhitungan laba',
-                    dueDate: 'Tenggat 18 Jul',
-                    status: 'Dikerjakan murid',
-                    statusType: _TaskStatusType.inProgress,
-                  ),
-                  const SizedBox(height: 12),
-                  _TaskResourceCard(
-                    title: 'Diagram alur state kasir',
-                    dueDate: 'Tenggat 10 Jul',
-                    status: 'Dinilai 90',
-                    statusType: _TaskStatusType.graded,
-                    linkUrl: 'figma.com/file/state-kasir',
-                  ),
-                ] else if (_selectedTab == 2) ...[
-                  // 3. Tab Proyek (2) matching Screenshot 2
-                  _ProjectResourceCard(
-                    badge: 'Terverifikasi · 92',
-                    isVerified: true,
-                    rewardTc: '40 TC',
-                    title: 'Modul offline-sync aplikasi koperasi',
-                    client: 'Klien mentor · Koperasi Pasar Genteng',
-                    resultSummary: 'Hasil: github.com/arya/offline-sync, Demo APK v1.2, Do...',
-                  ),
-                  const SizedBox(height: 12),
-                  _ProjectResourceCard(
-                    badge: 'Dikerjakan murid',
-                    isVerified: false,
-                    rewardTc: '30 TC',
-                    title: 'Code review & refactor fitur laporan',
-                    client: 'Tim internal fintech mentor',
-                    resultSummary: 'Hasil: PR #142 (draft)',
-                  ),
+                if (_selectedTab == 1) ...[
+                  if (_loadingAssignments)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else if (_assignmentError != null)
+                    _LearningEmptyState(
+                      message: _assignmentError!,
+                      onRetry: _loadAssignments,
+                    )
+                  else if (_assignments.isEmpty)
+                    const _LearningEmptyState(
+                      message: 'Belum ada tugas untuk sesi ini.',
+                    )
+                  else
+                    for (final assignment in _assignments) ...[
+                      _AssignmentCard(assignment: assignment),
+                      const SizedBox(height: 12),
+                    ],
                 ] else ...[
-                  // 4. Tab Sertifikat (2) matching Screenshot 3
-                  _CertificateResourceCard(
-                    title: 'Rekomendasi Kerja: Flutter Developer',
-                    subtitle: 'Rekomendasi Kerja · 8 Jul 2025 · TS-END-0087',
-                    isAmber: true,
-                  ),
-                  const SizedBox(height: 12),
-                  _CertificateResourceCard(
-                    title: 'Lulus Bimbingan: Arsitektur Flutter & BLoC',
-                    subtitle: 'Kelulusan · 8 Jul 2025 · TS-MNT-0211',
-                    isAmber: false,
+                  _LearningEmptyState(
+                    message: _selectedTab == 0
+                        ? 'Materi dibagikan lewat chat sesi. Buka chat untuk melihat tautan materi yang dikirim.'
+                        : _selectedTab == 2
+                        ? 'Data proyek murid belum tersedia di backend mentor.'
+                        : 'Data sertifikat murid belum tersedia di backend mentor.',
                   ),
                 ],
               ],
@@ -459,393 +458,202 @@ class _MentorStudentLearningRoomScreenState
   );
 }
 
-class _LearningResource {
-  const _LearningResource({
-    required this.title,
-    required this.detail,
-    required this.type,
-    this.isOpened = false,
-  });
+class _LearningEmptyState extends StatelessWidget {
+  const _LearningEmptyState({required this.message, this.onRetry});
 
-  final String title;
-  final String detail;
-  final String type;
-  final bool isOpened;
-}
-
-class _MaterialResourceCard extends StatelessWidget {
-  const _MaterialResourceCard({
-    required this.resource,
-    required this.isOpened,
-    required this.onTap,
-  });
-
-  final _LearningResource resource;
-  final bool isOpened;
-  final VoidCallback onTap;
-
-  IconData get _iconData {
-    if (resource.type == 'PDF') return Icons.picture_as_pdf_rounded;
-    if (resource.type == 'Video') return Icons.play_circle_outline_rounded;
-    return Icons.link_rounded;
-  }
+  final String message;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(14),
+    padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.darkSlate.withValues(alpha: 0.03),
-          blurRadius: 10,
-          offset: const Offset(0, 3),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: AppColors.borderSlate),
+    ),
+    child: Column(
+      children: [
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: AppColors.secondarySlate),
         ),
+        if (onRetry != null)
+          TextButton(onPressed: onRetry, child: const Text('Coba lagi')),
       ],
     ),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: Row(
+  );
+}
+
+class _AssignmentCard extends StatelessWidget {
+  const _AssignmentCard({required this.assignment});
+  final Map<String, dynamic> assignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final submissions = (assignment['submissions'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    final due = DateTime.tryParse(assignment['due_at'] as String? ?? '');
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            alignment: Alignment.center,
-            child: Icon(_iconData, color: AppColors.primaryNavy, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  resource.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.darkSlate,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  resource.detail,
-                  style: const TextStyle(
-                    color: AppColors.secondarySlate,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
           Text(
-            isOpened ? 'Dibuka murid' : 'Belum dibuka',
-            style: TextStyle(
-              color: isOpened
-                  ? const Color(0xFF059669)
-                  : AppColors.secondarySlate,
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
+            assignment['title'] as String? ?? 'Tugas',
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: AppColors.darkSlate,
             ),
           ),
+          if ((assignment['description'] as String? ?? '').isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              assignment['description'] as String,
+              style: const TextStyle(color: AppColors.secondarySlate),
+            ),
+          ],
+          const SizedBox(height: 8),
+          Text(
+            due == null
+                ? 'Tanpa tenggat'
+                : 'Tenggat ${due.toLocal().toString().substring(0, 16)}',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.secondarySlate,
+            ),
+          ),
+          const Divider(height: 20),
+          if (submissions.isEmpty)
+            const Text(
+              'Belum ada pengumpulan tugas.',
+              style: TextStyle(color: AppColors.secondarySlate),
+            )
+          else
+            for (final submission in submissions)
+              _SubmissionRow(submission: submission),
         ],
       ),
-    ),
-  );
+    );
+  }
 }
 
-enum _TaskStatusType { inProgress, graded }
-
-class _TaskResourceCard extends StatelessWidget {
-  const _TaskResourceCard({
-    required this.title,
-    required this.dueDate,
-    required this.status,
-    required this.statusType,
-    this.linkUrl,
-  });
-
-  final String title;
-  final String dueDate;
-  final String status;
-  final _TaskStatusType statusType;
-  final String? linkUrl;
+class _SubmissionRow extends StatelessWidget {
+  const _SubmissionRow({required this.submission});
+  final Map<String, dynamic> submission;
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.darkSlate.withValues(alpha: 0.03),
-          blurRadius: 10,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) {
+    final status = submission['status'] as String? ?? 'submitted';
+    return Row(
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: AppColors.darkSlate,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15,
-                    ),
+        Expanded(
+          child: Text(
+            '${submission['student_name'] ?? 'Murid'} · $status${submission['score'] == null ? '' : ' · ${submission['score']}/100'}',
+            style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
+          ),
+        ),
+        if (submission['id'] is int && status == 'submitted')
+          TextButton(
+            onPressed: () => _review(context, submission['id'] as int),
+            child: const Text('Nilai'),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _review(BuildContext context, int id) async {
+    final scoreController = TextEditingController();
+    final feedbackController = TextEditingController();
+    var decision = 'reviewed';
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Nilai pengumpulan'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: scoreController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Nilai (0–100)'),
+              ),
+              TextField(
+                controller: feedbackController,
+                maxLines: 3,
+                decoration: const InputDecoration(labelText: 'Umpan balik'),
+              ),
+              DropdownButton<String>(
+                value: decision,
+                isExpanded: true,
+                items: const [
+                  DropdownMenuItem(
+                    value: 'reviewed',
+                    child: Text('Selesai dinilai'),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    dueDate,
-                    style: const TextStyle(
-                      color: AppColors.secondarySlate,
-                      fontSize: 12,
-                    ),
+                  DropdownMenuItem(
+                    value: 'revision_requested',
+                    child: Text('Minta revisi'),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: statusType == _TaskStatusType.graded
-                    ? const Color(0xFFECFDF5)
-                    : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                status,
-                style: TextStyle(
-                  color: statusType == _TaskStatusType.graded
-                      ? const Color(0xFF059669)
-                      : const Color(0xFF475569),
-                  fontWeight: FontWeight.w700,
-                  fontSize: 11.5,
-                ),
-              ),
-            ),
-          ],
-        ),
-        if (linkUrl != null) ...[
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.link_rounded,
-                  size: 16,
-                  color: AppColors.primaryNavy,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    linkUrl!,
-                    style: const TextStyle(
-                      color: AppColors.darkSlate,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    ),
-  );
-}
-
-class _ProjectResourceCard extends StatelessWidget {
-  const _ProjectResourceCard({
-    required this.badge,
-    required this.isVerified,
-    required this.rewardTc,
-    required this.title,
-    required this.client,
-    required this.resultSummary,
-  });
-
-  final String badge;
-  final bool isVerified;
-  final String rewardTc;
-  final String title;
-  final String client;
-  final String resultSummary;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.darkSlate.withValues(alpha: 0.03),
-          blurRadius: 10,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: isVerified
-                    ? const Color(0xFFECFDF5)
-                    : const Color(0xFFEFF6FF),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                badge,
-                style: TextStyle(
-                  color: isVerified
-                      ? const Color(0xFF059669)
-                      : AppColors.primaryNavy,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 11.5,
-                ),
-              ),
-            ),
-            Text(
-              rewardTc,
-              style: const TextStyle(
-                color: AppColors.darkSlate,
-                fontWeight: FontWeight.w800,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Text(
-          title,
-          style: const TextStyle(
-            color: AppColors.darkSlate,
-            fontWeight: FontWeight.w800,
-            fontSize: 15,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          client,
-          style: const TextStyle(color: AppColors.secondarySlate, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          resultSummary,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Color(0xFF334155), fontSize: 12),
-        ),
-      ],
-    ),
-  );
-}
-
-class _CertificateResourceCard extends StatelessWidget {
-  const _CertificateResourceCard({
-    required this.title,
-    required this.subtitle,
-    required this.isAmber,
-  });
-
-  final String title;
-  final String subtitle;
-  final bool isAmber;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppColors.borderSlate.withValues(alpha: 0.8)),
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.darkSlate.withValues(alpha: 0.03),
-          blurRadius: 10,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Row(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: isAmber ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          alignment: Alignment.center,
-          child: Icon(
-            isAmber ? Icons.workspace_premium_rounded : Icons.verified_rounded,
-            color: isAmber ? const Color(0xFFD97706) : AppColors.primaryNavy,
-            size: 26,
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.darkSlate,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14.5,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: AppColors.secondarySlate,
-                  fontSize: 12,
-                ),
+                onChanged: (value) =>
+                    setState(() => decision = value ?? 'reviewed'),
               ),
             ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Simpan'),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      ),
+    );
+    if (result == true && context.mounted) {
+      final score = int.tryParse(scoreController.text);
+      if (score == null || feedbackController.text.trim().length < 3) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Isi nilai dan umpan balik minimal 3 karakter.'),
+          ),
+        );
+      } else {
+        try {
+          await MentorApi.instance.reviewSubmission(
+            submissionId: id,
+            score: score,
+            feedback: feedbackController.text.trim(),
+            decision: decision,
+          );
+          if (context.mounted)
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Penilaian tersimpan. Muat ulang halaman untuk melihat status terbaru.',
+                ),
+              ),
+            );
+        } on ApiException catch (error) {
+          if (context.mounted)
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(error.message)));
+        }
+      }
+    }
+    scoreController.dispose();
+    feedbackController.dispose();
+  }
 }

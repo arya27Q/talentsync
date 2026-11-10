@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
 import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MentorLiveMentoringArgs {
   const MentorLiveMentoringArgs({
@@ -49,9 +51,7 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
     _notes = widget.student.initials == 'AP'
         ? ['Murid sudah menyiapkan CV versi terbaru.']
         : [];
-    _secondsRemaining = widget.student.initials == 'AP'
-        ? 44 * 60 + 42
-        : 60 * 60;
+    _secondsRemaining = widget.student.sessionDurationMinutes * 60;
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted || _secondsRemaining == 0) {
         _timer?.cancel();
@@ -76,20 +76,32 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
 
   String get _meetingDisplayUrl {
     final raw = widget.meetingUrl;
-    if (raw == null || raw.isEmpty) {
-      return 'meet.google.com/tsy-arya-019';
-    }
+    if (raw == null || raw.isEmpty) return 'Tautan Meet belum tersedia';
     return raw.replaceAll('https://', '').replaceAll('http://', '');
   }
 
-  Future<void> _copyMeetingLink() async {
-    final url = _meetingDisplayUrl;
-    await Clipboard.setData(ClipboardData(text: 'https://$url'));
-    if (mounted) {
+  Future<void> _openMeeting() async {
+    final raw = widget.meetingUrl;
+    final uri = raw == null
+        ? null
+        : Uri.tryParse(raw.startsWith('http') ? raw : 'https://$raw');
+    if (uri == null || uri.scheme != 'https') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tautan Google Meet disalin.')),
+        const SnackBar(
+          content: Text('Tautan Meet belum tersedia atau tidak valid.'),
+        ),
       );
+      return;
     }
+    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!opened && mounted)
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Google Meet tidak dapat dibuka. Salin tautan untuk melanjutkan.',
+          ),
+        ),
+      );
   }
 
   Future<void> _addMaterial() async {
@@ -131,7 +143,31 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
           const SnackBar(content: Text('Isi nama dan tautan materi.')),
         );
       } else {
-        setState(() => _materials.add(title.text.trim()));
+        final enrollmentId = widget.student.enrollmentId;
+        if (enrollmentId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Materi hanya dapat dibagikan melalui sesi yang sudah dibooking.',
+              ),
+            ),
+          );
+          return;
+        }
+        try {
+          await MentorApi.instance.sendMessage(
+            enrollmentId: enrollmentId,
+            message: title.text.trim(),
+            attachmentUrl: url.text.trim(),
+          );
+          if (!mounted) return;
+          setState(() => _materials.add(title.text.trim()));
+        } on ApiException catch (error) {
+          if (mounted)
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(error.message)));
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Materi ditambahkan ke ruang belajar murid.'),
@@ -170,12 +206,31 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Isi nama tugas.')));
       } else {
-        setState(() => _tasks.add(title.text.trim()));
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tugas ditambahkan ke ruang belajar murid.'),
-          ),
-        );
+        final classId = widget.student.classId;
+        if (classId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tugas hanya dapat dibuat untuk kelas mentoring.'),
+            ),
+          );
+          return;
+        }
+        try {
+          await MentorApi.instance.createAssignment(classId, {
+            'title': title.text.trim(),
+          });
+          if (!mounted) return;
+          setState(() => _tasks.add(title.text.trim()));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tugas ditambahkan ke sesi mentoring.'),
+            ),
+          );
+        } on ApiException catch (error) {
+          if (mounted)
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(error.message)));
+        }
       }
     }
     title.dispose();
@@ -412,8 +467,8 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
                           ],
                         ),
                       ),
-                      const Text(
-                        '30 TC',
+                      Text(
+                        '${widget.student.priceTc} TC',
                         style: TextStyle(
                           color: AppColors.darkSlate,
                           fontWeight: FontWeight.w800,
@@ -440,7 +495,7 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
                       child: _SessionAction(
                         icon: Icons.link_rounded,
                         label: 'Bagikan tautan',
-                        onTap: _copyMeetingLink,
+                        onTap: _openMeeting,
                       ),
                     ),
                     const SizedBox(width: 10),

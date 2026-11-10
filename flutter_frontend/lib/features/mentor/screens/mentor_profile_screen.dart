@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_featured_upgrade_screen.dart';
 
 class MentorProfileScreen extends StatefulWidget {
@@ -19,12 +23,43 @@ class MentorProfileScreen extends StatefulWidget {
 }
 
 class _MentorProfileScreenState extends State<MentorProfileScreen> {
-  String _name = 'Dimas Prasetyo';
-  String _headline = 'Senior Flutter Engineer';
+  String _name = 'Mentor';
+  String _headline = '';
+  String _bio = '';
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final values = await Future.wait([
+        MentorApi.instance.profile(),
+        ApiClient.instance.readSessionUser(),
+      ]);
+      if (!mounted) return;
+      final profile = values[0] as Map<String, dynamic>;
+      final user = values[1] ?? const <String, dynamic>{};
+      setState(() {
+        _name = user['name'] as String? ?? 'Mentor';
+        _headline = profile['title_headline'] as String? ?? '';
+        _bio = profile['bio'] as String? ?? '';
+      });
+    } on ApiException catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   Future<void> _editProfile() async {
-    final nameController = TextEditingController(text: _name);
     final headlineController = TextEditingController(text: _headline);
+    final bioController = TextEditingController(text: _bio);
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -33,14 +68,15 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: nameController,
-              textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(labelText: 'Nama'),
-            ),
-            TextField(
               controller: headlineController,
               textCapitalization: TextCapitalization.sentences,
               decoration: const InputDecoration(labelText: 'Profesi'),
+            ),
+            TextField(
+              controller: bioController,
+              minLines: 2,
+              maxLines: 4,
+              decoration: const InputDecoration(labelText: 'Tentang saya'),
             ),
           ],
         ),
@@ -57,20 +93,31 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
       ),
     );
     if (saved == true && mounted) {
-      if (nameController.text.trim().isEmpty ||
-          headlineController.text.trim().isEmpty) {
+      if (headlineController.text.trim().isEmpty ||
+          bioController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nama dan profesi perlu diisi.')),
+          const SnackBar(content: Text('Profesi dan bio perlu diisi.')),
         );
       } else {
-        setState(() {
-          _name = nameController.text.trim();
-          _headline = headlineController.text.trim();
-        });
+        try {
+          await MentorApi.instance.updateProfile({
+            'title_headline': headlineController.text.trim(),
+            'bio': bioController.text.trim(),
+          });
+          if (!mounted) return;
+          setState(() {
+            _headline = headlineController.text.trim();
+            _bio = bioController.text.trim();
+          });
+        } on ApiException catch (error) {
+          if (mounted)
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(error.message)));
+        }
       }
     }
-    nameController.dispose();
     headlineController.dispose();
+    bioController.dispose();
   }
 
   void _openUpgrade() => Navigator.pushNamed(
@@ -99,8 +146,10 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626),
             ),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(dialogContext);
+              await AuthApi().logout();
+              if (!mounted) return;
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 AppRoutes.mentorAuth,
@@ -120,6 +169,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
     child: ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
       children: [
+        if (_loading) const LinearProgressIndicator(),
         // Header matching screenshot
         Row(
           children: [

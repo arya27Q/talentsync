@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_featured_upgrade_screen.dart';
 import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorCashOutArgs {
-  const MentorCashOutArgs({required this.availableTc, this.onSelectTab});
+  const MentorCashOutArgs({
+    required this.availableTc,
+    this.adminFeePercent = 10,
+    this.onSelectTab,
+  });
 
   final int availableTc;
+  final int adminFeePercent;
   final ValueChanged<int>? onSelectTab;
 }
 
@@ -21,11 +28,13 @@ class MentorCashOutResult {
 class MentorCashOutScreen extends StatefulWidget {
   const MentorCashOutScreen({
     super.key,
-    this.availableTc = 420,
+    this.availableTc = 0,
+    this.adminFeePercent = 10,
     this.onSelectTab,
   });
 
   final int availableTc;
+  final int adminFeePercent;
   final ValueChanged<int>? onSelectTab;
 
   @override
@@ -33,22 +42,25 @@ class MentorCashOutScreen extends StatefulWidget {
 }
 
 class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
-  final _amountController = TextEditingController(text: '200');
-  static const _accounts = [
-    ('BCA', '7721', Icons.account_balance_rounded),
-    ('Mandiri', '0394', Icons.account_balance_rounded),
-    ('GoPay', '0812', Icons.account_balance_wallet_rounded),
-  ];
-  String _selectedAccount = 'BCA';
+  late final _amountController = TextEditingController(
+    text: widget.availableTc >= 200 ? '200' : widget.availableTc.toString(),
+  );
+  final _bankController = TextEditingController();
+  final _accountNumberController = TextEditingController();
+  final _accountHolderController = TextEditingController();
+  bool _submitting = false;
 
   int get _amountTc => int.tryParse(_amountController.text) ?? 0;
   int get _grossRupiah => _amountTc * 1000;
-  int get _feeRupiah => (_grossRupiah * .15).round();
+  int get _feeRupiah => (_grossRupiah * widget.adminFeePercent / 100).round();
   int get _netRupiah => _grossRupiah - _feeRupiah;
 
   @override
   void dispose() {
     _amountController.dispose();
+    _bankController.dispose();
+    _accountNumberController.dispose();
+    _accountHolderController.dispose();
     super.dispose();
   }
 
@@ -63,21 +75,31 @@ class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
   }
 
   Future<void> _confirmCashOut() async {
+    if (_submitting) return;
     if (_amountTc < 1 || _amountTc > widget.availableTc) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Masukkan jumlah 1–${widget.availableTc} TC.')),
       );
       return;
     }
-    final account = _accounts.firstWhere(
-      (entry) => entry.$1 == _selectedAccount,
-    );
+    if (_bankController.text.trim().isEmpty ||
+        _accountNumberController.text.trim().isEmpty ||
+        _accountHolderController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Lengkapi nama bank, nomor rekening, dan nama pemilik.',
+          ),
+        ),
+      );
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Konfirmasi cash-out'),
         content: Text(
-          '$_amountTc TC akan dicairkan ke ${account.$1} ·· ${account.$2}. Perkiraan diterima ${_rupiah(_netRupiah)} setelah biaya admin 15%.',
+          '$_amountTc TC akan diajukan ke ${_bankController.text.trim()}. Perkiraan diterima ${_rupiah(_netRupiah)} setelah biaya admin ${widget.adminFeePercent}%. Transfer diproses admin.',
         ),
         actions: [
           TextButton(
@@ -91,14 +113,30 @@ class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
         ],
       ),
     );
-    if (confirmed == true && mounted) {
+    if (confirmed != true || !mounted) return;
+    setState(() => _submitting = true);
+    try {
+      await MentorApi.instance.requestCashOut(
+        amountTc: _amountTc,
+        bankName: _bankController.text,
+        accountNumber: _accountNumberController.text,
+        accountHolderName: _accountHolderController.text,
+      );
+      if (!mounted) return;
       Navigator.pop(
         context,
         MentorCashOutResult(
           amountTc: _amountTc,
-          account: '${account.$1} ·· ${account.$2}',
+          account:
+              '${_bankController.text.trim()} ·· ${_accountNumberController.text.trim().substring(_accountNumberController.text.trim().length > 4 ? _accountNumberController.text.trim().length - 4 : 0)}',
         ),
       );
+    } on ApiException catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -211,18 +249,29 @@ class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      for (final account in _accounts) ...[
-                        _AccountChoice(
-                          bank: account.$1,
-                          number: account.$2,
-                          icon: account.$3,
-                          selected: _selectedAccount == account.$1,
-                          onTap: () =>
-                              setState(() => _selectedAccount = account.$1),
+                      TextField(
+                        controller: _bankController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          labelText: 'Nama bank atau e-wallet',
                         ),
-                        if (account != _accounts.last)
-                          const SizedBox(height: 8),
-                      ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _accountNumberController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Nomor rekening',
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _accountHolderController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          labelText: 'Nama pemilik rekening',
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -374,7 +423,7 @@ class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
                       ),
                       const SizedBox(height: 10),
                       _SummaryRow(
-                        label: 'Biaya admin 15%',
+                        label: 'Biaya admin ${widget.adminFeePercent}%',
                         value: '-${_rupiah(_feeRupiah)}',
                         valueColor: const Color(0xFFDC2626),
                       ),
@@ -496,83 +545,6 @@ class _MentorCashOutScreenState extends State<MentorCashOutScreen> {
           },
         ),
       ],
-    ),
-  );
-}
-
-class _AccountChoice extends StatelessWidget {
-  const _AccountChoice({
-    required this.bank,
-    required this.number,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String bank;
-  final String number;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    decoration: BoxDecoration(
-      color: selected ? const Color(0xFFF0F7FF) : Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(
-        color: selected
-            ? AppColors.primaryNavy
-            : AppColors.borderSlate.withValues(alpha: 0.8),
-        width: selected ? 1.5 : 1,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: AppColors.darkSlate.withValues(alpha: 0.02),
-          blurRadius: 6,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              alignment: Alignment.center,
-              child: Icon(icon, color: AppColors.primaryNavy, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '$bank ·· $number',
-                style: const TextStyle(
-                  color: AppColors.darkSlate,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            Icon(
-              selected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_unchecked_rounded,
-              color: selected ? AppColors.primaryNavy : const Color(0xFFCBD5E1),
-              size: 22,
-            ),
-          ],
-        ),
-      ),
     ),
   );
 }

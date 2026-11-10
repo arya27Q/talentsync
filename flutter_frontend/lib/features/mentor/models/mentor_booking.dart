@@ -2,6 +2,8 @@ import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
 
 class MentorBooking {
   const MentorBooking({
+    this.enrollmentId,
+    this.classId,
     required this.student,
     required this.topic,
     required this.date,
@@ -18,6 +20,8 @@ class MentorBooking {
     this.status = 'pending',
   });
 
+  final int? enrollmentId;
+  final int? classId;
   final MentorStudent student;
   final String topic;
   final String date;
@@ -32,6 +36,41 @@ class MentorBooking {
   final String? meetingUrl;
   final String? score;
   final String status;
+
+  factory MentorBooking.fromEnrollment(Map<String, dynamic> data) {
+    final classData = data['class'] is Map<String, dynamic>
+        ? data['class'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+    final studentData = data['student'] is Map<String, dynamic>
+        ? data['student'] as Map<String, dynamic>
+        : const <String, dynamic>{};
+    final student = MentorStudent.fromEnrollment(data);
+    final scheduled = DateTime.tryParse(
+      classData['scheduled_time'] as String? ?? '',
+    );
+
+    return MentorBooking(
+      enrollmentId: data['id'] as int?,
+      classId: classData['id'] as int?,
+      student: student,
+      topic: classData['topic'] as String? ?? 'Sesi mentoring',
+      date:
+          scheduled?.toLocal().toString().split(' ').first ??
+          'Jadwal belum tersedia',
+      time: scheduled == null
+          ? ''
+          : '${scheduled.toLocal().hour.toString().padLeft(2, '0')}:${scheduled.toLocal().minute.toString().padLeft(2, '0')}',
+      durationMinutes: classData['duration_minutes'] as int? ?? 60,
+      price: data['paid_tc'] as int? ?? 0,
+      message: data['mentor_feedback'] as String? ?? '',
+      repositoryUrl: studentData['email'] as String?,
+      meetingUrl: classData['meeting_link'] as String?,
+      score: data['assessment_score'] == null
+          ? null
+          : 'Nilai ${data['assessment_score']}/100',
+      status: data['status'] as String? ?? 'pending',
+    );
+  }
 }
 
 const mentorBookingRequests = [

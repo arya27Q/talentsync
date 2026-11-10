@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/widgets/in_app_guide_section.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
+import 'package:flutter_frontend/features/mentor/models/mentor_booking.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_live_mentoring_screen.dart';
-import 'package:flutter_frontend/features/mentor/screens/mentor_recommendation_screen.dart';
 
 class MentorDashboardScreen extends StatelessWidget {
   const MentorDashboardScreen({
@@ -13,6 +16,7 @@ class MentorDashboardScreen extends StatelessWidget {
     this.onOpenBookings,
     this.onOpenServices,
     this.onOpenProfile,
+    this.onOpenStudents,
     this.onOpenLiveSession,
   });
 
@@ -20,10 +24,85 @@ class MentorDashboardScreen extends StatelessWidget {
   final VoidCallback? onOpenBookings;
   final VoidCallback? onOpenServices;
   final VoidCallback? onOpenProfile;
+  final VoidCallback? onOpenStudents;
   final VoidCallback? onOpenLiveSession;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => FutureBuilder<Map<String, dynamic>>(
+    future: _loadDashboard(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      if (snapshot.hasError) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  snapshot.error is ApiException
+                      ? (snapshot.error as ApiException).message
+                      : 'Dasbor mentor gagal dimuat.',
+                ),
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: () => (context as Element).markNeedsBuild(),
+                  child: const Text('Coba lagi'),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      return _buildDashboard(context, snapshot.data!);
+    },
+  );
+
+  Future<Map<String, dynamic>> _loadDashboard() async {
+    final result = await Future.wait([
+      MentorApi.instance.dashboard(),
+      MentorApi.instance.profile(),
+      MentorApi.instance.walletSummary(),
+      MentorApi.instance.enrollments(),
+      ApiClient.instance.readSessionUser(),
+    ]);
+    return {
+      'dashboard': result[0] as Map<String, dynamic>,
+      'profile': result[1] as Map<String, dynamic>,
+      'wallet': result[2] as Map<String, dynamic>,
+      'enrollments': result[3] as List<Map<String, dynamic>>,
+      'user': result[4] as Map<String, dynamic>? ?? const <String, dynamic>{},
+    };
+  }
+
+  Widget _buildDashboard(BuildContext context, Map<String, dynamic> data) {
+    final dashboard = data['dashboard'] as Map<String, dynamic>;
+    final wallet = data['wallet'] as Map<String, dynamic>;
+    final user = data['user'] as Map<String, dynamic>;
+    final enrollments = data['enrollments'] as List<Map<String, dynamic>>;
+    final scheduled = enrollments
+        .where((entry) => entry['status'] == 'accepted')
+        .toList();
+    final endorsementRequests = enrollments
+        .where(
+          (entry) =>
+              entry['status'] == 'completed' &&
+              (entry['assessment_score'] as int? ?? 0) >= 80 &&
+              entry['has_endorsement'] != true,
+        )
+        .toList();
+    final mentorName = user['name'] as String? ?? 'Mentor';
+    final initials = mentorName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .take(2)
+        .map((part) => part[0].toUpperCase())
+        .join();
+    final balanceTc = wallet['balance_tc'] as int? ?? 0;
+    final feePercent = wallet['cashout_fee_percent'] as int? ?? 10;
     return SafeArea(
       bottom: false,
       child: ListView(
@@ -41,9 +120,9 @@ class MentorDashboardScreen extends StatelessWidget {
                   color: AppColors.primaryNavy,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'DP',
+                    initials.isEmpty ? '?' : initials,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -53,7 +132,7 @@ class MentorDashboardScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -66,7 +145,7 @@ class MentorDashboardScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Dimas Prasetyo',
+                      mentorName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -129,8 +208,8 @@ class MentorDashboardScreen extends StatelessWidget {
                         color: Colors.white.withValues(alpha: .15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
-                        'Admin cash-out 15%',
+                      child: Text(
+                        'Admin cash-out $feePercent%',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 11,
@@ -160,8 +239,8 @@ class MentorDashboardScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
-                      '420 TC',
+                    Text(
+                      '$balanceTc TC',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 30,
@@ -171,9 +250,9 @@ class MentorDashboardScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Setara Rp420.000 \u00B7 Siap dicairkan',
-                  style: TextStyle(
+                Text(
+                  'Setara Rp${_formatRupiah(balanceTc * 1000)} \u00B7 Saldo tersedia',
+                  style: const TextStyle(
                     color: Color(0xFF93C5FD),
                     fontSize: 12.5,
                     fontWeight: FontWeight.w500,
@@ -283,14 +362,14 @@ class MentorDashboardScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           // 3 Metric Cards (Pajangan / Stat Display Seragam)
-          const IntrinsicHeight(
+          IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
                   child: _MetricCard(
                     icon: Icons.calendar_month_rounded,
-                    value: '2',
+                    value: '${dashboard['new_bookings'] ?? 0}',
                     label: 'Booking baru',
                   ),
                 ),
@@ -298,7 +377,7 @@ class MentorDashboardScreen extends StatelessWidget {
                 Expanded(
                   child: _MetricCard(
                     icon: Icons.rate_review_rounded,
-                    value: '1',
+                    value: '${dashboard['needs_review'] ?? 0}',
                     label: 'Perlu dinilai',
                   ),
                 ),
@@ -306,7 +385,7 @@ class MentorDashboardScreen extends StatelessWidget {
                 Expanded(
                   child: _MetricCard(
                     icon: Icons.thumb_up_alt_rounded,
-                    value: '2',
+                    value: '${dashboard['endorsement_requests'] ?? 0}',
                     label: 'Minta rekomendasi',
                   ),
                 ),
@@ -358,7 +437,8 @@ class MentorDashboardScreen extends StatelessWidget {
                 _buildQuickNavButton(
                   icon: Icons.calendar_month_rounded,
                   title: 'Jadwal Booking & Evaluasi Sesi',
-                  subtitle: '2 booking baru \u00B7 1 sesi perlu penilaian',
+                  subtitle:
+                      '${dashboard['new_bookings'] ?? 0} booking baru · ${dashboard['needs_review'] ?? 0} sesi perlu penilaian',
                   buttonLabel: 'Buka Jadwal',
                   onTap: onOpenBookings,
                 ),
@@ -366,12 +446,10 @@ class MentorDashboardScreen extends StatelessWidget {
                 _buildQuickNavButton(
                   icon: Icons.thumb_up_alt_rounded,
                   title: 'Rekomendasi Kerja Mahasiswa',
-                  subtitle: '2 mahasiswa meminta endorse untuk proyek UMKM',
+                  subtitle:
+                      '${dashboard['endorsement_requests'] ?? 0} murid memenuhi syarat endorse',
                   buttonLabel: 'Kelola Endorse',
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    AppRoutes.mentorRecommendation,
-                  ),
+                  onTap: onOpenStudents,
                 ),
               ],
             ),
@@ -394,55 +472,44 @@ class MentorDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Schedule Card 1 (Hari ini 19.00 - Arya Pratama)
-          _buildScheduleCard(
-            context: context,
-            dayLabel: 'Hari ini',
-            timeLabel: '19.00',
-            topic: 'Persiapan wawancara Flutter',
-            studentName: 'Arya Pratama · UNESA',
-            student: mentorStudentArya,
-            onJoin: () {
-              if (onOpenLiveSession != null) {
-                onOpenLiveSession!();
-              } else {
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.mentorLiveMentoring,
-                  arguments: MentorLiveMentoringArgs(
-                    student: mentorStudentArya,
-                    meetingUrl: 'https://meet.google.com/tsy-arya-019',
-                  ),
-                );
-              }
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // Schedule Card 2 (Besok 20.00 - Dewi Lestari)
-          _buildScheduleCard(
-            context: context,
-            dayLabel: 'Besok',
-            timeLabel: '20.00',
-            topic: 'Dasar BLoC & Cubit',
-            studentName: 'Dewi Lestari · ITS',
-            student: mentorStudentDewi,
-            onJoin: () {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.mentorLiveMentoring,
-                arguments: MentorLiveMentoringArgs(
-                  student: mentorStudentDewi,
-                  meetingUrl: 'https://meet.google.com/tsy-dewi-020',
+          if (scheduled.isEmpty)
+            const _DashboardEmptyState(
+              message: 'Belum ada sesi yang diterima dan dijadwalkan.',
+            )
+          else
+            ...scheduled.take(2).map((enrollment) {
+              final booking = MentorBooking.fromEnrollment(enrollment);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildScheduleCard(
+                  context: context,
+                  dayLabel: booking.date,
+                  timeLabel: booking.time,
+                  topic: booking.topic,
+                  studentName: booking.student.name,
+                  student: booking.student,
+                  onJoin:
+                      booking.meetingUrl == null || booking.meetingUrl!.isEmpty
+                      ? () => ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Tautan Meet belum tersedia.'),
+                          ),
+                        )
+                      : () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.mentorLiveMentoring,
+                          arguments: MentorLiveMentoringArgs(
+                            student: booking.student,
+                            meetingUrl: booking.meetingUrl,
+                          ),
+                        ),
                 ),
               );
-            },
-          ),
+            }),
           const SizedBox(height: 24),
 
-          // Section 2: UMKM butuh rekomendasimu
           const Text(
-            'UMKM butuh rekomendasimu',
+            'Murid menunggu endorsement',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -451,38 +518,63 @@ class MentorDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // UMKM Card 1: Kopi Tepi Kali
-          _buildUmkmCard(
-            context: context,
-            name: 'Kopi Tepi Kali',
-            projectDesc: 'Aplikasi Menu & Pre-order K...',
-            onSelectStudent: () {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.mentorRecommendation,
-                arguments: const MentorRecommendationArgs(
-                  initialStudent: mentorStudentArya,
+          if (endorsementRequests.isEmpty)
+            const _DashboardEmptyState(
+              message: 'Belum ada sesi bernilai 80+ yang menunggu endorsement.',
+            )
+          else
+            ...endorsementRequests.take(3).map((enrollment) {
+              final student = MentorStudent.fromEnrollment(enrollment);
+              final score = enrollment['assessment_score'] as int? ?? 0;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.borderSlate),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: AppColors.primaryNavy,
+                        child: Text(
+                          student.initials,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              student.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.darkSlate,
+                              ),
+                            ),
+                            Text(
+                              '${student.focus} · Nilai $score/100',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondarySlate,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: onOpenStudents,
+                        child: const Text('Tinjau'),
+                      ),
+                    ],
+                  ),
                 ),
               );
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // UMKM Card 2: Batik Warisan Nusantara
-          _buildUmkmCard(
-            context: context,
-            name: 'Batik Warisan Nusantara',
-            projectDesc: 'Landing Page Pemesanan B...',
-            onSelectStudent: () {
-              Navigator.pushNamed(
-                context,
-                AppRoutes.mentorRecommendation,
-                arguments: const MentorRecommendationArgs(
-                  initialStudent: mentorStudentDewi,
-                ),
-              );
-            },
-          ),
+            }),
           const SizedBox(height: 24),
 
           // Section 3: Panduan & Wawasan Mentor TalentSync
@@ -677,6 +769,16 @@ class MentorDashboardScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatRupiah(int amount) {
+    final digits = amount.toString();
+    final output = StringBuffer();
+    for (var index = 0; index < digits.length; index++) {
+      if (index > 0 && (digits.length - index) % 3 == 0) output.write('.');
+      output.write(digits[index]);
+    }
+    return output.toString();
   }
 
   Widget _buildQuickNavButton({
@@ -931,90 +1033,6 @@ class MentorDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildUmkmCard({
-    required BuildContext context,
-    required String name,
-    required String projectDesc,
-    required VoidCallback onSelectStudent,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderSlate),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkSlate.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.storefront_rounded,
-              color: Color(0xFFB45309),
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkSlate,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  projectDesc,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.secondarySlate,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: onSelectStudent,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.primaryNavy,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                'Pilih murid',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildMentorGuideSection() {
     const mentorArticles = [
       InAppArticle(
@@ -1082,6 +1100,24 @@ class MentorDashboardScreen extends StatelessWidget {
       articles: mentorArticles,
     );
   }
+}
+
+class _DashboardEmptyState extends StatelessWidget {
+  const _DashboardEmptyState({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 28),
+    child: Center(
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: AppColors.secondarySlate),
+      ),
+    ),
+  );
 }
 
 class _TopAction extends StatelessWidget {

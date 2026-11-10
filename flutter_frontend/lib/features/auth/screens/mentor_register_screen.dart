@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 
 class MentorRegisterScreen extends StatefulWidget {
   const MentorRegisterScreen({super.key});
@@ -10,18 +12,15 @@ class MentorRegisterScreen extends StatefulWidget {
 }
 
 class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
-  final TextEditingController _nameController = TextEditingController(
-    text: 'Dimas Prasetyo',
-  );
-  final TextEditingController _campusController = TextEditingController(
-    text: 'Universitas Negeri Surabaya',
-  );
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _campusController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _portfolioUrlController = TextEditingController(
-    text: 'https://github.com/dimasprasetyo',
-  );
+  final TextEditingController _portfolioUrlController = TextEditingController();
+  final TextEditingController _verificationUrlController =
+      TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final _authApi = AuthApi();
 
   int _selectedStatusIndex = 0; // 0: Mahasiswa Tingkat Akhir, 1: Fresh Graduate, 2: Praktisi Muda, 3: Alumni
   final List<String> _statusOptions = [
@@ -31,11 +30,7 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
     'Alumni Kampus',
   ];
 
-  final Set<String> _selectedSkills = {
-    'Flutter & Dart',
-    'Laravel & PHP',
-    'UI/UX Design & Figma',
-  };
+  final Set<String> _selectedSkills = {};
   final List<String> _availableSkills = [
     'Flutter & Dart',
     'Laravel & PHP',
@@ -55,8 +50,9 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
   ];
 
   bool _obscurePassword = true;
-  bool _agreedToEthics = true;
-  bool _isUploadingFile = false;
+  bool _agreedToEthics = false;
+  final bool _isUploadingFile = false;
+  bool _isSubmitting = false;
   String? _uploadedFileName;
 
   @override
@@ -66,33 +62,57 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _portfolioUrlController.dispose();
+    _verificationUrlController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _simulateFileUpload() {
-    setState(() {
-      _isUploadingFile = true;
-    });
-
-    Future.delayed(const Duration(milliseconds: 900), () {
-      if (mounted) {
-        setState(() {
-          _isUploadingFile = false;
-          _uploadedFileName = 'portofolio_dan_sertifikat_dimas.pdf';
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Berkas portofolio berhasil dilampirkan.'),
-            backgroundColor: AppColors.darkSlate,
-            duration: Duration(seconds: 2),
+  Future<void> _setVerificationDocumentUrl() async {
+    final controller = TextEditingController(
+      text: _verificationUrlController.text,
+    );
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Tautan dokumen verifikasi'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.url,
+          decoration: const InputDecoration(
+            labelText: 'URL dokumen',
+            hintText: 'https://...',
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Simpan tautan'),
+          ),
+        ],
+      ),
+    );
+    if (saved == true && mounted) {
+      final normalizedUrl = _normalizeWebUrl(controller.text);
+      if (normalizedUrl == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Masukkan tautan dokumen yang valid.')),
         );
+      } else {
+        setState(() {
+          _verificationUrlController.text = normalizedUrl;
+          _uploadedFileName = normalizedUrl;
+        });
       }
-    });
+    }
+    controller.dispose();
   }
 
-  void _submitRegistration() {
+  Future<void> _submitRegistration() async {
+    if (_isSubmitting) return;
     if (!_agreedToEthics) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -104,91 +124,111 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
       );
       return;
     }
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final portfolioText = _normalizeWebUrl(_portfolioUrlController.text);
+    final documentText = _normalizeWebUrl(_verificationUrlController.text);
+    final missingFields = <String>[];
+    if (name.isEmpty) missingFields.add('nama');
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+      missingFields.add('email valid');
+    }
+    if (password.length < 8) missingFields.add('kata sandi minimal 8 karakter');
+    if (_selectedSkills.isEmpty) missingFields.add('minimal satu keahlian');
+    if (portfolioText == null) {
+      missingFields.add('tautan portofolio yang valid');
+    }
+    if (documentText == null) {
+      missingFields.add('tautan dokumen yang valid');
+    }
+    if (missingFields.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Periksa: ${missingFields.join(', ')}.')),
+      );
+      return;
+    }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.all(24),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                color: Color(0xFFDCFCE7),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  color: Color(0xFF16A34A),
-                  size: 36,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Pendaftaran Terkirim!',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkSlate,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Profil Peer Mentor kamu berhasil diajukan. Kamu dapat langsung membuka dasbor mentor dan mengatur jadwal ketersediaan bimbingan.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.secondarySlate,
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 24),
-            GestureDetector(
-              onTap: () {
-                Navigator.pop(ctx);
+    final validPortfolioUrl = portfolioText!;
+    final validDocumentUrl = documentText!;
+    _portfolioUrlController.text = validPortfolioUrl;
+    _verificationUrlController.text = validDocumentUrl;
+
+    setState(() => _isSubmitting = true);
+    try {
+      final headline = 'Mentor ${_selectedSkills.first}';
+      final bioParts = <String>['Keahlian: ${_selectedSkills.join(', ')}'];
+      if (_campusController.text.trim().isNotEmpty) {
+        bioParts.add('Institusi: ${_campusController.text.trim()}');
+      }
+      bioParts.add('Status: ${_statusOptions[_selectedStatusIndex]}.');
+      await _authApi.registerMentor(
+        name: name,
+        email: email,
+        password: password,
+        titleHeadline: headline,
+        bio: bioParts.join('. '),
+        hourlyRateTc: int.parse(
+          _rateOptions[_selectedRateIndex]['tc']!.split(' ').first,
+        ),
+        verificationDocumentUrl: validDocumentUrl,
+        portfolioUrl: validPortfolioUrl,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Pendaftaran terkirim'),
+          content: const Text(
+            'Pendaftaran berhasil. Anda bisa masuk sekarang dan langsung menggunakan fitur mentor.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
                 Navigator.pushNamedAndRemoveUntil(
                   context,
-                  AppRoutes.mentorDashboard,
+                  AppRoutes.mentorAuth,
                   (route) => false,
                 );
               },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryNavy,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryNavy.withValues(alpha: 0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'Buka Dasbor Mentor',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+              child: const Text('Kembali ke masuk'),
             ),
           ],
         ),
-      ),
-    );
+      );
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Pendaftaran gagal diproses. Periksa koneksi dan ulangi.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  String? _normalizeWebUrl(String value) {
+    var candidate = value.trim();
+    if (candidate.isEmpty) return null;
+    if (!candidate.contains('://')) candidate = 'https://$candidate';
+    final uri = Uri.tryParse(candidate);
+    if (uri == null ||
+        !uri.hasAuthority ||
+        uri.host.isEmpty ||
+        !{'http', 'https'}.contains(uri.scheme.toLowerCase())) {
+      return null;
+    }
+    return uri.toString();
   }
 
   Widget _buildFieldSection({
@@ -682,10 +722,11 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
 
                     // 8. Unggah Berkas Portofolio / KTM / Sertifikat
                     _buildFieldSection(
-                      label: 'Unggah Bukti Portofolio / Sertifikat (PDF)',
-                      caption: 'Lampirkan ringkasan proyek yang pernah kamu selesaikan',
+                      label: 'Tautan dokumen verifikasi (PDF atau gambar)',
+                      caption:
+                          'Pastikan admin dapat membuka tautan dokumen ini.',
                       child: GestureDetector(
-                        onTap: _simulateFileUpload,
+                        onTap: _setVerificationDocumentUrl,
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -789,7 +830,7 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                                         child: FittedBox(
                                           fit: BoxFit.scaleDown,
                                           child: Text(
-                                            'Pilih berkas PDF atau gambar (Maks 10MB)',
+                                            'Masukkan URL dokumen verifikasi',
                                             style: TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.bold,
@@ -976,7 +1017,7 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
 
                     // Submit CTA Button
                     GestureDetector(
-                      onTap: _submitRegistration,
+                      onTap: _isSubmitting ? null : _submitRegistration,
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -993,33 +1034,55 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                             ),
                           ],
                         ),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Flexible(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'Kirim Pendaftaran Peer Mentor',
+                        child: _isSubmitting
+                            ? const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Mengirim pendaftaran...',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
+                                ],
+                              )
+                            : const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'Kirim Pendaftaran Peer Mentor',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Icon(
+                                      Icons.arrow_forward_rounded,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              SizedBox(width: 8),
-                              Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
                     ),
 

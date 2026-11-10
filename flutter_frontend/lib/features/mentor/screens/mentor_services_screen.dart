@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorServicesScreen extends StatefulWidget {
@@ -11,32 +13,12 @@ class MentorServicesScreen extends StatefulWidget {
 
 class MentorServicesScreenState extends State<MentorServicesScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController(
-    text: 'Kurasi Portofolio Proyek UMKM',
-  );
-  final _descriptionController = TextEditingController(
-    text: 'Bedah portofolio dan kode proyek nyata agar siap lolos seleksi proyek UMKM.',
-  );
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
   final _priceController = TextEditingController(text: '30');
+  final _meetingLinkController = TextEditingController();
 
-  final List<_MentorService> _services = [
-    _MentorService(
-      title: 'Kurasi Portofolio Proyek UMKM',
-      description: 'Bedah portofolio dan kode proyek nyata agar siap lolos seleksi proyek UMKM.',
-      skills: const ['Flutter', 'Portofolio'],
-      duration: 60,
-      price: 30,
-      format: '1-on-1',
-    ),
-    _MentorService(
-      title: 'Review arsitektur aplikasi',
-      description: 'Diskusi struktur aplikasi dan rencana pengembangan.',
-      skills: const ['Dart', 'Flutter'],
-      duration: 60,
-      price: 30,
-      format: '1-on-1',
-    ),
-  ];
+  final List<_MentorService> _services = [];
 
   final _skills = const [
     'Flutter',
@@ -51,16 +33,6 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
 
   int _duration = 60;
   String _format = '1-on-1';
-  final Set<String> _availableDays = {'Sel', 'Kam', 'Sab'};
-  final List<String> _allDays = [
-    'Sen',
-    'Sel',
-    'Rab',
-    'Kam',
-    'Jum',
-    'Sab',
-    'Min',
-  ];
 
   final Map<String, bool> _studentOutputs = {
     'Rekaman sesi': true,
@@ -71,42 +43,153 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
   };
 
   bool _creating = false;
+  bool _loading = true;
+  bool _saving = false;
+  int _cashoutFeePercent = 10;
+  String? _error;
+  DateTime? _scheduledAt;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClasses();
+  }
+
+  Future<void> _loadClasses() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final results = await Future.wait([
+        MentorApi.instance.classes(),
+        MentorApi.instance.profile(),
+      ]);
+      final classes = results[0] as List<Map<String, dynamic>>;
+      final profile = results[1] as Map<String, dynamic>;
+      if (!mounted) return;
+      setState(() {
+        _cashoutFeePercent = profile['cashout_fee_percent'] as int? ?? 10;
+        _services
+          ..clear()
+          ..addAll(classes.map(_MentorService.fromJson));
+      });
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   void startCreating() => setState(() => _creating = true);
+
+  Future<void> _pickSchedule() async {
+    final now = DateTime.now();
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _scheduledAt ?? now.add(const Duration(days: 1)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (selectedDate == null || !mounted) return;
+    final selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(
+        _scheduledAt ?? now.add(const Duration(hours: 2)),
+      ),
+    );
+    if (selectedTime == null || !mounted) return;
+    setState(() {
+      _scheduledAt = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        selectedTime.hour,
+        selectedTime.minute,
+      );
+    });
+  }
+
+  Future<void> _toggleClass(_MentorService service, bool active) async {
+    try {
+      await MentorApi.instance.updateClass(service.id, {
+        'status': active ? 'open' : 'cancelled',
+      });
+      await _loadClasses();
+    } on ApiException catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+    }
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
     _priceController.dispose();
+    _meetingLinkController.dispose();
     super.dispose();
   }
 
-  void _saveService() {
+  Future<void> _saveService() async {
+    if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
+    if (_scheduledAt == null || !_scheduledAt!.isAfter(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih tanggal dan waktu kelas yang akan dibuka.'),
+        ),
+      );
+      return;
+    }
     if (_selectedSkills.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pilih minimal satu tag keahlian.')),
       );
       return;
     }
-    setState(() {
-      _services.insert(
-        0,
-        _MentorService(
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          skills: _selectedSkills.toList(),
-          duration: _duration,
-          price: int.tryParse(_priceController.text) ?? 30,
-          format: _format,
-        ),
-      );
-      _creating = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Layanan mentoring berhasil diterbitkan.')),
-    );
+    setState(() => _saving = true);
+    try {
+      final selectedOutputs = _studentOutputs.entries
+          .where((entry) => entry.value)
+          .map((entry) => entry.key)
+          .toList();
+      final descriptionParts = [
+        _descriptionController.text.trim(),
+        if (_selectedSkills.isNotEmpty)
+          'Keahlian: ${_selectedSkills.join(', ')}.',
+        if (selectedOutputs.isNotEmpty)
+          'Termasuk: ${selectedOutputs.join(', ')}.',
+      ];
+      await MentorApi.instance.createClass({
+        'topic': _titleController.text.trim(),
+        'description': descriptionParts
+            .where((part) => part.isNotEmpty)
+            .join('\n'),
+        'scheduled_time': _scheduledAt!.toIso8601String(),
+        'duration_minutes': _duration,
+        'price_tc': int.parse(_priceController.text),
+        'capacity': _format == '1-on-1' ? 1 : 5,
+        if (_meetingLinkController.text.trim().isNotEmpty)
+          'meeting_link': _meetingLinkController.text.trim(),
+      });
+      if (!mounted) return;
+      setState(() => _creating = false);
+      await _loadClasses();
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Kelas mentoring berhasil diterbitkan.'),
+          ),
+        );
+    } on ApiException catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -445,7 +528,9 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                               final amount =
                                   int.tryParse(_priceController.text) ?? 30;
                               final rupiah = amount * 1000;
-                              final bersih = (rupiah * 0.85).toInt();
+                              final bersih =
+                                  (rupiah * (100 - _cashoutFeePercent) / 100)
+                                      .round();
                               final formattedBersih = bersih
                                   .toString()
                                   .replaceAllMapped(
@@ -453,7 +538,7 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                                     (Match m) => '${m[1]}.',
                                   );
                               return Text(
-                                'Kamu terima bersih Rp$formattedBersih per sesi saat cash-out (admin 15%).',
+                                'Perkiraan bersih Rp$formattedBersih per sesi setelah biaya admin $_cashoutFeePercent%.',
                                 style: const TextStyle(
                                   fontSize: 11,
                                   color: AppColors.secondarySlate,
@@ -504,52 +589,34 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                           ),
                           const SizedBox(height: 18),
 
-                          // Hari Tersedia
-                          const _FieldTitle('Hari tersedia'),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _allDays.map((day) {
-                              final isSelected = _availableDays.contains(day);
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    if (isSelected) {
-                                      _availableDays.remove(day);
-                                    } else {
-                                      _availableDays.add(day);
-                                    }
-                                  });
-                                },
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.primaryNavy
-                                        : Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.primaryNavy
-                                          : AppColors.borderSlate,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      day,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : AppColors.darkSlate,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+                          const _FieldTitle('Tanggal dan waktu kelas'),
+                          OutlinedButton.icon(
+                            onPressed: _pickSchedule,
+                            icon: const Icon(Icons.calendar_month_rounded),
+                            label: Text(
+                              _scheduledAt == null
+                                  ? 'Pilih jadwal'
+                                  : '${_scheduledAt!.day.toString().padLeft(2, '0')}/${_scheduledAt!.month.toString().padLeft(2, '0')}/${_scheduledAt!.year} · ${_scheduledAt!.hour.toString().padLeft(2, '0')}:${_scheduledAt!.minute.toString().padLeft(2, '0')}',
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          const _FieldTitle('Tautan Google Meet (opsional)'),
+                          TextFormField(
+                            controller: _meetingLinkController,
+                            keyboardType: TextInputType.url,
+                            decoration: _fieldDecoration(
+                              'https://meet.google.com/...',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty)
+                                return null;
+                              final uri = Uri.tryParse(value.trim());
+                              if (uri == null ||
+                                  !uri.hasScheme ||
+                                  !uri.hasAuthority)
+                                return 'Masukkan tautan yang valid.';
+                              return null;
+                            },
                           ),
                         ],
                       ),
@@ -700,8 +767,8 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
     return Column(
       children: [
         MentorPageHeader(
-          title: 'Layanan mentoring',
-          subtitle: 'Atur kelas, durasi, dan tarif TimeCoin.',
+          title: 'Kelas mentoring',
+          subtitle: 'Kelola jadwal dan tarif kelas yang bisa dibooking murid.',
           trailing: IconButton.filled(
             tooltip: 'Tambah layanan',
             onPressed: () => setState(() => _creating = true),
@@ -717,8 +784,24 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             children: [
-              const MentorSectionTitle('Layanan saya'),
-              if (_services.isEmpty)
+              const MentorSectionTitle('Kelas saya'),
+              if (_loading) const LinearProgressIndicator(),
+              if (_error != null)
+                MentorCard(
+                  child: Column(
+                    children: [
+                      Text(
+                        _error!,
+                        style: const TextStyle(color: AppColors.secondarySlate),
+                      ),
+                      TextButton(
+                        onPressed: _loadClasses,
+                        child: const Text('Coba lagi'),
+                      ),
+                    ],
+                  ),
+                ),
+              if (!_loading && _error == null && _services.isEmpty)
                 const MentorCard(
                   child: Text(
                     'Belum ada layanan. Tambahkan kelas agar murid bisa membuat booking.',
@@ -728,8 +811,7 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
               for (final service in _services) ...[
                 _ServiceCard(
                   service: service,
-                  onChanged: (active) =>
-                      setState(() => service.active = active),
+                  onChanged: (active) => _toggleClass(service, active),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -794,20 +876,44 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
 
 class _MentorService {
   _MentorService({
+    required this.id,
     required this.title,
     required this.description,
     required this.skills,
     required this.duration,
     required this.price,
     required this.format,
-  }) : active = true;
+    required this.scheduledAt,
+    required this.enrolledCount,
+    required this.active,
+  });
+
+  factory _MentorService.fromJson(Map<String, dynamic> data) {
+    final capacity = data['capacity'] as int? ?? 1;
+    return _MentorService(
+      id: data['id'] as int,
+      title: data['topic'] as String? ?? 'Kelas mentoring',
+      description: data['description'] as String? ?? '',
+      skills: const [],
+      duration: data['duration_minutes'] as int? ?? 60,
+      price: data['price_tc'] as int? ?? 0,
+      format: capacity == 1 ? '1-on-1' : 'Grup (maks. $capacity)',
+      scheduledAt: DateTime.tryParse(data['scheduled_time'] as String? ?? ''),
+      enrolledCount: data['enrolled_count'] as int? ?? 0,
+      active: data['status'] == 'open',
+    );
+  }
+
+  final int id;
   final String title;
   final String description;
   final List<String> skills;
   final int duration;
   final int price;
   final String format;
-  bool active;
+  final DateTime? scheduledAt;
+  final int enrolledCount;
+  final bool active;
 }
 
 class _ServiceCard extends StatelessWidget {
@@ -872,6 +978,16 @@ class _ServiceCard extends StatelessWidget {
             ),
           ],
         ),
+        if (service.scheduledAt != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Jadwal ${service.scheduledAt!.toLocal().day.toString().padLeft(2, '0')}/${service.scheduledAt!.toLocal().month.toString().padLeft(2, '0')}/${service.scheduledAt!.toLocal().year} · ${service.scheduledAt!.toLocal().hour.toString().padLeft(2, '0')}:${service.scheduledAt!.toLocal().minute.toString().padLeft(2, '0')} · ${service.enrolledCount} murid',
+            style: const TextStyle(
+              color: AppColors.secondarySlate,
+              fontSize: 12,
+            ),
+          ),
+        ],
         const SizedBox(height: 12),
         Wrap(
           spacing: 6,

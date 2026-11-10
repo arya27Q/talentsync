@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
-import 'package:flutter_frontend/features/mentor/models/mentor_recommendation.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
-import 'package:flutter_frontend/features/mentor/screens/mentor_recommendation_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_student_learning_room_screen.dart';
 import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
@@ -17,15 +17,41 @@ class MentorStudentsScreen extends StatefulWidget {
 }
 
 class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
-  final _recommended = <String>{
-    for (final student in mentorStudents.where(
-      (student) => student.recommended,
-    ))
-      student.name,
-  };
-  final _drafts = <MentorRecommendationDraft>[];
+  final _students = <MentorStudent>[];
+  bool _loading = true;
+  String? _error;
 
-  List<MentorStudent> get _visibleStudents => mentorStudents;
+  @override
+  void initState() {
+    super.initState();
+    _loadStudents();
+  }
+
+  Future<void> _loadStudents() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final enrollments = await MentorApi.instance.enrollments();
+      final byStudent = <int, MentorStudent>{};
+      for (final enrollment in enrollments) {
+        final student = MentorStudent.fromEnrollment(enrollment);
+        if (student.id != null)
+          byStudent.putIfAbsent(student.id!, () => student);
+      }
+      if (mounted)
+        setState(() {
+          _students
+            ..clear()
+            ..addAll(byStudent.values);
+        });
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   Future<void> _openLearningRoom(MentorStudent student) async {
     final result = await Navigator.pushNamed<Object?>(
@@ -40,32 +66,69 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
   }
 
   Future<void> _openRecommendation([MentorStudent? student]) async {
-    final result = await Navigator.pushNamed<Object?>(
-      context,
-      AppRoutes.mentorRecommendation,
-      arguments: MentorRecommendationArgs(
-        initialStudent: student,
-        onSelectTab: widget.onSelectTab,
-      ),
-    );
-    if (!mounted) return;
-    if (result is MentorRecommendationDraft) {
-      setState(() => _drafts.add(result));
+    final candidates = _students
+        .where((item) => (item.assessmentScore ?? 0) >= 80 && !item.recommended)
+        .toList();
+    final eligible = student ?? (candidates.isEmpty ? null : candidates.first);
+    if (eligible == null || eligible.enrollmentId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text(
-            'Draft ${result.candidate.student.name} → ${result.project.businessName} disiapkan. Pengiriman belum terhubung.',
+            'Belum ada murid selesai dengan nilai minimal 80 yang menunggu endorsement.',
           ),
         ),
       );
-    } else if (result is int) {
-      widget.onSelectTab?.call(result);
+      return;
+    }
+    final notesController = TextEditingController();
+    final notes = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Endorse ${eligible.name}'),
+        content: TextField(
+          controller: notesController,
+          minLines: 2,
+          maxLines: 4,
+          decoration: const InputDecoration(labelText: 'Catatan rekomendasi'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = notesController.text.trim();
+              if (value.length >= 10) Navigator.pop(dialogContext, value);
+            },
+            child: const Text('Kirim endorsement'),
+          ),
+        ],
+      ),
+    );
+    notesController.dispose();
+    if (notes == null || !mounted) return;
+    try {
+      await MentorApi.instance.endorse(eligible.enrollmentId!, notes);
+      await _loadStudents();
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Endorsement untuk ${eligible.name} berhasil dikirim.',
+            ),
+          ),
+        );
+    } on ApiException catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final students = _visibleStudents;
+    final students = _students;
     return SafeArea(
       bottom: false,
       child: Column(
@@ -73,9 +136,7 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
           // Header matching design
           MentorPageHeader(
             title: 'Murid Saya',
-            subtitle: _drafts.isEmpty
-                ? '${mentorStudents.length} murid aktif'
-                : '${mentorStudents.length} murid aktif · ${_drafts.length} draft',
+            subtitle: '${students.length} murid dari booking mentoring',
             trailing: GestureDetector(
               onTap: () => _openRecommendation(),
               child: Container(
@@ -105,7 +166,25 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
 
           // Scrollable student list with bottom padding 120 so Rafi Hakim card is fully clear of bottom nav
           Expanded(
-            child: students.isEmpty
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_error!, textAlign: TextAlign.center),
+                          TextButton(
+                            onPressed: _loadStudents,
+                            child: const Text('Coba lagi'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : students.isEmpty
                 ? const Center(
                     child: Text(
                       'Belum ada murid yang terdaftar.',
@@ -114,16 +193,13 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                    itemCount: students.length + _drafts.length,
+                    itemCount: students.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 14),
                     itemBuilder: (context, index) {
-                      if (index < _drafts.length) {
-                        return _RecommendationDraftCard(draft: _drafts[index]);
-                      }
-                      final student = students[index - _drafts.length];
+                      final student = students[index];
                       return _StudentCard(
                         student: student,
-                        recommended: _recommended.contains(student.name),
+                        recommended: student.recommended,
                         onChat: () => Navigator.pushNamed(
                           context,
                           AppRoutes.mentorStudentChat,
@@ -139,65 +215,6 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
       ),
     );
   }
-}
-
-class _RecommendationDraftCard extends StatelessWidget {
-  const _RecommendationDraftCard({required this.draft});
-
-  final MentorRecommendationDraft draft;
-
-  @override
-  Widget build(BuildContext context) => MentorCard(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.assignment_rounded, color: AppColors.primaryNavy),
-            const SizedBox(width: 9),
-            const Expanded(
-              child: Text(
-                'Draft rekomendasi',
-                style: TextStyle(
-                  color: AppColors.darkSlate,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            const MentorTag(
-              'Siap ditinjau',
-              color: AppColors.lightBlueSurface,
-              textColor: AppColors.primaryNavy,
-            ),
-          ],
-        ),
-        const SizedBox(height: 9),
-        Text(
-          '${draft.candidate.student.name} · ${draft.project.businessName}',
-          style: const TextStyle(
-            color: AppColors.darkSlate,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          draft.reason,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: AppColors.secondarySlate,
-            fontSize: 12,
-            height: 1.35,
-          ),
-        ),
-        const SizedBox(height: 7),
-        const Text(
-          'Pengiriman ke UMKM belum terhubung.',
-          style: TextStyle(color: AppColors.secondarySlate, fontSize: 11),
-        ),
-      ],
-    ),
-  );
 }
 
 class _StudentCard extends StatelessWidget {

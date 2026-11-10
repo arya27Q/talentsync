@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_cashout_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_featured_upgrade_screen.dart';
+import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorWalletScreen extends StatefulWidget {
   const MentorWalletScreen({
@@ -20,8 +23,41 @@ class MentorWalletScreen extends StatefulWidget {
 
 class _MentorWalletScreenState extends State<MentorWalletScreen> {
   int get _availableTc => widget.availableTc.value;
-  static const _escrowTc = 60;
-  final List<_CashoutRequest> _requests = [];
+  int _lockedTc = 0;
+  int _feePercent = 10;
+  List<Map<String, dynamic>> _transactions = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWallet();
+  }
+
+  Future<void> _loadWallet() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final summary = await MentorApi.instance.walletSummary();
+      if (!mounted) return;
+      setState(() {
+        widget.availableTc.value = summary['balance_tc'] as int? ?? 0;
+        _lockedTc = summary['locked_balance_tc'] as int? ?? 0;
+        _feePercent = summary['cashout_fee_percent'] as int? ?? 10;
+        final recent = summary['recent_transactions'];
+        _transactions = recent is List
+            ? recent.whereType<Map<String, dynamic>>().toList()
+            : [];
+      });
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   Future<void> _openCashOut() async {
     if (_availableTc < 1) {
@@ -37,17 +73,13 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
       AppRoutes.mentorCashOut,
       arguments: MentorCashOutArgs(
         availableTc: _availableTc,
+        adminFeePercent: _feePercent,
         onSelectTab: widget.onSelectTab,
       ),
     );
     if (result is MentorCashOutResult && mounted) {
-      setState(() {
-        widget.availableTc.value -= result.amountTc;
-        _requests.insert(
-          0,
-          _CashoutRequest(amountTc: result.amountTc, account: result.account),
-        );
-      });
+      await _loadWallet();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pengajuan cash-out berhasil dikirim.')),
       );
@@ -56,8 +88,8 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
     }
   }
 
-  void _openFeatured() {
-    Navigator.pushNamed(
+  Future<void> _openFeatured() async {
+    final result = await Navigator.pushNamed<Object?>(
       context,
       AppRoutes.mentorFeaturedUpgrade,
       arguments: MentorFeaturedUpgradeArgs(
@@ -65,6 +97,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
         onSelectTab: widget.onSelectTab,
       ),
     );
+    if (result == true && mounted) await _loadWallet();
   }
 
   String _rupiah(int amount) {
@@ -75,6 +108,39 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
       result.write(digits[i]);
     }
     return 'Rp$result';
+  }
+
+  Widget _buildTransactionItem(Map<String, dynamic> transaction) {
+    final direction = transaction['direction'] as String? ?? 'debit';
+    final incoming = direction == 'credit';
+    final type =
+        transaction['type'] as String? ??
+        transaction['transaction_type'] as String? ??
+        '';
+    final label = switch (type) {
+      'mentoring_payment' => 'Pembayaran sesi mentoring',
+      'mentoring_refund' => 'Pengembalian dana mentoring',
+      'cash_out' => 'Pengajuan cash-out',
+      'cash_out_refund' => 'Pengembalian cash-out',
+      _ => 'Transaksi TimeCoin',
+    };
+    final amount = transaction['amount'] as int? ?? 0;
+    final date = DateTime.tryParse(transaction['created_at'] as String? ?? '')
+        ?.toLocal();
+    final dateLabel = date == null
+        ? ''
+        : '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    final status = transaction['status'] as String? ?? 'completed';
+
+    return _MutationItem(
+      icon: incoming ? Icons.south_west_rounded : Icons.north_east_rounded,
+      iconBg: incoming ? const Color(0xFFECFDF5) : const Color(0xFFF1F5F9),
+      iconColor: incoming ? const Color(0xFF059669) : const Color(0xFF475569),
+      title: label,
+      subtitle: [status, if (dateLabel.isNotEmpty) dateLabel].join(' · '),
+      amount: '${incoming ? '+' : '-'}$amount TC',
+      amountColor: incoming ? const Color(0xFF059669) : AppColors.darkSlate,
+    );
   }
 
   @override
@@ -101,6 +167,22 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
             children: [
+              if (_loading) const LinearProgressIndicator(),
+              if (_error != null)
+                MentorCard(
+                  child: Column(
+                    children: [
+                      Text(
+                        _error!,
+                        style: const TextStyle(color: AppColors.secondarySlate),
+                      ),
+                      TextButton(
+                        onPressed: _loadWallet,
+                        child: const Text('Coba lagi'),
+                      ),
+                    ],
+                  ),
+                ),
               // 1. Solid Royal Navy Balance Card
               Container(
                 width: double.infinity,
@@ -159,7 +241,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
                                 'Di escrow',
                                 style: TextStyle(
@@ -169,7 +251,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                               ),
                               SizedBox(height: 3),
                               Text(
-                                '$_escrowTc TC',
+                                '$_lockedTc TC',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
@@ -182,7 +264,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
                                 'Admin cash-out',
                                 style: TextStyle(
@@ -192,7 +274,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                               ),
                               SizedBox(height: 3),
                               Text(
-                                '15%',
+                                '$_feePercent%',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
@@ -294,7 +376,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Saat ini kamu kehilangan ${_rupiah((_availableTc * 1000 * .15).round())} untuk admin. Featured Mentor 0%.',
+                          'Perkiraan biaya admin saat ini ${_rupiah((_availableTc * 1000 * _feePercent / 100).round())}. Premium memberi tarif 0%.',
                           style: const TextStyle(
                             color: AppColors.darkSlate,
                             fontWeight: FontWeight.w800,
@@ -315,86 +397,7 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
               ),
               const SizedBox(height: 16),
 
-              // 4. Pendapatan 6 Minggu Chart Card matching screenshot
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: AppColors.borderSlate.withValues(alpha: 0.8),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.darkSlate.withValues(alpha: 0.04),
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Pendapatan 6 minggu',
-                      style: TextStyle(
-                        color: AppColors.darkSlate,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 80), // Chart space
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text(
-                          'M1',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 11,
-                          ),
-                        ),
-                        Text(
-                          'M2',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 11,
-                          ),
-                        ),
-                        Text(
-                          'M3',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 11,
-                          ),
-                        ),
-                        Text(
-                          'M4',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 11,
-                          ),
-                        ),
-                        Text(
-                          'M5',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 11,
-                          ),
-                        ),
-                        Text(
-                          'M6',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              // Riwayat dimuat dari ledger API.
               const SizedBox(height: 16),
 
               // 5. Transaction Mutations List Card matching Screenshot 2
@@ -420,52 +423,23 @@ class _MentorWalletScreenState extends State<MentorWalletScreen> {
                 ),
                 child: Column(
                   children: [
-                    // Item 1: Sesi Struktur BLoC
-                    _MutationItem(
-                      icon: Icons.south_west_rounded,
-                      iconBg: const Color(0xFFECFDF5),
-                      iconColor: const Color(0xFF059669),
-                      title: 'Sesi Struktur BLoC',
-                      subtitle: 'Arya Pratama · escrow dilepas · 8 Jul',
-                      amount: '+30 TC',
-                      amountColor: const Color(0xFF059669),
-                    ),
-                    const Divider(color: AppColors.borderSlate, height: 20),
-
-                    // Item 2: Cash-out ke BCA
-                    _MutationItem(
-                      icon: Icons.north_east_rounded,
-                      iconBg: const Color(0xFFF1F5F9),
-                      iconColor: const Color(0xFF475569),
-                      title: 'Cash-out ke BCA',
-                      subtitle: 'Admin 15% · Rp15.300 · 1 Jul',
-                      amount: '-102 TC',
-                      amountColor: AppColors.darkSlate,
-                    ),
-                    const Divider(color: AppColors.borderSlate, height: 20),
-
-                    // Item 3: Sesi review arsitektur
-                    _MutationItem(
-                      icon: Icons.south_west_rounded,
-                      iconBg: const Color(0xFFECFDF5),
-                      iconColor: const Color(0xFF059669),
-                      title: 'Sesi review arsitektur',
-                      subtitle: 'Arya Pratama · 24 Jun',
-                      amount: '+30 TC',
-                      amountColor: const Color(0xFF059669),
-                    ),
-                    const Divider(color: AppColors.borderSlate, height: 20),
-
-                    // Item 4: Sesi persiapan portofolio
-                    _MutationItem(
-                      icon: Icons.south_west_rounded,
-                      iconBg: const Color(0xFFECFDF5),
-                      iconColor: const Color(0xFF059669),
-                      title: 'Sesi persiapan portofolio',
-                      subtitle: 'Dewi Lestari · 20 Jun',
-                      amount: '+30 TC',
-                      amountColor: const Color(0xFF059669),
-                    ),
+                    if (_transactions.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Text(
+                          'Belum ada transaksi TimeCoin.',
+                          style: TextStyle(color: AppColors.secondarySlate),
+                        ),
+                      ),
+                    for (
+                      var index = 0;
+                      index < _transactions.length;
+                      index++
+                    ) ...[
+                      _buildTransactionItem(_transactions[index]),
+                      if (index < _transactions.length - 1)
+                        const Divider(color: AppColors.borderSlate, height: 20),
+                    ],
                   ],
                 ),
               ),
@@ -547,10 +521,4 @@ class _MutationItem extends StatelessWidget {
       ],
     ),
   );
-}
-
-class _CashoutRequest {
-  const _CashoutRequest({required this.amountTc, required this.account});
-  final int amountTc;
-  final String account;
 }

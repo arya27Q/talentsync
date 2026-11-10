@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/widgets/mentor_ui.dart';
 
 class MentorFeaturedUpgradeArgs {
@@ -9,7 +11,7 @@ class MentorFeaturedUpgradeArgs {
   final ValueChanged<int>? onSelectTab;
 }
 
-class MentorFeaturedUpgradeScreen extends StatelessWidget {
+class MentorFeaturedUpgradeScreen extends StatefulWidget {
   const MentorFeaturedUpgradeScreen({
     super.key,
     this.balanceTc = 420,
@@ -19,7 +21,47 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
   final int balanceTc;
   final ValueChanged<int>? onSelectTab;
 
-  int get _estimatedSaving => (balanceTc * 1000 * .15).round();
+  @override
+  State<MentorFeaturedUpgradeScreen> createState() =>
+      _MentorFeaturedUpgradeScreenState();
+}
+
+class _MentorFeaturedUpgradeScreenState
+    extends State<MentorFeaturedUpgradeScreen> {
+  bool _submitting = false;
+
+  int get _estimatedSaving => (widget.balanceTc * 1000 * .10).round();
+
+  Future<void> _requestPremium() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    try {
+      final result = await MentorApi.instance.requestPremium();
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Pengajuan Premium terkirim'),
+          content: Text(
+            'Referensi ${result['payment_reference']}. Aktivasi dilakukan setelah admin memverifikasi pembayaran Rp${result['amount_idr']}.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Mengerti'),
+            ),
+          ],
+        ),
+      );
+      if (mounted) Navigator.pop(context, true);
+    } on ApiException catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   String _rupiah(int amount) {
     final digits = amount.toString();
@@ -212,7 +254,7 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                       _BenefitItem(
                         icon: Icons.money_off_csred_rounded,
                         title: '0% biaya admin cash-out',
-                        detail: 'Paket gratis dipotong 15% setiap penukaran TC ke Rupiah',
+                        detail: 'Paket gratis dipotong 10% setiap cash-out TimeCoin',
                       ),
                       Divider(height: 1, color: AppColors.borderSlate),
                       _BenefitItem(
@@ -276,7 +318,7 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Saldo saat ini $balanceTc TC (Rp${(balanceTc * 1000).toString()})',
+                        'Saldo saat ini ${widget.balanceTc} TC (Rp${widget.balanceTc * 1000})',
                         style: const TextStyle(
                           color: AppColors.secondarySlate,
                           fontSize: 12,
@@ -360,7 +402,7 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Sekali cash-out saja sudah untung Rp13.000.',
+                        'Premium aktif setelah pembayaran dikonfirmasi admin.',
                         style: TextStyle(
                           color: AppColors.primaryNavy,
                           fontWeight: FontWeight.w700,
@@ -368,6 +410,27 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FilledButton(
+                    onPressed: _submitting ? null : _requestPremium,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primaryNavy,
+                    ),
+                    child: _submitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Ajukan Premium · Rp50.000 / bulan'),
                   ),
                 ),
               ],
@@ -379,11 +442,11 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
     bottomNavigationBar: MentorBottomNav(
       selectedIndex: 4,
       onSelected: (index) {
-        if (onSelectTab == null) {
+        if (widget.onSelectTab == null) {
           Navigator.pop(context, index);
           return;
         }
-        onSelectTab!(index);
+        widget.onSelectTab!(index);
         Navigator.popUntil(context, (route) => route.isFirst);
       },
     ),
