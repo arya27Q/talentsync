@@ -345,12 +345,16 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                           ),
                         ),
                         const SizedBox(width: 14),
-                        const Text(
-                          'Kirim Lamaran Proyek',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkSlate,
+                        const Expanded(
+                          child: Text(
+                            'Kirim Lamaran Proyek',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
                           ),
                         ),
                       ],
@@ -397,30 +401,44 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              const Text(
-                                'Sambal Bu R...',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
+                              const Expanded(
+                                child: Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Sambal Bu R...',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.darkSlate,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Icon(
+                                      Icons.verified_rounded,
+                                      size: 14,
+                                      color: AppColors.primaryNavy,
+                                    ),
+                                    SizedBox(width: 2),
+                                    Flexible(
+                                      child: Text(
+                                        'Terverifikasi',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryNavy,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              const Icon(
-                                Icons.verified_rounded,
-                                size: 14,
-                                color: AppColors.primaryNavy,
-                              ),
-                              const SizedBox(width: 2),
-                              const Text(
-                                'Terverifikasi',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryNavy,
-                                ),
-                              ),
-                              const Spacer(),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -431,6 +449,7 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
                                       Icons.toll_rounded,
@@ -461,34 +480,45 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          const Row(
+                          const Wrap(
+                            spacing: 14,
+                            runSpacing: 6,
                             children: [
-                              Icon(
-                                Icons.access_time_rounded,
-                                size: 14,
-                                color: AppColors.secondarySlate,
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.access_time_rounded,
+                                    size: 14,
+                                    color: AppColors.secondarySlate,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    '2 Minggu kerja',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(width: 4),
-                              Text(
-                                '2 Minggu kerja',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondarySlate,
-                                ),
-                              ),
-                              SizedBox(width: 14),
-                              Icon(
-                                Icons.shield_rounded,
-                                size: 14,
-                                color: AppColors.primaryNavy,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                'Smart Escrow aktif',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondarySlate,
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.shield_rounded,
+                                    size: 14,
+                                    color: AppColors.primaryNavy,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Smart Escrow aktif',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -518,25 +548,28 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              RichText(
-                                text: const TextSpan(
-                                  text: 'Pesan lamaran singkat ',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: '*',
-                                      style: TextStyle(
-                                        color: Color(0xFFDC2626),
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                              Expanded(
+                                child: RichText(
+                                  text: const TextSpan(
+                                    text: 'Pesan lamaran singkat ',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
                                     ),
-                                  ],
+                                    children: [
+                                      TextSpan(
+                                        text: '*',
+                                        style: TextStyle(
+                                          color: Color(0xFFDC2626),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -632,16 +665,20 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'Portofolio terverifikasi',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
+                              const Expanded(
+                                child: Text(
+                                  'Portofolio terverifikasi',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkSlate,
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -707,15 +744,19 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
 
                           // Link: Belum punya portofolio yang relevan? Cari Mentor ↗
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'Belum punya portofolio yang relevan?',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondarySlate,
+                              const Expanded(
+                                child: Text(
+                                  'Belum punya portofolio yang relevan?',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.secondarySlate,
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               GestureDetector(
                                 onTap: () {
                                   Navigator.pushNamed(
@@ -724,6 +765,7 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                                   );
                                 },
                                 child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
                                       'Cari Mentor',
@@ -756,12 +798,16 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                                 color: AppColors.darkSlate,
                               ),
                               SizedBox(width: 6),
-                              Text(
-                                'Tautan portofolio luar (opsional)',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.darkSlate,
+                              Expanded(
+                                child: Text(
+                                  'Tautan portofolio luar (opsional)',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.darkSlate,
+                                  ),
                                 ),
                               ),
                             ],
@@ -1067,12 +1113,17 @@ class _ApplyProjectScreenState extends State<ApplyProjectScreen> {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Kirim Lamaran (300 TC)',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'Kirim Lamaran (300 TC)',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                       SizedBox(width: 8),

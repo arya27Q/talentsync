@@ -270,16 +270,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      const Text(
-                        'Notifications',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Text(
+                          'Notifications',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: _markAllAsRead,
                         child: const Text(

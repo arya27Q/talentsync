@@ -523,8 +523,10 @@ class MsmeStoreProfileScreen extends StatelessWidget {
   );
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: ListView(
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppColors.canvasWhite,
+    body: SafeArea(
+      child: ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
       children: [
@@ -630,12 +632,16 @@ class MsmeStoreProfileScreen extends StatelessWidget {
                                 size: 14,
                               ),
                               SizedBox(width: 5),
-                              Text(
-                                'Verified Partner',
-                                style: TextStyle(
-                                  color: Color(0xFFB45309),
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 11.5,
+                              Flexible(
+                                child: Text(
+                                  'Verified Partner',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Color(0xFFB45309),
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 11.5,
+                                  ),
                                 ),
                               ),
                             ],
@@ -743,16 +749,20 @@ class MsmeStoreProfileScreen extends StatelessWidget {
             children: [
               // Header Row: Subscription Plan + Aktif: Gratis badge
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Subscription Plan',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.darkSlate,
+                  const Expanded(
+                    child: Text(
+                      'Subscription Plan',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.darkSlate,
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
@@ -944,6 +954,7 @@ class MsmeStoreProfileScreen extends StatelessWidget {
         const SizedBox(height: 20),
       ],
     ),
+  ),
   );
 
   static Widget _buildPlanFeature(String text) => Row(

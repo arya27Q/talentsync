@@ -129,6 +129,8 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
                     children: [
                       Text(
                         widget.studentName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -428,26 +430,30 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        msg.attachmentName!,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          msg.attachmentName!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Lampiran',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.secondarySlate,
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Lampiran',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.secondarySlate,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),

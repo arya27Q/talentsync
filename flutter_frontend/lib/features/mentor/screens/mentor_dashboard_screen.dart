@@ -1154,24 +1154,32 @@ class _WalletButton extends StatelessWidget {
         color: quiet ? Colors.white.withValues(alpha: .15) : Colors.white,
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: quiet ? Colors.white : AppColors.primaryNavy,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
               color: quiet ? Colors.white : AppColors.primaryNavy,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
             ),
-          ),
-        ],
+            const SizedBox(width: 6),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: quiet ? Colors.white : AppColors.primaryNavy,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );

@@ -96,28 +96,34 @@ class _MsmeRegisterScreenState extends State<MsmeRegisterScreen> {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pengaturan Profil Usaha',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.darkSlate,
-                        letterSpacing: -0.3,
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pengaturan Profil Usaha',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkSlate,
+                          letterSpacing: -0.3,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Profil usaha untuk mahasiswa',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: AppColors.secondarySlate,
-                        fontWeight: FontWeight.w500,
+                      SizedBox(height: 2),
+                      Text(
+                        'Profil usaha untuk mahasiswa',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppColors.secondarySlate,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

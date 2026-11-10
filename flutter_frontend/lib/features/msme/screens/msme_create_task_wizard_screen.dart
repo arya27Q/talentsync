@@ -411,28 +411,34 @@ class _MsmeCreateTaskWizardScreenState
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Panduan Buat Tugas',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.darkSlate,
-                        letterSpacing: -0.3,
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Panduan Buat Tugas',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkSlate,
+                          letterSpacing: -0.3,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Langkah 1 dari 3 · Pilih Kategori Tugas',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: AppColors.secondarySlate,
-                        fontWeight: FontWeight.w500,
+                      SizedBox(height: 2),
+                      Text(
+                        'Langkah 1 dari 3 · Pilih Kategori Tugas',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppColors.secondarySlate,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -514,15 +520,19 @@ class _MsmeCreateTaskWizardScreenState
                           size: 18,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'Slot proyek aktif 2/2',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF92400E),
+                        const Expanded(
+                          child: Text(
+                            'Slot proyek aktif 2/2',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF92400E),
+                            ),
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         InkWell(
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -560,7 +570,7 @@ class _MsmeCreateTaskWizardScreenState
                           crossAxisCount: 2,
                           crossAxisSpacing: 14,
                           mainAxisSpacing: 14,
-                          childAspectRatio: 0.88,
+                          childAspectRatio: 0.80,
                         ),
                     itemBuilder: (context, index) {
                       final item = _templates[index];
@@ -718,12 +728,16 @@ class _MsmeCreateTaskWizardScreenState
                               size: 20,
                             ),
                             SizedBox(width: 8),
-                            Text(
-                              'Tidak menemukan kebutuhan usahamu?',
-                              style: TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryNavy,
+                            Expanded(
+                              child: Text(
+                                'Tidak menemukan kebutuhan usahamu?',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryNavy,
+                                ),
                               ),
                             ),
                           ],
@@ -754,24 +768,32 @@ class _MsmeCreateTaskWizardScreenState
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: AppColors.primaryNavy),
                             ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add_circle_outline_rounded,
-                                  size: 16,
-                                  color: AppColors.primaryNavy,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Tulis Proyek Kustom Sendiri',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_circle_outline_rounded,
+                                    size: 16,
                                     color: AppColors.primaryNavy,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: 8),
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'Tulis Proyek Kustom Sendiri',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryNavy,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

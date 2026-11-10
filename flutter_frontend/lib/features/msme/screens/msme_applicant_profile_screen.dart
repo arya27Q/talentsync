@@ -217,7 +217,9 @@ class _MsmeApplicantProfileScreenState
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Row(
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
                                   children: [
                                     _buildPillBadge(
                                       icon: Icons.check_circle_rounded,
@@ -226,7 +228,6 @@ class _MsmeApplicantProfileScreenState
                                       textColor: const Color(0xFF047857),
                                       borderColor: const Color(0xFFBBF7D0),
                                     ),
-                                    const SizedBox(width: 8),
                                     _buildPillBadge(
                                       icon: Icons.military_tech_rounded,
                                       label: 'Endorse Mentor',
@@ -400,16 +401,20 @@ class _MsmeApplicantProfileScreenState
                 // Section 3: Hasil proyek nyata
                 Row(
                   children: [
-                    const Text(
-                      'Hasil proyek nyata',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.darkSlate,
-                        letterSpacing: -0.3,
+                    const Expanded(
+                      child: Text(
+                        'Hasil proyek nyata',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkSlate,
+                          letterSpacing: -0.3,
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     const Text(
                       '3 terverifikasi',
                       style: TextStyle(
@@ -424,7 +429,7 @@ class _MsmeApplicantProfileScreenState
 
                 // Horizontal Carousel of Real Projects
                 SizedBox(
-                  height: 240,
+                  height: 260,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
@@ -481,50 +486,54 @@ class _MsmeApplicantProfileScreenState
                 const SizedBox(height: 12),
 
                 // Filter Tabs
-                Row(
-                  children: List.generate(_certTabs.length, (index) {
-                    final bool isSelected = _selectedCertTab == index;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _selectedCertTab = index;
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.primaryNavy
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: List.generate(_certTabs.length, (index) {
+                      final bool isSelected = _selectedCertTab == index;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedCertTab = index;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
                               color: isSelected
                                   ? AppColors.primaryNavy
-                                  : AppColors.borderSlate,
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppColors.primaryNavy
+                                    : AppColors.borderSlate,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            _certTabs[index],
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.darkSlate,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.w600,
-                              fontSize: 12.5,
+                            child: Text(
+                              _certTabs[index],
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.darkSlate,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
+                                fontSize: 12.5,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  }),
+                      );
+                    }),
+                  ),
                 ),
 
                 const SizedBox(height: 14),
@@ -689,18 +698,22 @@ class _MsmeApplicantProfileScreenState
                       SizedBox(height: 12),
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.access_time_rounded,
                             color: AppColors.secondarySlate,
                             size: 16,
                           ),
-                          SizedBox(width: 6),
-                          Text(
-                            'Komitmen: 1 Bulan · 10–15 jam/minggu',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondarySlate,
-                              fontWeight: FontWeight.w500,
+                          const SizedBox(width: 6),
+                          const Expanded(
+                            child: Text(
+                              'Komitmen: 1 Bulan · 10–15 jam/minggu',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondarySlate,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
@@ -787,16 +800,22 @@ class _MsmeApplicantProfileScreenState
                         child: InkWell(
                           onTap: _onAccept,
                           borderRadius: BorderRadius.circular(14),
-                          child: const Center(
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(
-                                  'Accept & Collaborate',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'Accept & Collaborate',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 SizedBox(width: 8),
@@ -839,12 +858,16 @@ class _MsmeApplicantProfileScreenState
       children: [
         Icon(icon, color: textColor, size: 13),
         const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: textColor,
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
           ),
         ),
       ],
@@ -1098,18 +1121,26 @@ class _MsmeApplicantProfileScreenState
         size: 18,
       ),
       const SizedBox(width: 10),
-      Text(
-        skill,
-        style: const TextStyle(
-          fontSize: 13.5,
-          fontWeight: FontWeight.bold,
-          color: AppColors.darkSlate,
+      Expanded(
+        child: Text(
+          skill,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkSlate,
+          ),
         ),
       ),
-      const Spacer(),
-      Text(
-        proof,
-        style: const TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+      const SizedBox(width: 8),
+      Flexible(
+        child: Text(
+          proof,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12, color: AppColors.secondarySlate),
+        ),
       ),
     ],
   );

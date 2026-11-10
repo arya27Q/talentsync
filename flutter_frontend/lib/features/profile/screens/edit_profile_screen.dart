@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 
@@ -11,10 +11,10 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _linkedInController = TextEditingController(
-    text: 'linkedin.com/in/arya-pratama',
+    text: 'linkedin.cosantosom/in/budi ',
   );
   final TextEditingController _gitHubController = TextEditingController(
-    text: 'aryapratama',
+    text: 'budi',
   );
   final TextEditingController _skillInputController = TextEditingController();
 

@@ -47,6 +47,7 @@ import 'package:flutter_frontend/features/mentor/screens/mentor_main_layout.dart
 import 'package:flutter_frontend/features/mentor/screens/mentor_onboarding_screen.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_recommendation_screen.dart';
+import 'package:flutter_frontend/features/mentor/models/mentor_booking.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_booking_detail_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_live_mentoring_screen.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_student_chat_screen.dart';
@@ -154,10 +155,18 @@ class AppRoutes {
     msmeStoreProfile: (context) => const MsmeStoreProfileScreen(),
     msmeOnboarding: (context) => const MsmeOnboardingScreen(),
     mentorOnboarding: (context) => const MentorOnboardingScreen(),
-    mentorBookingDetail: (context) => MentorBookingDetailScreen(
-      args:
-          ModalRoute.of(context)!.settings.arguments as MentorBookingDetailArgs,
-    ),
+    mentorBookingDetail: (context) {
+      final argument = ModalRoute.of(context)?.settings.arguments;
+      if (argument is MentorBookingDetailArgs) {
+        return MentorBookingDetailScreen(args: argument);
+      }
+      return MentorBookingDetailScreen(
+        args: MentorBookingDetailArgs(
+          booking: mentorBookingRequests.first,
+          status: 'pending',
+        ),
+      );
+    },
     mentorLiveMentoring: (context) {
       final argument = ModalRoute.of(context)?.settings.arguments;
       if (argument is MentorLiveMentoringArgs) {

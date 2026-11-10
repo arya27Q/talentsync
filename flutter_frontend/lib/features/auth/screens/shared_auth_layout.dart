@@ -35,7 +35,7 @@ class SharedAuthLayout extends StatelessWidget {
                       onTap: () => Navigator.pop(context),
                       child: Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.warmOffWhite,
                           shape: BoxShape.circle,
                         ),
@@ -47,12 +47,16 @@ class SharedAuthLayout extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkBrown,
+                    Expanded(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkBrown,
+                        ),
                       ),
                     ),
                   ],
@@ -178,12 +182,16 @@ Widget buildUploadButton(String text, IconData icon, VoidCallback onPressed) {
           children: [
             Icon(icon, color: AppColors.primaryTan, size: 24),
             const SizedBox(width: 12),
-            Text(
-              text,
-              style: const TextStyle(
-                color: AppColors.primaryTan,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.primaryTan,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -203,7 +211,14 @@ Widget buildAuthFooter(
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(text, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
+          ),
+        ),
         const SizedBox(width: 4),
         InkWell(
           onTap: onActionTap,

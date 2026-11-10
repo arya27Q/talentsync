@@ -188,28 +188,34 @@ class _MsmeReviewApplicantsScreenState
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Tinjau Pelamar',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.darkSlate,
-                        letterSpacing: -0.3,
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tinjau Pelamar',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkSlate,
+                          letterSpacing: -0.3,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Aplikasi Menu & Pre-order Kopi',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: AppColors.secondarySlate,
-                        fontWeight: FontWeight.w500,
+                      SizedBox(height: 2),
+                      Text(
+                        'Aplikasi Menu & Pre-order Kopi',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppColors.secondarySlate,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -472,15 +478,19 @@ class _MsmeReviewApplicantsScreenState
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  mentorRecommendation.mentorName,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkSlate,
+                Expanded(
+                  child: Text(
+                    mentorRecommendation.mentorName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkSlate,
+                    ),
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Text(
                   mentorRecommendation.matchPercent,
                   style: const TextStyle(
@@ -591,12 +601,16 @@ class _MsmeReviewApplicantsScreenState
                           size: 14,
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          campus,
-                          style: const TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF047857),
+                        Flexible(
+                          child: Text(
+                            campus,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF047857),
+                            ),
                           ),
                         ),
                       ],
@@ -622,12 +636,16 @@ class _MsmeReviewApplicantsScreenState
                             size: 14,
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            endorseMentor,
-                            style: const TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFB45309),
+                          Flexible(
+                            child: Text(
+                              endorseMentor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFB45309),
+                              ),
                             ),
                           ),
                         ],

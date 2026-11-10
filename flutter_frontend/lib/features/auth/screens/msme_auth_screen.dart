@@ -225,12 +225,15 @@ class _MsmeAuthScreenState extends State<MsmeAuthScreen> {
                                       ),
                                     ),
                                     SizedBox(width: 12),
-                                    Text(
-                                      'Memverifikasi Mitra UMKM...',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
+                                    Flexible(
+                                      child: Text(
+                                        'Memverifikasi Mitra UMKM...',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -302,24 +305,32 @@ class _MsmeAuthScreenState extends State<MsmeAuthScreen> {
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: const Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_a_photo_rounded,
-                                color: AppColors.primaryNavy,
-                                size: 20,
-                              ),
-                              SizedBox(width: 10),
-                              Text(
-                                'Daftarkan Usaha Baru (Unggah Foto)',
-                                style: TextStyle(
-                                  color: AppColors.darkSlate,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13.5,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_a_photo_rounded,
+                                  color: AppColors.primaryNavy,
+                                  size: 20,
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: 10),
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'Daftarkan Usaha Baru (Unggah Foto)',
+                                      style: TextStyle(
+                                        color: AppColors.darkSlate,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

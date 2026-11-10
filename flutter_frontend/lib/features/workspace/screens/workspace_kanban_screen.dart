@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 
@@ -344,12 +344,16 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkSlate,
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
                 ),
               ),
               const SizedBox(width: 6),
@@ -436,64 +440,84 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
           ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(
-                context,
-                AppRoutes.studentDashboard,
-              ),
-              child: const Padding(
-                padding: EdgeInsets.all(10),
-                child: Icon(
-                  Icons.explore_rounded,
-                  color: AppColors.secondarySlate,
-                  size: 24,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.primaryNavy,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.assignment_rounded, color: Colors.white, size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'Tugas Saya',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+            Expanded(
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => Navigator.pushReplacementNamed(
+                    context,
+                    AppRoutes.studentDashboard,
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.explore_rounded,
+                      color: AppColors.secondarySlate,
+                      size: 24,
                     ),
                   ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: () =>
-                  Navigator.pushReplacementNamed(context, AppRoutes.wallet),
-              child: const Padding(
-                padding: EdgeInsets.all(10),
-                child: Icon(
-                  Icons.account_balance_wallet_rounded,
-                  color: AppColors.secondarySlate,
-                  size: 24,
                 ),
               ),
             ),
-            GestureDetector(
-              onTap: () =>
-                  Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
-              child: const Padding(
-                padding: EdgeInsets.all(10),
-                child: Icon(
-                  Icons.person_rounded,
-                  color: AppColors.secondarySlate,
-                  size: 24,
+            Expanded(
+              flex: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryNavy,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.assignment_rounded, color: Colors.white, size: 18),
+                    SizedBox(width: 6),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Tugas Saya',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: GestureDetector(
+                  onTap: () =>
+                      Navigator.pushReplacementNamed(context, AppRoutes.wallet),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: AppColors.secondarySlate,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: GestureDetector(
+                  onTap: () =>
+                      Navigator.pushReplacementNamed(context, AppRoutes.portfolio),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.person_rounded,
+                      color: AppColors.secondarySlate,
+                      size: 24,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -542,26 +566,34 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                           ),
                         ),
                       ),
-                      Column(
-                        children: const [
-                          Text(
-                            'Project Workspace',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          children: const [
+                            Text(
+                              'Project Workspace',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.darkSlate,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Aplikasi kasir \u00B7 Toko Bu Sri',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondarySlate,
+                            SizedBox(height: 2),
+                            Text(
+                              'Aplikasi kasir \u00B7 Toko Bu Sri',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondarySlate,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 10),
                       GestureDetector(
                         onTap: () => Navigator.pushNamed(
                           context,
@@ -646,17 +678,21 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                               SizedBox(height: 4),
                               Row(
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.calendar_today_rounded,
                                     size: 13,
                                     color: AppColors.secondarySlate,
                                   ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Tenggat 12 Jul \u00B7 sisa 9 hari',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.secondarySlate,
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: const Text(
+                                      'Tenggat 12 Jul \u00B7 sisa 9 hari',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -749,12 +785,16 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                               size: 20,
                             ),
                             SizedBox(width: 8),
-                            Text(
-                              'Mengalami Kendala Teknis Proyek?',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryNavy,
+                            Expanded(
+                              child: Text(
+                                'Mengalami Kendala Teknis Proyek?',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryNavy,
+                                ),
                               ),
                             ),
                           ],
@@ -769,7 +809,9 @@ class _WorkspaceKanbanScreenState extends State<WorkspaceKanbanScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Row(
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 8,
                           children: [
                             ElevatedButton.icon(
                               onPressed: () => Navigator.pushNamed(

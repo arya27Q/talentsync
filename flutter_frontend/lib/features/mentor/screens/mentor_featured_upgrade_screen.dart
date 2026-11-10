@@ -74,12 +74,16 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Text(
-                  'Upgrade Premium',
-                  style: TextStyle(
-                    color: AppColors.darkSlate,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                const Expanded(
+                  child: Text(
+                    'Upgrade Premium',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.darkSlate,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -145,12 +149,16 @@ class MentorFeaturedUpgradeScreen extends StatelessWidget {
                                   size: 16,
                                 ),
                                 SizedBox(width: 6),
-                                Text(
-                                  'Featured Mentor',
-                                  style: TextStyle(
-                                    color: AppColors.darkSlate,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 12,
+                                Flexible(
+                                  child: Text(
+                                    'Featured Mentor',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: AppColors.darkSlate,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
                               ],

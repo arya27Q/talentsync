@@ -30,6 +30,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           children: [
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 11,
                 color: AppColors.secondarySlate,
@@ -37,10 +39,15 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
             ),
             const SizedBox(height: 6),
-            valueWidget,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: valueWidget,
+            ),
             const SizedBox(height: 4),
             Text(
               subtext,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 10,
                 color: AppColors.secondarySlate,
@@ -456,11 +463,15 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 color: AppColors.secondarySlate,
                               ),
                               SizedBox(width: 6),
-                              Text(
-                                'Divisi Branding & Pemasaran',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondarySlate,
+                              Expanded(
+                                child: Text(
+                                  'Divisi Branding & Pemasaran',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.secondarySlate,
+                                  ),
                                 ),
                               ),
                             ],
@@ -578,12 +589,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                   color: AppColors.darkSlate,
                                 ),
                                 SizedBox(width: 6),
-                                Text(
-                                  'Sertifikat & Portofolio',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
+                                Flexible(
+                                  child: Text(
+                                    'Sertifikat & Portofolio',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -655,15 +670,21 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: const [
-                              Text(
-                                'Suasana mitra',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
+                              Expanded(
+                                child: Text(
+                                  'Suasana mitra',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkSlate,
+                                  ),
                                 ),
                               ),
+                              SizedBox(width: 8),
                               Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.location_on_rounded,
@@ -758,14 +779,19 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           const Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Tahapan & milestone',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
+                              Expanded(
+                                child: Text(
+                                  'Tahapan & milestone',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.darkSlate,
+                                  ),
                                 ),
                               ),
+                              SizedBox(width: 8),
                               Text(
                                 '3 tahap escrow',
                                 style: TextStyle(
@@ -909,12 +935,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                'Lamar Proyek Ini',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'Lamar Proyek Ini',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
                               SizedBox(width: 8),

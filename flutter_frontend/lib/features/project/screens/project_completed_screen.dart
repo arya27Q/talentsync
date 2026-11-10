@@ -106,38 +106,44 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                         children: [
                           // Badges Row
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle_rounded,
-                                      color: Colors.white,
-                                      size: 14,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Proyek selesai & terverifikasi',
-                                      style: TextStyle(
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle_rounded,
                                         color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
+                                        size: 14,
                                       ),
-                                    ),
-                                  ],
+                                      SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          'Proyek selesai & terverifikasi',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
@@ -193,9 +199,12 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                           const SizedBox(height: 20),
                           const Divider(color: Colors.white24, height: 1),
                           const SizedBox(height: 14),
-                          Row(
+                          Wrap(
+                            spacing: 16,
+                            runSpacing: 6,
                             children: const [
                               Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.account_balance_wallet_rounded,
@@ -213,8 +222,8 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                   ),
                                 ],
                               ),
-                              SizedBox(width: 16),
                               Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
                                     Icons.workspace_premium_rounded,
@@ -259,28 +268,34 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Row(
-                                children: const [
-                                  Icon(
-                                    Icons.verified_rounded,
-                                    color: AppColors.primaryNavy,
-                                    size: 16,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'VERIFIED WORK EXPERIENCE',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: Row(
+                                  children: const [
+                                    Icon(
+                                      Icons.verified_rounded,
                                       color: AppColors.primaryNavy,
-                                      letterSpacing: 0.5,
+                                      size: 16,
                                     ),
-                                  ),
-                                ],
+                                    SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        'VERIFIED WORK EXPERIENCE',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryNavy,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -532,25 +547,31 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text(
-                                    'Pemilik Toko Bu Sri',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.darkSlate,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Text(
+                                      'Pemilik Toko Bu Sri',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    'Owner, Toko Bu Sri',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.secondarySlate,
+                                    Text(
+                                      'Owner, Toko Bu Sri',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.secondarySlate,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -698,12 +719,17 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'Selesaikan & Lihat di Portofolio',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Selesaikan & Lihat di Portofolio',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
                             ),
                           ),
                           SizedBox(width: 8),
@@ -726,12 +752,16 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
                         size: 15,
                       ),
                       SizedBox(width: 6),
-                      Text(
-                        'Sisa escrow (40 TC tahap akhir) cair ke Dompet Utama',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.secondarySlate,
-                          fontWeight: FontWeight.w500,
+                      Flexible(
+                        child: Text(
+                          'Sisa escrow (40 TC tahap akhir) cair ke Dompet Utama',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.secondarySlate,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],

@@ -67,13 +67,17 @@ class _MsmeUpgradeProScreenState extends State<MsmeUpgradeProScreen> {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    const Text(
-                      'Tingkatkan ke Partner Pro',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.darkSlate,
-                        letterSpacing: -0.3,
+                    const Expanded(
+                      child: Text(
+                        'Tingkatkan ke Partner Pro',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkSlate,
+                          letterSpacing: -0.3,
+                        ),
                       ),
                     ),
                   ],
@@ -492,14 +496,19 @@ class _MsmeUpgradeProScreenState extends State<MsmeUpgradeProScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            _selectedPlanIndex == 0
-                                ? 'Berlangganan Rp49.000/bulan'
-                                : 'Berlangganan Rp490.000/tahun',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _selectedPlanIndex == 0
+                                    ? 'Berlangganan Rp49.000/bulan'
+                                    : 'Berlangganan Rp490.000/tahun',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),

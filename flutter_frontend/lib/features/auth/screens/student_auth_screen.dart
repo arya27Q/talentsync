@@ -84,12 +84,16 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Text(
-                      'Portal Mahasiswa',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkSlate,
+                    const Expanded(
+                      child: Text(
+                        'Portal Mahasiswa',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
                       ),
                     ),
                   ],
@@ -366,24 +370,32 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppColors.borderSlate),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.document_scanner_rounded,
-                          color: AppColors.primaryNavy,
-                          size: 20,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          'Aktivasi Akun Baru dengan Foto KTM',
-                          style: TextStyle(
-                            color: AppColors.darkSlate,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.document_scanner_rounded,
+                            color: AppColors.primaryNavy,
+                            size: 20,
                           ),
-                        ),
-                      ],
+                          SizedBox(width: 10),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Aktivasi Akun Baru dengan Foto KTM',
+                                style: TextStyle(
+                                  color: AppColors.darkSlate,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -391,25 +403,26 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                 const SizedBox(height: 14),
 
                 // Footnote
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(
-                        Icons.verified_user_rounded,
-                        size: 14,
-                        color: Color(0xFF16A34A),
-                      ),
-                      SizedBox(width: 6),
-                      Text(
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.verified_user_rounded,
+                      size: 14,
+                      color: Color(0xFF16A34A),
+                    ),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
                         'Verifikasi KTM resmi untuk perlindungan Smart Escrow 0% biaya',
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.secondarySlate,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
               ],

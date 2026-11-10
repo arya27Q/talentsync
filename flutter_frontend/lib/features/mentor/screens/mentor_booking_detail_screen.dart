@@ -86,12 +86,16 @@ class MentorBookingDetailScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Text(
-                  'Booking Detail',
-                  style: TextStyle(
-                    color: AppColors.darkSlate,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+                const Expanded(
+                  child: Text(
+                    'Booking Detail',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.darkSlate,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -561,12 +565,17 @@ class MentorBookingDetailScreen extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
-                              Text(
-                                'Accept & Schedule',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 14,
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'Accept & Schedule',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                                 ),
                               ),
                               SizedBox(width: 8),
@@ -651,12 +660,17 @@ class MentorBookingDetailScreen extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
-                              Text(
-                                'Join Virtual Workspace',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 14,
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'Join Virtual Workspace',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                                 ),
                               ),
                               SizedBox(width: 8),

@@ -195,9 +195,13 @@ class InboxScreen extends StatelessWidget {
                       size: 20,
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      'Search messages...',
-                      style: TextStyle(color: Colors.grey.shade400),
+                    Expanded(
+                      child: Text(
+                        'Search messages...',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.grey.shade400),
+                      ),
                     ),
                   ],
                 ),

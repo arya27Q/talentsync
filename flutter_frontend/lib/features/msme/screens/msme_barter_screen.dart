@@ -62,8 +62,10 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: SingleChildScrollView(
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppColors.canvasWhite,
+    body: SafeArea(
+      child: SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
       child: Column(
@@ -281,18 +283,22 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                IconButton(
-                                  onPressed: () {
+                                InkWell(
+                                  onTap: () {
                                     if (_voucherQuantity > 1) {
                                       setState(() {
                                         _voucherQuantity--;
                                       });
                                     }
                                   },
-                                  icon: const Icon(
-                                    Icons.remove_rounded,
-                                    color: AppColors.darkSlate,
-                                    size: 18,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(4),
+                                    child: Icon(
+                                      Icons.remove_rounded,
+                                      color: AppColors.darkSlate,
+                                      size: 18,
+                                    ),
                                   ),
                                 ),
                                 Text(
@@ -303,16 +309,20 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
                                     color: AppColors.darkSlate,
                                   ),
                                 ),
-                                IconButton(
-                                  onPressed: () {
+                                InkWell(
+                                  onTap: () {
                                     setState(() {
                                       _voucherQuantity++;
                                     });
                                   },
-                                  icon: const Icon(
-                                    Icons.add_rounded,
-                                    color: AppColors.darkSlate,
-                                    size: 18,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(4),
+                                    child: Icon(
+                                      Icons.add_rounded,
+                                      color: AppColors.darkSlate,
+                                      size: 18,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -476,15 +486,19 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'Estimasi TimeCoin diterima',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkSlate,
+                    const Expanded(
+                      child: Text(
+                        'Estimasi TimeCoin diterima',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -639,12 +653,17 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Exchange for $_estimatedTc TimeCoin',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.5,
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'Exchange for $_estimatedTc TimeCoin',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.5,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -662,6 +681,7 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
         ],
       ),
     ),
+  ),
   );
 
   Widget _buildHistoryItem({
@@ -689,15 +709,19 @@ class _MsmeBarterScreenState extends State<MsmeBarterScreen> {
       children: [
         Row(
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkSlate,
+            Expanded(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
               ),
             ),
-            const Spacer(),
+            const SizedBox(width: 8),
             Text(
               tcAmount,
               style: const TextStyle(
