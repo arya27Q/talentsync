@@ -1,65 +1,75 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\MentoringController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AdminMentorPremiumController;
+use App\Http\Controllers\Api\AdminMentorVerificationController;
+use App\Http\Controllers\Api\MentorCatalogController;
+use App\Http\Controllers\Api\MentorProfileController;
+use App\Http\Controllers\Api\MentorDashboardController;
+use App\Http\Controllers\Api\MentorPremiumSubscriptionController;
+use App\Http\Controllers\Api\MentoringAssignmentController;
+use App\Http\Controllers\Api\MentoringClassController;
+use App\Http\Controllers\Api\MentoringEnrollmentController;
+use App\Http\Controllers\Api\MentoringMessageController;
 use App\Http\Controllers\Api\WalletController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
     Route::post('/register-mentor', [AuthController::class, 'registerMentor'])->middleware('throttle:5,1');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 });
 
 Route::middleware('auth:sanctum')->prefix('mentoring')->group(function () {
-    Route::get('/mentors', [MentoringController::class, 'mentors']);
-    Route::get('/classes', [MentoringController::class, 'classes']);
-    Route::get('/classes/{mentoringClass}', [MentoringController::class, 'showClass']);
-    Route::post('/classes/{mentoringClass}/book', [MentoringController::class, 'book'])
+    Route::get('/mentors', [MentorCatalogController::class, 'mentors']);
+    Route::get('/classes', [MentorCatalogController::class, 'classes']);
+    Route::get('/classes/{mentoringClass}', [MentorCatalogController::class, 'showClass']);
+    Route::post('/classes/{mentoringClass}/book', [MentoringEnrollmentController::class, 'book'])
         ->middleware('role:student');
-    Route::get('/enrollments/mine', [MentoringController::class, 'myEnrollments'])
+    Route::get('/enrollments/mine', [MentoringEnrollmentController::class, 'studentIndex'])
         ->middleware('role:student');
-    Route::patch('/enrollments/{enrollment}/attendance', [MentoringController::class, 'updateAttendance'])
+    Route::patch('/enrollments/{enrollment}/attendance', [MentoringEnrollmentController::class, 'attendance'])
         ->middleware(['role:mentor', 'mentor.verified']);
-    Route::patch('/enrollments/{enrollment}/decision', [MentoringController::class, 'decideBooking'])
+    Route::patch('/enrollments/{enrollment}/decision', [MentoringEnrollmentController::class, 'decide'])
         ->middleware(['role:mentor', 'mentor.verified']);
-    Route::post('/enrollments/{enrollment}/assessment', [MentoringController::class, 'submitAssessment'])
+    Route::post('/enrollments/{enrollment}/assessment', [MentoringEnrollmentController::class, 'assess'])
         ->middleware(['role:mentor', 'mentor.verified']);
-    Route::post('/enrollments/{enrollment}/endorse', [MentoringController::class, 'endorse'])
+    Route::post('/enrollments/{enrollment}/endorse', [MentoringEnrollmentController::class, 'endorse'])
         ->middleware(['role:mentor', 'mentor.verified']);
-    Route::post('/enrollments/{enrollment}/confirm-completion', [MentoringController::class, 'confirmCompletion'])
+    Route::post('/enrollments/{enrollment}/confirm-completion', [MentoringEnrollmentController::class, 'confirmCompletion'])
         ->middleware('role:student');
-    Route::get('/enrollments/{enrollment}/messages', [MentoringController::class, 'messages']);
-    Route::post('/enrollments/{enrollment}/messages', [MentoringController::class, 'sendMessage']);
-    Route::get('/enrollments/{enrollment}/assignments', [MentoringController::class, 'enrollmentAssignments']);
-    Route::post('/assignments/{assignment}/submissions', [MentoringController::class, 'submitAssignment'])
+    Route::get('/enrollments/{enrollment}/messages', [MentoringMessageController::class, 'index']);
+    Route::post('/enrollments/{enrollment}/messages', [MentoringMessageController::class, 'store']);
+    Route::get('/enrollments/{enrollment}/assignments', [MentoringAssignmentController::class, 'index']);
+    Route::post('/assignments/{assignment}/submissions', [MentoringAssignmentController::class, 'submit'])
         ->middleware('role:student');
-    Route::patch('/submissions/{submission}/review', [MentoringController::class, 'reviewAssignment'])
+    Route::patch('/submissions/{submission}/review', [MentoringAssignmentController::class, 'review'])
         ->middleware(['role:mentor', 'mentor.verified']);
 
     Route::middleware('role:mentor')->prefix('mentor')->group(function () {
-        Route::get('/profile', [MentoringController::class, 'mentorProfile']);
-        Route::put('/profile', [MentoringController::class, 'updateMentorProfile']);
-        Route::get('/verification', [MentoringController::class, 'verificationStatus']);
+        Route::get('/profile', [MentorProfileController::class, 'show']);
+        Route::put('/profile', [MentorProfileController::class, 'update']);
+        Route::get('/verification', [MentorProfileController::class, 'verificationStatus']);
         Route::middleware('mentor.verified')->group(function () {
-            Route::get('/dashboard', [MentoringController::class, 'mentorDashboard']);
-            Route::get('/classes', [MentoringController::class, 'mentorClasses']);
-            Route::post('/classes', [MentoringController::class, 'storeClass']);
-            Route::post('/classes/{mentoringClass}/assignments', [MentoringController::class, 'createAssignment']);
-            Route::put('/classes/{mentoringClass}', [MentoringController::class, 'updateClass']);
-            Route::delete('/classes/{mentoringClass}', [MentoringController::class, 'deleteClass']);
-            Route::get('/enrollments', [MentoringController::class, 'mentorEnrollments']);
-            Route::post('/premium-subscriptions', [MentoringController::class, 'subscribePremium']);
-            Route::get('/premium-subscriptions', [MentoringController::class, 'premiumSubscriptions']);
+            Route::get('/dashboard', [MentorDashboardController::class, 'index']);
+            Route::get('/classes', [MentoringClassController::class, 'index']);
+            Route::post('/classes', [MentoringClassController::class, 'store']);
+            Route::post('/classes/{mentoringClass}/assignments', [MentoringAssignmentController::class, 'store']);
+            Route::put('/classes/{mentoringClass}', [MentoringClassController::class, 'update']);
+            Route::delete('/classes/{mentoringClass}', [MentoringClassController::class, 'destroy']);
+            Route::get('/enrollments', [MentoringEnrollmentController::class, 'mentorIndex']);
+            Route::post('/premium-subscriptions', [MentorPremiumSubscriptionController::class, 'store']);
+            Route::get('/premium-subscriptions', [MentorPremiumSubscriptionController::class, 'index']);
         });
     });
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
-    Route::get('/mentors/pending-verification', [MentoringController::class, 'pendingMentorVerifications']);
-    Route::patch('/mentors/{mentor}/verification', [MentoringController::class, 'reviewMentorVerification']);
-    Route::get('/mentor-premium-subscriptions/pending', [MentoringController::class, 'pendingPremiumSubscriptions']);
-    Route::patch('/mentor-premium-subscriptions/{subscription}', [MentoringController::class, 'resolvePremiumSubscription']);
+    Route::get('/mentors/pending-verification', [AdminMentorVerificationController::class, 'pending']);
+    Route::patch('/mentors/{mentor}/verification', [AdminMentorVerificationController::class, 'review']);
+    Route::get('/mentor-premium-subscriptions/pending', [AdminMentorPremiumController::class, 'pending']);
+    Route::patch('/mentor-premium-subscriptions/{subscription}', [AdminMentorPremiumController::class, 'resolve']);
     Route::get('/cash-outs/pending', [WalletController::class, 'pendingCashOuts']);
 });
 

@@ -41,6 +41,16 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class, 'role_id');
     }
 
+    public function studentProfile()
+    {
+        return $this->hasOne(StudentProfile::class);
+    }
+
+    public function umkmProfile()
+    {
+        return $this->hasOne(UmkmProfile::class);
+    }
+
     public function hasRole(string $role): bool
     {
         return $this->roleRecord?->name === $role;

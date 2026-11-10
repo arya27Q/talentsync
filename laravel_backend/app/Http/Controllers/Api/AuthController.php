@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\TimeCoinWallet;
 use App\Models\MentorProfile;
 use App\Models\Role;
+use App\Models\StudentProfile;
+use App\Models\UmkmProfile;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,6 +17,68 @@ use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
+    public function register(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'email' => ['required', 'email', 'max:150', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'role' => ['required', 'in:student,msme'],
+            'university' => ['required_if:role,student', 'nullable', 'string', 'max:150'],
+            'major' => ['required_if:role,student', 'nullable', 'string', 'max:100'],
+            'student_id_number' => ['required_if:role,student', 'nullable', 'string', 'max:50', 'unique:student_profiles,student_id_number'],
+            'ktm_document_url' => ['nullable', 'url', 'max:2048'],
+            'business_name' => ['required_if:role,msme', 'nullable', 'string', 'max:150'],
+            'business_sector' => ['required_if:role,msme', 'nullable', 'string', 'max:100'],
+            'address' => ['required_if:role,msme', 'nullable', 'string', 'max:5000'],
+            'business_document_url' => ['nullable', 'url', 'max:2048'],
+        ]);
+        [$user, $wallet] = DB::transaction(function () use ($data) {
+            $role = Role::where('name', $data['role'])->firstOrFail();
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'role_id' => $role->id,
+            ]);
+
+            if ($data['role'] === 'student') {
+                StudentProfile::create([
+                    'user_id' => $user->id,
+                    'university' => $data['university'],
+                    'major' => $data['major'],
+                    'student_id_number' => $data['student_id_number'],
+                    'ktm_document_url' => $data['ktm_document_url'] ?? null,
+                ]);
+            } else {
+                UmkmProfile::create([
+                    'user_id' => $user->id,
+                    'business_name' => $data['business_name'],
+                    'business_sector' => $data['business_sector'],
+                    'address' => $data['address'],
+                    'business_document_url' => $data['business_document_url'] ?? null,
+                ]);
+            }
+
+            return [$user, TimeCoinWallet::create(['user_id' => $user->id])];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Registrasi berhasil.',
+            'data' => [
+                'token' => $user->createToken('flutter')->plainTextToken,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $data['role'],
+                    'balance_tc' => $wallet->balance,
+                ],
+            ],
+        ], 201);
+    }
+
     public function registerMentor(Request $request): JsonResponse
     {
         $data = $request->validate([

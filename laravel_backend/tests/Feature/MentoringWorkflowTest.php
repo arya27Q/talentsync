@@ -16,6 +16,59 @@ class MentoringWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_login_and_mentor_registration_reject_missing_credentials(): void
+    {
+        $this->postJson('/api/auth/login', [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email', 'password']);
+
+        $this->postJson('/api/auth/register-mentor', [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'name', 'email', 'password', 'title_headline', 'bio',
+                'verification_document_url', 'portfolio_url',
+            ]);
+
+        $this->postJson('/api/auth/register', [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['name', 'email', 'password', 'role']);
+    }
+
+    public function test_student_and_msme_registration_create_the_correct_role_profiles_and_login_checks_passwords(): void
+    {
+        $studentResponse = $this->postJson('/api/auth/register', [
+            'name' => 'Mahasiswa Baru',
+            'email' => 'student@example.test',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'role' => 'student',
+            'university' => 'Universitas Negeri Surabaya',
+            'major' => 'Sistem Informasi',
+            'student_id_number' => '24051214001',
+        ])->assertCreated()->assertJsonPath('data.user.role', 'student');
+        $studentId = $studentResponse->json('data.user.id');
+        $this->assertDatabaseHas('student_profiles', ['user_id' => $studentId, 'student_id_number' => '24051214001']);
+
+        $msmeResponse = $this->postJson('/api/auth/register', [
+            'name' => 'Pemilik Usaha',
+            'email' => 'msme@example.test',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'role' => 'msme',
+            'business_name' => 'Toko Contoh',
+            'business_sector' => 'Kuliner',
+            'address' => 'Surabaya',
+        ])->assertCreated()->assertJsonPath('data.user.role', 'msme');
+        $this->assertDatabaseHas('umkm_profiles', ['user_id' => $msmeResponse->json('data.user.id'), 'business_name' => 'Toko Contoh']);
+
+        $this->postJson('/api/auth/login', ['email' => 'student@example.test', 'password' => 'wrong-password'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
+        $this->postJson('/api/auth/login', ['email' => 'student@example.test', 'password' => 'password123'])
+            ->assertOk()
+            ->assertJsonPath('data.user.role', 'student');
+    }
+
     public function test_booking_stays_in_escrow_until_student_confirms_and_mentor_can_only_endorse_a_passing_completed_session(): void
     {
         $student = $this->userWithRole('student');
