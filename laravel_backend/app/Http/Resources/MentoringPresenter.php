@@ -12,6 +12,9 @@ final class MentoringPresenter
     {
         return [
             'user_id' => $profile->user_id,
+            'name' => $profile->relationLoaded('user') ? $profile->user?->name : null,
+            'email' => $profile->relationLoaded('user') ? $profile->user?->email : null,
+            'avatar_url' => $profile->avatar_url,
             'title_headline' => $profile->title_headline,
             'bio' => $profile->bio,
             'hourly_rate_tc' => $profile->hourly_rate_tc,

@@ -279,6 +279,95 @@ class MentoringWorkflowTest extends TestCase
             ->assertJsonValidationErrors('cv_file');
     }
 
+    public function test_mentor_can_update_name_and_avatar_and_delete_account_safely(): void
+    {
+        Storage::fake('public');
+        $cvFile = UploadedFile::fake()->create('cv-awal.pdf', 300, 'application/pdf');
+
+        $this->post('/api/auth/register-mentor', [
+            'name' => 'Andika Lama',
+            'email' => 'andika-profile@example.test',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'title_headline' => 'Mentor Flutter',
+            'bio' => 'Bio awal mentor.',
+            'cv_file' => $cvFile,
+            'portfolio_url' => 'https://github.com/andika',
+        ], ['Accept' => 'application/json'])->assertCreated();
+
+        $mentor = User::where('email', 'andika-profile@example.test')->firstOrFail();
+        $firstAvatar = UploadedFile::fake()->image('foto1.jpg', 200, 200);
+
+        $this->actingAs($mentor, 'sanctum')
+            ->post('/api/mentoring/mentor/profile', [
+                '_method' => 'PUT',
+                'name' => 'Andika Baru',
+                'title_headline' => 'Senior Flutter & Architecture',
+                'bio' => 'Bio terbaru.',
+                'avatar_file' => UploadedFile::fake()->create('bukan-gambar.pdf', 100, 'application/pdf'),
+            ], ['Accept' => 'application/json'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('avatar_file');
+
+        $this->actingAs($mentor, 'sanctum')
+            ->post('/api/mentoring/mentor/profile', [
+                '_method' => 'PUT',
+                'name' => 'Andika Baru',
+                'title_headline' => 'Senior Flutter & Architecture',
+                'bio' => 'Bio terbaru.',
+                'avatar_file' => $firstAvatar,
+            ], ['Accept' => 'application/json'])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Andika Baru')
+            ->assertJsonPath('data.title_headline', 'Senior Flutter & Architecture');
+
+        Storage::disk('public')->assertExists('mentor-avatars/'.$firstAvatar->hashName());
+
+        $secondAvatar = UploadedFile::fake()->image('foto2.png', 200, 200);
+        $this->actingAs($mentor->fresh(), 'sanctum')
+            ->post('/api/mentoring/mentor/profile', [
+                '_method' => 'PUT',
+                'avatar_file' => $secondAvatar,
+            ], ['Accept' => 'application/json'])
+            ->assertOk();
+
+        Storage::disk('public')->assertMissing('mentor-avatars/'.$firstAvatar->hashName());
+        Storage::disk('public')->assertExists('mentor-avatars/'.$secondAvatar->hashName());
+
+        $class = MentoringClass::create([
+            'mentor_id' => $mentor->id,
+            'topic' => 'Review Kode',
+            'scheduled_time' => now()->addDays(2),
+            'duration_minutes' => 60,
+            'price_tc' => 25,
+            'capacity' => 5,
+            'status' => 'open',
+        ]);
+        $student = $this->userWithRole('student');
+        $enrollment = MentoringEnrollment::create([
+            'class_id' => $class->id,
+            'student_id' => $student->id,
+            'paid_tc' => 25,
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($mentor->fresh(), 'sanctum')
+            ->deleteJson('/api/mentoring/mentor/account')
+            ->assertStatus(409);
+
+        $enrollment->update(['status' => 'completed', 'student_confirmed_at' => now()]);
+        $class->update(['status' => 'completed']);
+
+        $this->actingAs($mentor->fresh(), 'sanctum')
+            ->deleteJson('/api/mentoring/mentor/account')
+            ->assertOk();
+
+        $this->assertDatabaseMissing('users', ['id' => $mentor->id]);
+        $this->assertDatabaseMissing('mentor_profiles', ['user_id' => $mentor->id]);
+        Storage::disk('public')->assertMissing('mentor-avatars/'.$secondAvatar->hashName());
+        Storage::disk('public')->assertMissing('mentor-cvs/'.$cvFile->hashName());
+    }
+
     private function userWithRole(string $role): User
     {
         return User::factory()->create([

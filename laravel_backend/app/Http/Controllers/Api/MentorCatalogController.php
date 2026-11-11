@@ -31,6 +31,7 @@ class MentorCatalogController extends Controller
             'data' => $mentors->getCollection()->map(fn (User $mentor) => [
                 'id' => $mentor->id,
                 'name' => $mentor->name,
+                'avatar_url' => $mentor->mentorProfile?->avatar_url,
                 'title_headline' => $mentor->mentorProfile?->title_headline,
                 'bio' => $mentor->mentorProfile?->bio,
                 'hourly_rate_tc' => $mentor->mentorProfile?->hourly_rate_tc,

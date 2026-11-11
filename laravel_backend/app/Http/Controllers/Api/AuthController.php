@@ -169,6 +169,7 @@ class AuthController extends Controller
                     'role' => $user->roleRecord?->name,
                     'balance_tc' => $wallet->balance,
                     'verification_status' => $user->hasRole('mentor') ? $user->mentorProfile?->verification_status : null,
+                    'avatar_url' => $user->hasRole('mentor') ? $user->mentorProfile?->avatar_url : null,
                 ],
             ],
         ]);

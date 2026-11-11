@@ -48,7 +48,8 @@ Route::middleware('auth:sanctum')->prefix('mentoring')->group(function () {
 
     Route::middleware('role:mentor')->prefix('mentor')->group(function () {
         Route::get('/profile', [MentorProfileController::class, 'show']);
-        Route::put('/profile', [MentorProfileController::class, 'update']);
+        Route::match(['put', 'post'], '/profile', [MentorProfileController::class, 'update']);
+        Route::delete('/account', [MentorProfileController::class, 'destroyAccount']);
         Route::get('/dashboard', [MentorDashboardController::class, 'index']);
         Route::get('/classes', [MentoringClassController::class, 'index']);
         Route::post('/classes', [MentoringClassController::class, 'store']);

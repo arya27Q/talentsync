@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MentorProfile extends Model
 {
     protected $fillable = [
-        'user_id', 'title_headline', 'bio', 'hourly_rate_tc', 'is_premium',
+        'user_id', 'title_headline', 'avatar_url', 'bio', 'hourly_rate_tc', 'is_premium',
         'verification_status', 'verification_document_url', 'portfolio_url',
         'verification_rejection_reason', 'verification_reviewed_by', 'verification_reviewed_at',
         'premium_expires_at', 'rating_average',
