@@ -1,20 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/project/data/project_api.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProjectCompletedScreen extends StatefulWidget {
-  const ProjectCompletedScreen({super.key});
+  const ProjectCompletedScreen({super.key, this.projectId, this.projectApi});
+
+  final int? projectId;
+  final ProjectApi? projectApi;
 
   @override
   State<ProjectCompletedScreen> createState() => _ProjectCompletedScreenState();
 }
 
 class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
+  late final ProjectApi _api = widget.projectApi ?? ProjectApi.instance;
+
   int _userRating = 5;
-  final TextEditingController _reviewController = TextEditingController(
-    text:
-        'Brief jelas, sangat suportif, dan persetujuan milestone tepat waktu.',
-  );
+  final TextEditingController _reviewController = TextEditingController();
+
+  bool _isLoading = true;
+  bool _isSubmitting = false;
+  String? _error;
+  Map<String, dynamic>? _summary;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
   @override
   void dispose() {
@@ -22,773 +39,381 @@ class _ProjectCompletedScreenState extends State<ProjectCompletedScreen> {
     super.dispose();
   }
 
-  void _onFinish() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Proyek selesai! 40 TC telah ditambahkan ke Dompet Utama.',
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      var targetId = widget.projectId;
+      if (targetId == null) {
+        final mine = await _api.myProjects();
+        final completed = (mine['completed_projects'] as List?) ?? const [];
+        final active = (mine['active_projects'] as List?) ?? const [];
+        final pool = completed.isNotEmpty ? completed : active;
+        if (pool.isEmpty) {
+          throw const ApiException('Belum ada data penyelesaian proyek.');
+        }
+        targetId = ((pool.first as Map<String, dynamic>)['id'] as num).toInt();
+      }
+      final res = await _api.completionSummary(targetId);
+      if (!mounted) return;
+      final existingReview = res['student_review'] as Map<String, dynamic>?;
+      if (existingReview != null) {
+        _userRating = (existingReview['rating'] as num?)?.toInt() ?? 5;
+        _reviewController.text =
+            (existingReview['review_text'] as String?) ?? '';
+      }
+      setState(() {
+        _summary = res;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat ringkasan proyek selesai.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _submitAndOpenPortfolio() async {
+    if (_isSubmitting || _summary == null) return;
+    final project = (_summary!['project'] as Map<String, dynamic>?) ?? const {};
+    final projectId = (project['id'] as num?)?.toInt();
+    final hasReviewed = _summary!['has_reviewed_client'] == true;
+    final isCompleted = project['status'] == 'completed';
+
+    if (projectId == null || hasReviewed || !isCompleted) {
+      Navigator.pushReplacementNamed(context, AppRoutes.portfolio);
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      await _api.reviewClient(
+        projectId,
+        rating: _userRating,
+        reviewText: _reviewController.text,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ulasan mitra disimpan & hasil tercatat di portofolio.'),
+          backgroundColor: Color(0xFF16A34A),
         ),
-        backgroundColor: AppColors.darkSlate,
-        duration: Duration(seconds: 2),
-      ),
-    );
-    Navigator.pushReplacementNamed(context, AppRoutes.portfolio);
+      );
+      Navigator.pushReplacementNamed(context, AppRoutes.portfolio);
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
+      appBar: AppBar(
+        backgroundColor: AppColors.canvasWhite,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.keyboard_arrow_left_rounded,
+            color: AppColors.darkSlate,
+            size: 28,
+          ),
+        ),
+        title: const Text(
+          'Proyek Selesai',
+          style: TextStyle(
+            color: AppColors.darkSlate,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Top App Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.borderSlate),
-                      ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_left_rounded,
-                        color: AppColors.darkSlate,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  const Text(
-                    'Status Proyek',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkSlate,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Scrollable Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Hero Navy Card (Kerja sama sukses)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryNavy,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryNavy.withValues(
-                              alpha: 0.25,
-                            ),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Badges Row
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.check_circle_rounded,
-                                        color: Colors.white,
-                                        size: 14,
-                                      ),
-                                      SizedBox(width: 6),
-                                      Expanded(
-                                        child: Text(
-                                          'Proyek selesai & terverifikasi',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: const [
-                                    Text(
-                                      'Total escrow',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors.secondarySlate,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      '+120 TC',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Kerja sama\nsukses',
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Toko Bu Sri · ID #PRJ-A188',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          const Divider(color: Colors.white24, height: 1),
-                          const SizedBox(height: 14),
-                          Wrap(
-                            spacing: 16,
-                            runSpacing: 6,
-                            children: const [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.account_balance_wallet_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    '120 TC cair ke dompet',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.workspace_premium_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Portofolio siap',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Card 2: VERIFIED WORK EXPERIENCE
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.borderSlate),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.03),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  children: const [
-                                    Icon(
-                                      Icons.verified_rounded,
-                                      color: AppColors.primaryNavy,
-                                      size: 16,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        'VERIFIED WORK EXPERIENCE',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.primaryNavy,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.lightBlueSurface,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'Otomatis di CV',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primaryNavy,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Bukti rekam jejak industri',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Tercatat resmi: Mobile Specialist untuk Toko Bu Sri. Siap dibagikan ke rekruter.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.secondarySlate,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Attachment Card
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.canvasWhite,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.borderSlate),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: AppColors.borderSlate,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.point_of_sale_rounded,
-                                    color: AppColors.primaryNavy,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: const [
-                                      Text(
-                                        'Aplikasi Kasir Sederha...',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.darkSlate,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      SizedBox(height: 2),
-                                      Text(
-                                        '3 berkas master terverifikasi',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: AppColors.secondarySlate,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: AppColors.borderSlate,
-                                    ),
-                                  ),
-                                  child: const Row(
-                                    children: [
-                                      Text(
-                                        'Buka',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.darkSlate,
-                                        ),
-                                      ),
-                                      SizedBox(width: 4),
-                                      Icon(
-                                        Icons.open_in_new_rounded,
-                                        size: 13,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          // Skill Chips
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _buildSkillBadge('Flutter'),
-                              _buildSkillBadge('SQLite'),
-                              _buildSkillBadge('BLoC'),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.star_rounded,
-                                      color: AppColors.accentAmberGold,
-                                      size: 14,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      'Verified UMKM',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFFB45309),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Card 3: TESTIMONI KLIEN
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.borderSlate),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.03),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'TESTIMONI KLIEN',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.secondarySlate,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.star_rounded,
-                                      color: AppColors.accentAmberGold,
-                                      size: 14,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      '5.0',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFFB45309),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: AppColors.lightBlueSurface,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: AppColors.borderSlate,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.storefront_rounded,
-                                  color: AppColors.primaryNavy,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text(
-                                      'Pemilik Toko Bu Sri',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Owner, Toko Bu Sri',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            '"Arya sangat responsif dan hasilnya langsung kami pakai di toko. Sesuai ekspektasi dan tepat waktu."',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.secondarySlate,
-                              height: 1.4,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Card 4: Ulas mitra UMKM (From User Screenshot)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.borderSlate),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.03),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Ulas mitra UMKM',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Beri timbal balik singkat untuk Toko Bu Sri',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondarySlate,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          // Rating Stars
-                          Row(
-                            children: List.generate(5, (index) {
-                              final isSelected = index < _userRating;
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _userRating = index + 1;
-                                  });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: Icon(
-                                    Icons.star_rounded,
-                                    color: isSelected
-                                        ? const Color(0xFFF59E0B)
-                                        : const Color(0xFFE2E8F0),
-                                    size: 30,
-                                  ),
-                                ),
-                              );
-                            }),
-                          ),
-                          const SizedBox(height: 14),
-                          // Feedback Box
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: AppColors.canvasWhite,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.borderSlate),
-                            ),
-                            child: TextField(
-                              controller: _reviewController,
-                              maxLines: 2,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.darkSlate,
-                                height: 1.4,
-                              ),
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                border: InputBorder.none,
-                                hintText:
-                                    'Tulis timbal balik untuk mitra UMKM...',
-                                hintStyle: TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.secondarySlate,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Fixed Bottom Action CTA (From User Screenshot)
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: AppColors.borderSlate)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    onTap: _onFinish,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryNavy,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryNavy.withValues(
-                              alpha: 0.25,
-                            ),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                'Selesaikan & Lihat di Portofolio',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+        top: false,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null || _summary == null
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.check_circle_outline_rounded,
-                        color: Color(0xFF16A34A),
-                        size: 15,
+                      Text(
+                        _error ?? 'Data tidak ditemukan.',
+                        textAlign: TextAlign.center,
                       ),
-                      SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          'Sisa escrow (40 TC tahap akhir) cair ke Dompet Utama',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.secondarySlate,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                      const SizedBox(height: 12),
+                      FilledButton(
+                        onPressed: _load,
+                        child: const Text('Coba lagi'),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          ],
-        ),
+                ),
+              )
+            : _buildBody(context, _summary!),
       ),
     );
   }
 
-  Widget _buildSkillBadge(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.lightBlueSurface,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primaryNavy,
-        ),
+  Widget _buildBody(BuildContext context, Map<String, dynamic> data) {
+    final project = (data['project'] as Map<String, dynamic>?) ?? const {};
+    final msme = (project['msme'] as Map<String, dynamic>?) ?? const {};
+    final deliverables = ((data['deliverables'] as List?) ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    final clientReview = data['client_testimonial'] as Map<String, dynamic>?;
+    final hasReviewed = data['has_reviewed_client'] == true;
+    final skills = ((project['skills'] as List?) ?? const [])
+        .map((e) => '$e')
+        .toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              color: AppColors.primaryNavy,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '+${project['reward_tc'] ?? 0} TC',
+                  style: const TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${msme['business_name'] ?? 'Mitra UMKM'} · #${project['code'] ?? ''}',
+                  style: const TextStyle(color: Color(0xFF93C5FD), fontSize: 13),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  (project['title'] as String?) ?? '',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+          if (skills.isNotEmpty) ...[
+            const Text(
+              'Keahlian Terverifikasi',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: skills
+                  .map(
+                    (s) => Chip(
+                      label: Text(s),
+                      backgroundColor: const Color(0xFFEFF6FF),
+                      labelStyle: const TextStyle(
+                        color: AppColors.primaryNavy,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          if (deliverables.isNotEmpty) ...[
+            const Text(
+              'Berkas Deliverable Terkirim',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...deliverables.map((d) {
+              final rawUrl = d['deliverable_url'] as String?;
+              final resolved = ApiClient.resolveMediaUrl(rawUrl);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.borderSlate),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.insert_drive_file_rounded,
+                      color: AppColors.primaryNavy,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        (d['file_name'] as String?) ??
+                            (d['deliverable_url'] as String?) ??
+                            'Hasil Proyek',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (resolved != null)
+                      TextButton(
+                        onPressed: () async {
+                          final uri = Uri.tryParse(resolved);
+                          if (uri != null) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          }
+                        },
+                        child: const Text('Buka'),
+                      ),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+
+          if (clientReview != null) ...[
+            const Text(
+              'Testimoni Mitra UMKM',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: Text(
+                '"${clientReview['comment'] ?? ''}" - ${clientReview['author_name'] ?? 'UMKM'}',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.darkSlate,
+                  height: 1.4,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+
+          const Text(
+            'Beri Ulasan untuk Mitra UMKM',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: List.generate(
+              5,
+              (i) => IconButton(
+                onPressed: hasReviewed
+                    ? null
+                    : () => setState(() => _userRating = i + 1),
+                icon: Icon(
+                  i < _userRating
+                      ? Icons.star_rounded
+                      : Icons.star_border_rounded,
+                  color: AppColors.accentAmberGold,
+                  size: 32,
+                ),
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.borderSlate),
+            ),
+            child: TextField(
+              controller: _reviewController,
+              enabled: !hasReviewed,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Bagikan pengalaman kolaborasi dengan mitra UMKM...',
+              ),
+            ),
+          ),
+          const SizedBox(height: 22),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primaryNavy,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              onPressed: _isSubmitting ? null : _submitAndOpenPortfolio,
+              child: Text(
+                hasReviewed
+                    ? 'Lihat di Portofolio'
+                    : 'Selesaikan & Lihat di Portofolio',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

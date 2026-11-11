@@ -1,18 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/mentoring/data/student_mentoring_api.dart';
+import 'package:flutter_frontend/features/workspace/data/workspace_api.dart';
 
 class SelesaiBimbinganScreen extends StatefulWidget {
-  const SelesaiBimbinganScreen({super.key});
+  const SelesaiBimbinganScreen({
+    super.key,
+    this.enrollmentId,
+    this.mentoringApi,
+    this.workspaceApi,
+  });
+
+  final int? enrollmentId;
+  final StudentMentoringApi? mentoringApi;
+  final WorkspaceApi? workspaceApi;
 
   @override
   State<SelesaiBimbinganScreen> createState() => _SelesaiBimbinganScreenState();
 }
 
 class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
-  int _starRating = 5;
-  final TextEditingController _reviewController = TextEditingController();
+  late final StudentMentoringApi _api =
+      widget.mentoringApi ?? StudentMentoringApi.instance;
+  late final WorkspaceApi _workspaceApi =
+      widget.workspaceApi ?? WorkspaceApi.instance;
 
+  final TextEditingController _reviewController = TextEditingController();
   final List<Map<String, dynamic>> _strengths = [
     {'label': 'Penjelasan sangat detail', 'selected': true},
     {'label': 'Feedback konstruktif', 'selected': true},
@@ -21,15 +38,115 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
     {'label': 'Membantu pemula', 'selected': false},
   ];
 
+  bool _argsParsed = false;
+  int? _routeEnrollmentId;
+  int? _resolvedEnrollmentId;
+  bool _isLoading = true;
+  bool _isSubmitting = false;
+  String? _error;
+  int _starRating = 5;
+  Map<String, dynamic> _enrollment = const {};
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_argsParsed) return;
+    _argsParsed = true;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is MentoringEnrollmentArgs) {
+      _routeEnrollmentId = args.enrollmentId;
+    }
+    _load();
+  }
+
   @override
   void dispose() {
     _reviewController.dispose();
     super.dispose();
   }
 
-  void _confirmReleaseEscrow() {
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      var targetId = widget.enrollmentId ?? _routeEnrollmentId;
+      if (targetId == null) {
+        final mine = await _api.myEnrollments();
+        if (mine.isEmpty) {
+          throw const ApiException('Belum ada sesi bimbingan yang dapat dikonfirmasi.');
+        }
+        final pendingConfirm = mine.firstWhere(
+          (e) => e['status'] == 'pending_confirmation',
+          orElse: () => mine.first,
+        );
+        targetId = (pendingConfirm['id'] as num?)?.toInt();
+      }
+      if (targetId == null) {
+        throw const ApiException('Data sesi bimbingan tidak ditemukan.');
+      }
+
+      final detail = await _api.enrollmentDetail(targetId);
+      if (!mounted) return;
+      setState(() {
+        _resolvedEnrollmentId = targetId;
+        _enrollment = detail;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat detail konfirmasi sesi.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _confirmReleaseEscrow() async {
+    final enrollmentId = _resolvedEnrollmentId;
+    if (enrollmentId == null || _isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+    try {
+      final selectedTags = _strengths
+          .where((s) => s['selected'] == true)
+          .map((s) => s['label'] as String)
+          .toList();
+      await _api.confirmCompletion(
+        enrollmentId,
+        rating: _starRating,
+        reviewText: _reviewController.text.trim(),
+        strengthTags: selectedTags,
+      );
+      if (!mounted) return;
+      _showSuccessDialog(enrollmentId);
+    } on ApiException catch (e) {
+      _showSnack(e.message, isError: true);
+    } catch (_) {
+      _showSnack('Gagal mengonfirmasi penyelesaian sesi.', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  void _showSuccessDialog(int enrollmentId) {
+    final classData =
+        (_enrollment['class'] as Map<String, dynamic>?) ?? const {};
+    final mentorName = (classData['mentor_name'] as String?) ?? 'Mentor';
+    final paidTc = (_enrollment['paid_tc'] as num?)?.toInt() ?? 0;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -43,17 +160,16 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
                 color: Color(0xFFDCFCE7),
                 shape: BoxShape.circle,
               ),
-              child: const Center(
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  color: Color(0xFF16A34A),
-                  size: 34,
-                ),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF16A34A),
+                size: 34,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             const Text(
               'Escrow Berhasil Dilepas!',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -61,40 +177,40 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              '30 TC telah ditransfer ke Dimas Prasetyo dan ulasanmu telah dipublikasikan. Portofolio kamu kini berstatus Terverifikasi Siap Tender!',
+            Text(
+              '$paidTc TC telah diteruskan ke $mentorName dan sertifikat kelulusan sesi telah terbit.',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: AppColors.secondarySlate,
-                height: 1.4,
+                height: 1.45,
               ),
             ),
             const SizedBox(height: 20),
-            GestureDetector(
-              onTap: () {
-                Navigator.pop(dialogContext); // Close dialog
-                Navigator.pushReplacementNamed(
-                  context,
-                  AppRoutes.mentoringResult,
-                );
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryNavy,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Center(
-                  child: Text(
-                    'Lihat Lembar Evaluasi',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
+                ),
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  Navigator.pushReplacementNamed(
+                    context,
+                    AppRoutes.mentoringResult,
+                    arguments: MentoringEnrollmentArgs(
+                      enrollmentId: enrollmentId,
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Lihat Lembar Evaluasi',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -104,781 +220,577 @@ class _SelesaiBimbinganScreenState extends State<SelesaiBimbinganScreen> {
     );
   }
 
-  String _getRatingText(int rating) {
-    switch (rating) {
-      case 5:
-        return 'Sangat memuaskan (5/5)';
-      case 4:
-        return 'Memuaskan (4/5)';
-      case 3:
-        return 'Cukup baik (3/5)';
-      case 2:
-        return 'Kurang memuaskan (2/5)';
-      default:
-        return 'Perlu perbaikan (1/5)';
-    }
+  void _openDisputeModal() {
+    final enrollmentId = _resolvedEnrollmentId;
+    if (enrollmentId == null) return;
+    final descController = TextEditingController();
+    String category = 'quality';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Laporkan Kendala Sesi',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Tim mediasi TalentSync akan meninjau laporan sebelum escrow dilepas.',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: AppColors.secondarySlate,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                DropdownButtonFormField<String>(
+                  initialValue: category,
+                  decoration: InputDecoration(
+                    labelText: 'Kategori Kendala',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'quality',
+                      child: Text('Kualitas Bimbingan'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'no_show',
+                      child: Text('Mentor Tidak Hadir'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'escrow',
+                      child: Text('Selisih Escrow TimeCoin'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'other',
+                      child: Text('Kendala Lainnya'),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) setModalState(() => category = v);
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Ceritakan kronologi kendala (minimal 10 karakter)...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFB91C1C),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: () async {
+                      final desc = descController.text.trim();
+                      if (desc.length < 10) {
+                        _showSnack(
+                          'Deskripsi kendala minimal 10 karakter.',
+                          isError: true,
+                        );
+                        return;
+                      }
+                      Navigator.pop(ctx);
+                      try {
+                        await _workspaceApi.fileDispute(
+                          referenceType: 'mentoring_enrollment',
+                          referenceId: enrollmentId,
+                          category: category,
+                          description: desc,
+                        );
+                        _showSnack('Laporan kendala dikirim ke tim mediasi.');
+                      } on ApiException catch (e) {
+                        _showSnack(e.message, isError: true);
+                      } catch (_) {
+                        _showSnack('Gagal mengirim laporan.', isError: true);
+                      }
+                    },
+                    child: const Text(
+                      'Kirim Laporan Mediasi',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).whenComplete(descController.dispose);
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError
+            ? const Color(0xFFB91C1C)
+            : AppColors.primaryNavy,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final classData =
+        (_enrollment['class'] as Map<String, dynamic>?) ?? const {};
+    final mentorName = (classData['mentor_name'] as String?) ?? 'Mentor';
+    final topic =
+        (_enrollment['topic_focus'] as String?) ??
+        (classData['topic'] as String?) ??
+        'Sesi Mentoring';
+    final paidTc = (_enrollment['paid_tc'] as num?)?.toInt() ?? 0;
+    final avatarUrl = ApiClient.resolveMediaUrl(
+      classData['mentor_avatar_url'] as String?,
+    );
+    final status = (_enrollment['status'] as String?) ?? 'pending_confirmation';
+    final canConfirm = status == 'pending_confirmation';
+
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
-      body: Stack(
-        children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 140),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Top Bar: Back, Title
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 16.0,
-                    ),
-                    child: Row(
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryNavy,
+                      ),
+                    )
+                  : _error != null
+                  ? _buildError()
+                  : ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
                       children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.05,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.keyboard_arrow_left_rounded,
-                                color: AppColors.darkSlate,
-                                size: 24,
-                              ),
-                            ),
-                          ),
+                        _buildSummaryCard(
+                          mentorName: mentorName,
+                          topic: topic,
+                          paidTc: paidTc,
+                          avatarUrl: avatarUrl,
                         ),
-                        const SizedBox(width: 14),
-                        const Text(
-                          'Selesai Bimbingan',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkSlate,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 2. Status Row: Sesi selesai & Terverifikasi
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFDCFCE7),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            children: const [
-                              Icon(
-                                Icons.circle,
-                                size: 7,
-                                color: Color(0xFF16A34A),
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                'Sesi selesai · konfirmasi mahasiswa',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF15803D),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          children: const [
-                            Icon(
-                              Icons.verified_rounded,
-                              size: 16,
-                              color: AppColors.primaryNavy,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Terverifikasi',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryNavy,
+                        const SizedBox(height: 16),
+                        _buildRatingCard(),
+                        const SizedBox(height: 16),
+                        _buildReviewCard(),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryNavy,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // 3. Card 1: Mentor & Sesi Info (Figma 26)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.05),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  color: const Color(0xFFEFF6FF),
-                                  child: Image.network(
-                                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (ctx, err, stack) =>
-                                        const Center(
-                                          child: Text(
-                                            'DP',
-                                            style: TextStyle(
-                                              color: AppColors.primaryNavy,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text(
-                                      'Dimas Prasetyo',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
+                            onPressed: (!canConfirm || _isSubmitting)
+                                ? null
+                                : _confirmReleaseEscrow,
+                            child: _isSubmitting
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.2,
                                     ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Senior Flutter Engineer · Fintech lokal',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Mentor utama TalentSync',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryNavy,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 14),
-
-                          // Sesi Inner Box
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: const Color(0xFFE2E8F0),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Bimbingan 1-on-1: Kurasi portofolio tender UMKM',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: const [
-                                    Icon(
-                                      Icons.calendar_today_rounded,
-                                      size: 13,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Besok, 25 Jun',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                    SizedBox(width: 16),
-                                    Icon(
-                                      Icons.access_time_rounded,
-                                      size: 13,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      '60 menit (Meet selesai)',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // 4. Card 2: Pelepasan Escrow (Figma 26)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.05),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: const [
-                                  Icon(
-                                    Icons.lock_outline_rounded,
-                                    size: 14,
-                                    color: AppColors.secondarySlate,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'PELEPASAN ESCROW',
-                                    style: TextStyle(
-                                      fontSize: 11,
+                                  )
+                                : Text(
+                                    canConfirm
+                                        ? 'Konfirmasi Selesai & Lepas $paidTc TC'
+                                        : 'Status Sesi: $status',
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
-                                      color: AppColors.secondarySlate,
+                                      fontSize: 14,
                                     ),
                                   ),
-                                ],
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.toll_rounded,
-                                  color: AppColors.accentAmberGold,
-                                  size: 20,
-                                ),
-                              ),
-                            ],
                           ),
-                          const SizedBox(height: 8),
-                          RichText(
-                            text: const TextSpan(
-                              style: TextStyle(color: AppColors.darkSlate),
-                              children: [
-                                TextSpan(
-                                  text: '30 TC ',
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'terkunci',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.secondarySlate,
-                                  ),
-                                ),
-                              ],
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 46,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFB91C1C),
+                              side: const BorderSide(color: Color(0xFFFCA5A5)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: _openDisputeModal,
+                            icon: const Icon(
+                              Icons.report_problem_rounded,
+                              size: 18,
+                            ),
+                            label: const Text(
+                              'Laporkan Kendala Sesi',
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Dana diteruskan otomatis ke dompet Dimas Prasetyo setelah kamu mengirim konfirmasi pelepasan.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondarySlate,
-                              height: 1.45,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: const [
-                              Icon(
-                                Icons.shield_rounded,
-                                size: 14,
-                                color: AppColors.primaryNavy,
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                'Smart Escrow aman & terenkripsi',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.secondarySlate,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                  const SizedBox(height: 14),
-
-                  // 5. Card 3: Portofolio Terverifikasi Siap Digunakan (Figma 26)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFFBEB),
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: const Color(0xFFFEF3C7)),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF3C7),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(
-                              Icons.emoji_events_rounded,
-                              color: Color(0xFFD97706),
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Portofolio terverifikasi siap digunakan',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  'Skor evaluasi 88/100 tercatat di profil dan otomatis dilampirkan saat melamar proyek UMKM.',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.secondarySlate,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // 6. Card 4: Evaluasi Kualitas Sesi (Figma 26 - Scrolled down)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.05),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Evaluasi kualitas sesi',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Ulasanmu membantu menjaga integritas komunitas belajar',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondarySlate,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-
-                          // Star Rating Bar
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(5, (index) {
-                              final starNum = index + 1;
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _starRating = starNum;
-                                  });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4.0,
-                                  ),
-                                  child: Icon(
-                                    Icons.star_rounded,
-                                    size: 36,
-                                    color: starNum <= _starRating
-                                        ? AppColors.accentAmberGold
-                                        : const Color(0xFFCBD5E1),
-                                  ),
-                                ),
-                              );
-                            }),
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // Rating Pill
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: const Color(0xFFE2E8F0),
-                              ),
-                            ),
-                            child: Text(
-                              _getRatingText(_starRating),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.darkSlate,
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Strengths Section
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: const Text(
-                              'Kelebihan mentor yang paling terasa',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.darkSlate,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-
-                          // Multi-select Chips
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: List.generate(_strengths.length, (index) {
-                              final item = _strengths[index];
-                              final isSelected = item['selected'] as bool;
-
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    item['selected'] = !isSelected;
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.primaryNavy
-                                        : Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.primaryNavy
-                                          : const Color(0xFFCBD5E1),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        isSelected
-                                            ? Icons.check_rounded
-                                            : Icons.add_rounded,
-                                        size: 14,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : AppColors.darkSlate,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        item['label'] as String,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : AppColors.darkSlate,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }),
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Review Textarea
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Tulis ulasan untuk mentor',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
-                                ),
-                              ),
-                              Text(
-                                '${_reviewController.text.length}/300',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.secondarySlate,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: const Color(0xFFE2E8F0),
-                              ),
-                            ),
-                            child: TextField(
-                              controller: _reviewController,
-                              maxLines: 4,
-                              maxLength: 300,
-                              onChanged: (text) => setState(() {}),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.darkSlate,
-                              ),
-                              decoration: const InputDecoration(
-                                hintText: 'Bagikan pengalaman bimbinganmu agar mahasiswa lain lebih mudah memilih mentor',
-                                hintStyle: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondarySlate,
-                                ),
-                                border: InputBorder.none,
-                                counterText: '',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: const Text(
-                              'Ulasan publik tampil di profil bimbingan Dimas Prasetyo.',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.secondarySlate,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: AppColors.darkSlate,
+                size: 24,
               ),
             ),
           ),
-
-          // Primary Sticky Bottom Bar (Figma 26)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 14,
-                bottom: 24,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkSlate.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, -6),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    onTap: _confirmReleaseEscrow,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryNavy,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryNavy.withValues(
-                              alpha: 0.25,
-                            ),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Konfirmasi Selesai & Lepas Escrow (30 TC)',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(
-                            Icons.verified_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(
-                        Icons.help_outline_rounded,
-                        size: 14,
-                        color: AppColors.secondarySlate,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        'Butuh bantuan? Laporkan kendala sesi',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.secondarySlate,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Konfirmasi Selesai Bimbingan',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard({
+    required String mentorName,
+    required String topic,
+    required int paidTc,
+    required String? avatarUrl,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 52,
+              height: 52,
+              color: AppColors.lightBlueSurface,
+              child: avatarUrl != null && avatarUrl.isNotEmpty
+                  ? Image.network(
+                      avatarUrl,
+                      width: 52,
+                      height: 52,
+                      cacheWidth: 150,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Center(
+                        child: Text(
+                          mentorName.isNotEmpty
+                              ? mentorName[0].toUpperCase()
+                              : 'M',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryNavy,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        mentorName.isNotEmpty
+                            ? mentorName[0].toUpperCase()
+                            : 'M',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryNavy,
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  mentorName,
+                  style: const TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  topic,
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: AppColors.secondarySlate,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Escrow Tertahan: $paidTc TC (Rp${paidTc * 1000})',
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.accentAmberDeep,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Beri Penilaian Mentor',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (idx) {
+              final starValue = idx + 1;
+              final active = starValue <= _starRating;
+              return InkWell(
+                onTap: () => setState(() => _starRating = starValue),
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Icon(
+                    Icons.star_rounded,
+                    size: 34,
+                    color: active
+                        ? AppColors.accentAmberGold
+                        : const Color(0xFFCBD5E1),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Kelebihan Mentor',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _strengths.map((item) {
+              final selected = item['selected'] == true;
+              return InkWell(
+                onTap: () => setState(() => item['selected'] = !selected),
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 9,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? AppColors.primaryNavy
+                        : AppColors.canvasWhite,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: selected
+                          ? AppColors.primaryNavy
+                          : AppColors.borderSlate,
+                    ),
+                  ),
+                  child: Text(
+                    item['label'] as String,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? Colors.white : AppColors.darkSlate,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Ulasan Singkat (Opsional)',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _reviewController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText:
+                  'Bagikan manfaat yang kamu dapatkan dari sesi mentoring ini...',
+              filled: true,
+              fillColor: AppColors.canvasWhite,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.borderSlate),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.borderSlate),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.task_alt_rounded,
+              size: 46,
+              color: AppColors.secondarySlate,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _error ?? 'Terjadi kesalahan',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13.5,
+                color: AppColors.secondarySlate,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _load,
+                child: const Text('Coba Lagi'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

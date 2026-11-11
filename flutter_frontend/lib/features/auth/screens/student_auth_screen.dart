@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 
 class StudentAuthScreen extends StatefulWidget {
-  const StudentAuthScreen({super.key});
+  const StudentAuthScreen({super.key, this.authApi});
+
+  final AuthApi? authApi;
 
   @override
   State<StudentAuthScreen> createState() => _StudentAuthScreenState();
@@ -12,9 +16,8 @@ class StudentAuthScreen extends StatefulWidget {
 class _StudentAuthScreenState extends State<StudentAuthScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
-  final TextEditingController _nimController = TextEditingController(
-    text: '24051214017',
-  );
+  late final AuthApi _authApi = widget.authApi ?? AuthApi();
+  final TextEditingController _nimController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   @override
@@ -26,14 +29,59 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
 
   Future<void> _onSignIn() async {
     if (_isLoading) return;
+    final identifier = _nimController.text.trim();
+    final password = _passwordController.text;
+    if (identifier.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Masukkan NIM atau email dan kata sandi akun.'),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    await Future<void>.delayed(const Duration(milliseconds: 1100));
-    if (!mounted) return;
-
-    Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+    try {
+      final user = await _authApi.login(
+        identifier: identifier,
+        password: password,
+      );
+      if (!mounted) return;
+      if (user['role'] != 'student') {
+        await _authApi.logout();
+        throw const ApiException(
+          'Akun ini bukan akun mahasiswa. Gunakan portal masuk sesuai peran.',
+        );
+      }
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.studentDashboard,
+        (route) => false,
+      );
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login gagal diproses. Periksa koneksi dan ulangi.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override

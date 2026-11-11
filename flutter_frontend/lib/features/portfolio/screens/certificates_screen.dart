@@ -1,433 +1,435 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/portfolio/data/portfolio_api.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class CertificateItem {
-  final String title;
-  final String issuer;
-  final String category;
-  final String date;
-  final IconData icon;
-  final Color iconBg;
-  final Color iconColor;
-  final Color badgeBg;
-  final Color badgeTextColor;
-  final bool isLocked;
-  final String? lockSubtitle;
+class CertificatesScreen extends StatefulWidget {
+  const CertificatesScreen({super.key, this.portfolioApi});
 
-  CertificateItem({
-    required this.title,
-    required this.issuer,
-    required this.category,
-    required this.date,
-    required this.icon,
-    required this.iconBg,
-    required this.iconColor,
-    required this.badgeBg,
-    required this.badgeTextColor,
-    this.isLocked = false,
-    this.lockSubtitle,
-  });
+  final PortfolioApi? portfolioApi;
+
+  @override
+  State<CertificatesScreen> createState() => _CertificatesScreenState();
 }
 
-class CertificatesScreen extends StatelessWidget {
-  const CertificatesScreen({super.key});
+class _CertificatesScreenState extends State<CertificatesScreen> {
+  late final PortfolioApi _api = widget.portfolioApi ?? PortfolioApi.instance;
+
+  bool _isLoading = true;
+  String? _error;
+  List<Map<String, dynamic>> _certificates = const [];
+  List<Map<String, dynamic>> _lockedMilestones = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final res = await _api.certificates();
+      if (!mounted) return;
+      setState(() {
+        _certificates = (res['certificates'] as List? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+        _lockedMilestones = (res['locked_milestones'] as List? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat daftar sertifikat.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openCertificate(Map<String, dynamic> cert) async {
+    final fileUrl = cert['file_url'] as String?;
+    if (fileUrl != null && fileUrl.trim().isNotEmpty) {
+      final uri = Uri.tryParse(fileUrl.trim());
+      if (uri != null &&
+          await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        return;
+      }
+    }
+
+    final sourceType = (cert['source_type'] as String?) ?? '';
+    final refId = (cert['reference_id'] as num?)?.toInt();
+    if (!mounted) return;
+    if (sourceType.startsWith('mentoring') && refId != null) {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.mentoringResult,
+        arguments: MentoringEnrollmentArgs(enrollmentId: refId),
+      );
+      return;
+    }
+    Navigator.pushNamed(context, AppRoutes.portfolio);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<CertificateItem> certificates = [
-      CertificateItem(
-        title: 'Penyelesaian Proyek: Sistem Reservasi Meja',
-        issuer: 'Warung Pak Gito via TalentSync',
-        category: 'Proyek UMKM',
-        date: '2 Jun 2025',
-        icon: Icons.storefront_rounded,
-        iconBg: AppColors.lightBlueSurface,
-        iconColor: AppColors.primaryNavy,
-        badgeBg: const Color(0xFFEFF6FF),
-        badgeTextColor: AppColors.primaryNavy,
-      ),
-      CertificateItem(
-        title: 'Rekomendasi Kerja: Flutter Developer',
-        issuer: 'Dimas Prasetyo, Mentor',
-        category: 'Endorse Mentor',
-        date: '8 Jul 2025',
-        icon: Icons.military_tech_rounded,
-        iconBg: const Color(0xFFFEF3C7),
-        iconColor: const Color(0xFFB45309),
-        badgeBg: const Color(0xFFEEF2FF),
-        badgeTextColor: const Color(0xFF4338CA),
-      ),
-      CertificateItem(
-        title: 'Penyelesaian Proyek: Katalog Digital',
-        issuer: 'Kerajinan Anyam Ayu via TalentSync',
-        category: 'Proyek UMKM',
-        date: '18 Mei 2025',
-        icon: Icons.storefront_rounded,
-        iconBg: AppColors.lightBlueSurface,
-        iconColor: AppColors.primaryNavy,
-        badgeBg: const Color(0xFFEFF6FF),
-        badgeTextColor: AppColors.primaryNavy,
-      ),
-      CertificateItem(
-        title: 'Sertifikat Mentor TalentSync',
-        issuer: '',
-        category: '',
-        date: '',
-        icon: Icons.lock_outline_rounded,
-        iconBg: AppColors.canvasWhite,
-        iconColor: AppColors.secondarySlate,
-        badgeBg: Colors.transparent,
-        badgeTextColor: Colors.transparent,
-        isLocked: true,
-        lockSubtitle: 'Terbuka setelah 5 proyek selesai · 4/5',
-      ),
-    ];
-
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
-      body: Stack(
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryNavy,
+                      ),
+                    )
+                  : _error != null
+                  ? _buildError()
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      color: AppColors.primaryNavy,
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+                        children: [
+                          if (_certificates.isEmpty && _lockedMilestones.isEmpty)
+                            _buildEmpty()
+                          else ...[
+                            ..._certificates.map(_buildCertCard),
+                            if (_lockedMilestones.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Target Lencana Berikutnya',
+                                style: TextStyle(
+                                  fontSize: 15.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              ..._lockedMilestones.map(_buildLockedCard),
+                            ],
+                          ],
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      child: Row(
         children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // App Bar
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.borderSlate),
-                          ),
-                          child: const Icon(
-                            Icons.keyboard_arrow_left_rounded,
-                            color: AppColors.darkSlate,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'Sertifikat',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.darkSlate,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Diterbitkan dan diverifikasi TalentSync',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.secondarySlate,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 22),
-
-                  // List of Certificate Cards
-                  ...certificates.map((cert) {
-                    if (cert.isLocked) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 14),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColors.borderSlate,
-                            style: BorderStyle.solid,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: AppColors.canvasWhite,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                cert.icon,
-                                color: cert.iconColor,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    cert.title,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.darkSlate,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    cert.lockSubtitle ?? '',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, AppRoutes.caseStudy);
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 14),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.borderSlate),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.darkSlate.withValues(
-                                alpha: 0.03,
-                              ),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Icon
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: cert.iconBg,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                cert.icon,
-                                color: cert.iconColor,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            // Details
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    cert.title,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.darkSlate,
-                                      height: 1.3,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    cert.issuer,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 4,
-                                    crossAxisAlignment:
-                                        WrapCrossAlignment.center,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 3,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: cert.badgeBg,
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          cert.category,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: cert.badgeTextColor,
-                                          ),
-                                        ),
-                                      ),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.calendar_today_rounded,
-                                            size: 11,
-                                            color: AppColors.secondarySlate,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            cert.date,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: AppColors.secondarySlate,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(
-                              Icons.chevron_right_rounded,
-                              color: AppColors.secondarySlate,
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                ],
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: AppColors.darkSlate,
+                size: 24,
               ),
             ),
           ),
-
-          // Bottom Floating Navigation
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.cardSurface,
-                borderRadius: BorderRadius.circular(36),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkSlate.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(
-                      context,
-                      AppRoutes.studentDashboard,
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Icon(
-                        Icons.explore_rounded,
-                        color: AppColors.secondarySlate,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(
-                      context,
-                      AppRoutes.submission,
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Icon(
-                        Icons.assignment_rounded,
-                        color: AppColors.secondarySlate,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pushReplacementNamed(
-                      context,
-                      AppRoutes.wallet,
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Icon(
-                        Icons.account_balance_wallet_rounded,
-                        color: AppColors.secondarySlate,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryNavy,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.person_rounded,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Profile',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Sertifikat & Rekomendasi',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCertCard(Map<String, dynamic> cert) {
+    final category = (cert['category_label'] as String?) ?? 'TalentSync';
+    final isEndorse = category.toLowerCase().contains('endorse');
+
+    return InkWell(
+      onTap: () => _openCertificate(cert),
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.borderSlate),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: isEndorse
+                    ? const Color(0xFFFEF3C7)
+                    : AppColors.lightBlueSurface,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                isEndorse
+                    ? Icons.military_tech_rounded
+                    : Icons.storefront_rounded,
+                color: isEndorse
+                    ? AppColors.accentAmberDeep
+                    : AppColors.primaryNavy,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isEndorse
+                          ? const Color(0xFFFEF3C7)
+                          : AppColors.lightBlueSurface,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      category,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: isEndorse
+                            ? AppColors.accentAmberDeep
+                            : AppColors.primaryNavy,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    (cert['title'] as String?) ?? 'Sertifikat TalentSync',
+                    style: const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkSlate,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${cert['issuer_name'] ?? 'TalentSync'} | ${cert['certificate_code'] ?? ''}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.secondarySlate,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.secondarySlate,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLockedCard(Map<String, dynamic> item) {
+    final current = (item['current_count'] as num?)?.toInt() ?? 0;
+    final requiredCount = (item['required_count'] as num?)?.toInt() ?? 5;
+    final ratio = requiredCount > 0
+        ? (current / requiredCount).clamp(0.0, 1.0)
+        : 0.0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.canvasWhite,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.lock_outline_rounded,
+                  color: AppColors.secondarySlate,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (item['title'] as String?) ?? 'Target Pencapaian',
+                      style: const TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    Text(
+                      (item['subtitle'] as String?) ?? '',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 7,
+              backgroundColor: const Color(0xFFE2E8F0),
+              color: AppColors.primaryNavy,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.workspace_premium_outlined,
+            size: 46,
+            color: AppColors.secondarySlate,
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Belum Ada Sertifikat',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Selesaikan proyek UMKM atau sesi bimbingan mentor untuk memperoleh sertifikat terverifikasi.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 44,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryNavy,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppRoutes.exploreProjects),
+              child: const Text('Cari Proyek UMKM'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.workspace_premium_rounded,
+              size: 46,
+              color: AppColors.secondarySlate,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _error ?? 'Terjadi kesalahan',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13.5,
+                color: AppColors.secondarySlate,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _load,
+                child: const Text('Coba Lagi'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

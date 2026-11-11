@@ -1,196 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/project/data/project_api.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
-  const ProjectDetailScreen({super.key});
+  const ProjectDetailScreen({super.key, this.projectId, this.projectApi});
+
+  final int? projectId;
+  final ProjectApi? projectApi;
 
   @override
   State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
 }
 
 class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
-  bool _isBookmarked = false;
+  late final ProjectApi _api = widget.projectApi ?? ProjectApi.instance;
 
-  Widget _buildInfoBox({
-    required String label,
-    required Widget valueWidget,
-    required String subtext,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-        decoration: BoxDecoration(
-          color: AppColors.canvasWhite,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderSlate),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.secondarySlate,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 6),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: valueWidget,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtext,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 10,
-                color: AppColors.secondarySlate,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  bool _isLoading = true;
+  bool _isBookmarkBusy = false;
+  String? _error;
+  Map<String, dynamic>? _project;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDetail();
   }
 
-  Widget _buildSkillTag(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: AppColors.lightBlueSurface,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primaryNavy,
-        ),
-      ),
-    );
+  Future<void> _loadDetail() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      var targetId = widget.projectId;
+      if (targetId == null) {
+        final listRes = await _api.explore();
+        final rows = (listRes['data'] as List?) ?? const [];
+        if (rows.isEmpty) {
+          throw const ApiException('Belum ada proyek UMKM terbuka.');
+        }
+        targetId = ((rows.first as Map<String, dynamic>)['id'] as num).toInt();
+      }
+      final detail = await _api.detail(targetId);
+      if (!mounted) return;
+      setState(() {
+        _project = detail;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat detail proyek UMKM.';
+          _isLoading = false;
+        });
+      }
+    }
   }
 
-  Widget _buildChecklistItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.check_circle_rounded,
-            color: Color(0xFF10B981),
-            size: 18,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.darkSlate,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMilestoneItem({
-    required int number,
-    required String title,
-    required String subtitle,
-    required int tc,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: const BoxDecoration(
-              color: AppColors.primaryNavy,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '$number',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkSlate,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.secondarySlate,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF3C7),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.toll_rounded,
-                  color: AppColors.accentAmberGold,
-                  size: 14,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '$tc TC',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkSlate,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  Future<void> _toggleBookmark() async {
+    final id = (_project?['id'] as num?)?.toInt();
+    if (id == null || _isBookmarkBusy) return;
+    setState(() => _isBookmarkBusy = true);
+    try {
+      final isBookmarked = await _api.toggleBookmark(id);
+      if (!mounted) return;
+      setState(() {
+        _project = {...?_project, 'is_bookmarked': isBookmarked};
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _isBookmarkBusy = false);
+    }
   }
 
   @override
@@ -198,405 +94,374 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
       body: SafeArea(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 100),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 16.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Top Header Row: Back button, Title, Bookmark, Share
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.05,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.keyboard_arrow_left_rounded,
-                                color: AppColors.darkSlate,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Text(
-                            'Detail Proyek UMKM',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                            ),
-                          ),
-                        ),
-                        // Bookmark Button
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isBookmarked = !_isBookmarked;
-                            });
-                          },
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.05,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Icon(
-                                _isBookmarked
-                                    ? Icons.bookmark_rounded
-                                    : Icons.bookmark_border_rounded,
-                                color: _isBookmarked
-                                    ? AppColors.primaryNavy
-                                    : AppColors.darkSlate,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Share Button
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.05,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.share_rounded,
-                              color: AppColors.darkSlate,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // 2. Verified Badge Pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null || _project == null
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _error ?? 'Proyek tidak ditemukan.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: AppColors.secondarySlate),
                       ),
-                      decoration: BoxDecoration(
-                        color: AppColors.lightBlueSurface,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Row(
+                      const SizedBox(height: 12),
+                      Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.verified_rounded,
-                            size: 14,
-                            color: AppColors.primaryNavy,
+                          OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Kembali'),
                           ),
-                          SizedBox(width: 6),
-                          Text(
-                            'Proyek Terverifikasi',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(width: 10),
+                          FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primaryNavy,
+                            ),
+                            onPressed: _loadDetail,
+                            child: const Text('Coba lagi'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : _buildDetailBody(context, _project!),
+      ),
+    );
+  }
+
+  Widget _buildDetailBody(BuildContext context, Map<String, dynamic> p) {
+    final projectId = (p['id'] as num).toInt();
+    final msme = (p['msme'] as Map<String, dynamic>?) ?? const {};
+    final atmosphere =
+        (p['atmosphere'] as Map<String, dynamic>?) ?? const {};
+    final eligibility =
+        (p['eligibility'] as Map<String, dynamic>?) ?? const {};
+    final milestones = ((p['milestones'] as List?) ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    final checklist = ((p['deliverables_checklist'] as List?) ?? const [])
+        .map((e) => '$e')
+        .toList();
+    final skills = ((p['skills'] as List?) ?? const [])
+        .map((e) => '$e')
+        .toList();
+
+    final isBookmarked = p['is_bookmarked'] == true;
+    final hasApplied = p['has_applied'] == true;
+    final canApply = eligibility['can_apply'] != false;
+    final photoUrl = ApiClient.resolveMediaUrl(
+      atmosphere['photo_url'] as String?,
+    );
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Bar
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.borderSlate),
+                        ),
+                        child: const Icon(
+                          Icons.keyboard_arrow_left_rounded,
+                          size: 26,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'Detail Proyek UMKM',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _toggleBookmark,
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.borderSlate),
+                        ),
+                        child: Icon(
+                          isBookmarked
+                              ? Icons.bookmark_rounded
+                              : Icons.bookmark_border_rounded,
+                          color: isBookmarked
+                              ? AppColors.primaryNavy
+                              : AppColors.darkSlate,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Main Info Card
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.borderSlate),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppColors.lightBlueSurface,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.storefront_rounded,
                               color: AppColors.primaryNavy,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // 3. Main Project Info Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.05),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Business Info Row: Logo, Name, Category, Expiry
-                          Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  color: AppColors.lightBlueSurface,
-                                  child: Image.network(
-                                    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200',
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            const Icon(
-                                              Icons.storefront_rounded,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              const Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Sambal Bu Rudi',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Klaster Kuliner · Rungkut',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.canvasWhite,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: AppColors.borderSlate,
-                                  ),
-                                ),
-                                child: const Text(
-                                  '3 hari tersisa',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  (msme['business_name'] as String?) ??
+                                      'Mitra UMKM',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
                                     color: AppColors.darkSlate,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 18),
-
-                          // Project Title
-                          const Text(
-                            'Redesain Kemasan & Katalog Online',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                              height: 1.25,
-                            ),
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          const Row(
-                            children: [
-                              Icon(
-                                Icons.business_center_rounded,
-                                size: 14,
-                                color: AppColors.secondarySlate,
-                              ),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'Divisi Branding & Pemasaran',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${msme['business_sector'] ?? p['category']} · ${p['location_label'] ?? msme['city'] ?? 'Surabaya'}',
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: AppColors.secondarySlate,
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // 3 Metric Info Boxes (Imbalan, Durasi, Metode)
-                          Row(
-                            children: [
-                              _buildInfoBox(
-                                label: 'Imbalan',
-                                valueWidget: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.toll_rounded,
-                                      color: AppColors.accentAmberGold,
-                                      size: 16,
-                                    ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      '300 TC',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                subtext: 'Rp300.000 escrow',
-                              ),
-                              const SizedBox(width: 8),
-                              _buildInfoBox(
-                                label: 'Durasi',
-                                valueWidget: const Text(
-                                  '2 Minggu',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                ),
-                                subtext: '3 milestone',
-                              ),
-                              const SizedBox(width: 8),
-                              _buildInfoBox(
-                                label: 'Metode',
-                                valueWidget: const Text(
-                                  'Hybrid',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                ),
-                                subtext: '1x pertemuan',
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // 4. Section: Keahlian dibutuhkan
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.borderSlate),
+                      const SizedBox(height: 16),
+                      Text(
+                        (p['title'] as String?) ?? '',
+                        style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkSlate,
+                          height: 1.25,
+                        ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      if ((p['division'] as String?) != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          p['division'] as String,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: AppColors.primaryNavy,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      Row(
                         children: [
-                          const Text(
-                            'Keahlian dibutuhkan',
-                            style: TextStyle(
-                              fontSize: 15,
+                          _metricBox(
+                            '${p['reward_tc'] ?? 0} TC',
+                            'Rp${((p['estimated_idr'] as num?)?.toInt() ?? 0)} escrow',
+                          ),
+                          const SizedBox(width: 8),
+                          _metricBox(
+                            (p['duration_label'] as String?) ?? '2 Minggu',
+                            '${milestones.length} milestone',
+                          ),
+                          const SizedBox(width: 8),
+                          _metricBox(
+                            (p['work_mode'] as String?) ?? 'Hybrid',
+                            '${p['days_left'] ?? 0} hari tersisa',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Eligibility Alert Banner
+                if (!canApply)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.info_rounded,
+                              color: Color(0xFFB45309),
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Syarat Melamar Proyek Belum Terpenuhi',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Color(0xFF92400E),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          (eligibility['reason'] as String?) ??
+                              'Ikuti bimbingan mentor terlebih dahulu untuk mendapatkan Badge Rekomendasi Kerja.',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: Color(0xFF78350F),
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.primaryNavy,
+                          ),
+                          onPressed: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.findMentors,
+                          ),
+                          icon: const Icon(Icons.school_rounded, size: 16),
+                          label: const Text('Cari Mentor & Raih Badge'),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Skills & Summary
+                const Text(
+                  'Keahlian yang Dibutuhkan',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: skills
+                      .map(
+                        (s) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            s,
+                            style: const TextStyle(
+                              color: AppColors.primaryNavy,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
+                              fontSize: 12,
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _buildSkillTag('UI/UX Design'),
-                              _buildSkillTag('Figma'),
-                              _buildSkillTag('Packaging'),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.borderSlate),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
+                        ),
+                      )
+                      .toList(),
+                ),
+                const SizedBox(height: 18),
+
+                const Text(
+                  'Deskripsi Proyek & Hasil Akhir',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.borderSlate),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        (p['description'] as String?) ?? '',
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          color: AppColors.secondarySlate,
+                          height: 1.5,
+                        ),
+                      ),
+                      if (checklist.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        ...checklist.map(
+                          (item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.workspace_premium_rounded,
-                                  size: 14,
-                                  color: AppColors.darkSlate,
+                                const Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 16,
+                                  color: Color(0xFF16A34A),
                                 ),
-                                SizedBox(width: 6),
-                                Flexible(
+                                const SizedBox(width: 8),
+                                Expanded(
                                   child: Text(
-                                    'Sertifikat & Portofolio',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
+                                    item,
+                                    style: const TextStyle(
+                                      fontSize: 13,
                                       color: AppColors.darkSlate,
                                     ),
                                   ),
@@ -604,363 +469,204 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                if (photoUrl != null) ...[
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Suasana Mitra UMKM',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkSlate,
                     ),
-
-                    const SizedBox(height: 20),
-
-                    // 5. Section: Ringkasan proyek
-                    Container(
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Image.network(
+                      photoUrl,
+                      height: 160,
                       width: double.infinity,
-                      padding: const EdgeInsets.all(20),
+                      cacheWidth: 900,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ],
+
+                if (milestones.isNotEmpty) ...[
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Pembagian Tahap (Smart Escrow)',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkSlate,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...milestones.map(
+                    (m) => Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: AppColors.borderSlate),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          const Text(
-                            'Ringkasan proyek',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Merancang ulang label kemasan sambal botol dan membuat katalog online sederhana yang bisa memamerkan produk UMKM secara profesional di platform digital.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.secondarySlate,
-                              height: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildChecklistItem(
-                            'Label kemasan 4 varian rasa siap cetak',
-                          ),
-                          _buildChecklistItem(
-                            'Template feed Instagram untuk peluncuran',
-                          ),
-                          _buildChecklistItem(
-                            'File master Figma & aset resolusi tinggi',
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Section: Suasana mitra (From User Screenshot)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.borderSlate),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
-                              Expanded(
-                                child: Text(
-                                  'Suasana mitra',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.location_on_rounded,
-                                    size: 15,
-                                    color: AppColors.secondarySlate,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Rungkut, Surabaya',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Stack(
-                              children: [
-                                Image.network(
-                                  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
-                                  height: 180,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (ctx, err, stack) => Container(
-                                    height: 180,
-                                    width: double.infinity,
-                                    color: const Color(0xFFF1F5F9),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.storefront_rounded,
-                                        size: 48,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  left: 0,
-                                  right: 0,
-                                  bottom: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.bottomCenter,
-                                        end: Alignment.topCenter,
-                                        colors: [
-                                          Colors.black.withValues(alpha: 0.8),
-                                          Colors.transparent,
-                                        ],
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Dapur produksi sambal rumahan',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // 6. Section: Tahapan & milestone (New from User Screenshot)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.borderSlate),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Tahapan & milestone',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                '3 tahap escrow',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryNavy,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          _buildMilestoneItem(
-                            number: 1,
-                            title: 'Riset & moodboard',
-                            subtitle: 'Wawancara pemilik dan arah visual kemasan · Hari ke-3',
-                            tc: 75,
-                          ),
-                          _buildMilestoneItem(
-                            number: 2,
-                            title: 'Desain label final',
-                            subtitle:
-                                'Tiga varian label siap cetak · Hari ke-9',
-                            tc: 125,
-                          ),
-                          _buildMilestoneItem(
-                            number: 3,
-                            title: 'Katalog online',
-                            subtitle: 'Katalog digital dan serah terima file · Hari ke-14',
-                            tc: 100,
-                          ),
-                          const SizedBox(height: 8),
-                          const Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.shield_rounded,
-                                size: 16,
+                          CircleAvatar(
+                            radius: 14,
+                            backgroundColor: AppColors.lightBlueSurface,
+                            child: Text(
+                              '${m['step_order']}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
                                 color: AppColors.primaryNavy,
                               ),
-                              SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Dana ditahan aman di Smart Escrow dan dicairkan per tahap setelah UMKM menyetujui hasil.',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.secondarySlate,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Bottom Fixed Action Bar
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.cardSurface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.darkSlate.withValues(alpha: 0.08),
-                      blurRadius: 16,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    // Chat UMKM Button
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, AppRoutes.workspaceChat);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.cardSurface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.borderSlate),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline_rounded,
-                              size: 18,
-                              color: AppColors.darkSlate,
                             ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Chat UMKM',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              (m['title'] as String?) ?? '',
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
                                 color: AppColors.darkSlate,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          Text(
+                            '${m['reward_tc'] ?? 0} TC',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryNavy,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
 
-                    // Primary CTA: Lamar Proyek Ini
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, AppRoutes.applyProject);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryNavy,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primaryNavy.withValues(
-                                  alpha: 0.25,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Flexible(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'Lamar Proyek Ini',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Icon(
-                                Icons.send_rounded,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+        // Bottom Bar
+        Container(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: AppColors.borderSlate)),
+          ),
+          child: Row(
+            children: [
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primaryNavy),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.workspaceChat,
+                  arguments: ProjectRouteArgs(projectId: projectId),
+                ),
+                icon: const Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  size: 18,
+                  color: AppColors.primaryNavy,
+                ),
+                label: const Text(
+                  'Chat UMKM',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryNavy,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: hasApplied
+                        ? AppColors.secondarySlate
+                        : AppColors.primaryNavy,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: hasApplied
+                      ? null
+                      : () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.applyProject,
+                          arguments: ProjectRouteArgs(projectId: projectId),
+                        ),
+                  child: Text(
+                    hasApplied
+                        ? 'Lamaran Sudah Dikirim'
+                        : 'Lamar Proyek Ini',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _metricBox(String value, String sub) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.canvasWhite,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w800,
+                color: AppColors.darkSlate,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              sub,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.secondarySlate,
               ),
             ),
           ],

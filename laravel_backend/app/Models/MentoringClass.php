@@ -32,4 +32,9 @@ class MentoringClass extends Model
     {
         return $this->hasMany(MentoringAssignment::class, 'class_id');
     }
+
+    public function materials(): HasMany
+    {
+        return $this->hasMany(MentoringMaterial::class, 'class_id')->latest();
+    }
 }

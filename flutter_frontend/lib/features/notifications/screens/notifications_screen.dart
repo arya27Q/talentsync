@@ -1,154 +1,264 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
-
-class NotificationItem {
-  final String id;
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
-  final String title;
-  final String time;
-  final String desc;
-  bool isUnread;
-  final String? routeDestination;
-
-  NotificationItem({
-    required this.id,
-    required this.icon,
-    required this.iconColor,
-    required this.iconBg,
-    required this.title,
-    required this.time,
-    required this.desc,
-    this.isUnread = false,
-    this.routeDestination,
-  });
-}
+import 'package:flutter_frontend/features/notifications/data/notification_api.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
+  const NotificationsScreen({super.key, this.notificationApi});
+
+  final NotificationApi? notificationApi;
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final List<NotificationItem> _notifications = [
-    NotificationItem(
-      id: '1',
-      icon: Icons.check_circle_outline_rounded,
-      iconColor: const Color(0xFF10B981),
-      iconBg: const Color(0xFFE8F7EE),
-      title: 'Application Accepted',
-      time: '10 mnt',
-      desc: 'Toko Bu Sri menerima lamaranmu untuk proyek aplikasi kasir.',
-      isUnread: true,
-      routeDestination: AppRoutes.myProjects,
-    ),
-    NotificationItem(
-      id: '2',
-      icon: Icons.toll_rounded,
-      iconColor: AppColors.accentAmberGold,
-      iconBg: const Color(0xFFFEF3C7),
-      title: '+80 TC diterima',
-      time: '2 jam',
-      desc: 'Warung Pak Gito telah memvalidasi hasil kerjamu.',
-      isUnread: true,
-      routeDestination: AppRoutes.wallet,
-    ),
-    NotificationItem(
-      id: '3',
-      icon: Icons.star_rounded,
-      iconColor: AppColors.accentAmberGold,
-      iconBg: const Color(0xFFFFF7ED),
-      title: 'Ulasan baru',
-      time: 'Kemarin',
-      desc: '"Rapi dan komunikatif, hasilnya langsung dipakai." Rating 5.0',
-      isUnread: false,
-      routeDestination: AppRoutes.portfolio,
-    ),
-    NotificationItem(
-      id: '4',
-      icon: Icons.calendar_today_rounded,
-      iconColor: AppColors.primaryNavy,
-      iconBg: const Color(0xFFEFF6FF),
-      title: 'Sesi mentoring besok',
-      time: 'Kemarin',
-      desc: 'Bersama Dimas Prasetyo, 19.00 WIB.',
-      isUnread: false,
-      routeDestination: AppRoutes.findMentors,
-    ),
-    NotificationItem(
-      id: '5',
-      icon: Icons.system_update_rounded,
-      iconColor: const Color(0xFF64748B),
-      iconBg: const Color(0xFFF1F5F9),
-      title: 'System Update',
-      time: '3 hari',
-      desc: 'Pencairan TC kini diproses kurang dari 1 hari kerja.',
-      isUnread: false,
-      routeDestination: null,
-    ),
-  ];
+  late final NotificationApi _api =
+      widget.notificationApi ?? NotificationApi.instance;
 
-  void _markAllAsRead() {
+  bool _isLoading = true;
+  String? _error;
+  String _role = 'student';
+  int _unreadCount = 0;
+  List<Map<String, dynamic>> _items = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
     setState(() {
-      for (var item in _notifications) {
-        item.isUnread = false;
-      }
+      _isLoading = true;
+      _error = null;
     });
+    try {
+      final sessionUser = await ApiClient.instance.readSessionUser();
+      _role = (sessionUser?['role'] as String?) ?? 'student';
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Semua notifikasi telah ditandai dibaca.'),
-        backgroundColor: AppColors.darkSlate,
-        duration: Duration(seconds: 2),
+      final res = await _api.list();
+      final rows = (res['data'] as List? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+      final meta = (res['meta'] as Map<String, dynamic>?) ?? const {};
+
+      if (!mounted) return;
+      setState(() {
+        _items = rows;
+        _unreadCount = (meta['unread_count'] as num?)?.toInt() ?? 0;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat daftar notifikasi.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _markAllRead() async {
+    try {
+      await _api.markAllRead();
+      if (!mounted) return;
+      setState(() {
+        _unreadCount = 0;
+        for (final item in _items) {
+          item['is_read'] = true;
+        }
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _handleTap(int index) async {
+    final item = _items[index];
+    final id = (item['id'] ?? '').toString();
+    if (id.isNotEmpty && item['is_read'] != true) {
+      setState(() {
+        _items[index]['is_read'] = true;
+        if (_unreadCount > 0) _unreadCount--;
+      });
+      try {
+        await _api.markRead(id);
+      } catch (_) {}
+    }
+
+    if (!mounted) return;
+    final route = _resolveRoute(item['target_route'] as String?);
+    if (route != null) {
+      Navigator.pushNamed(context, route);
+    }
+  }
+
+  String? _resolveRoute(String? targetRoute) {
+    if (targetRoute == null || targetRoute.isEmpty) return null;
+    if (_role == 'mentor') {
+      if (targetRoute.contains('wallet')) return AppRoutes.mentorCashOut;
+      return null;
+    }
+    if (targetRoute.contains('wallet')) return AppRoutes.wallet;
+    if (targetRoute.contains('certificates')) return AppRoutes.certificates;
+    if (targetRoute.contains('portfolio')) return AppRoutes.portfolio;
+    if (targetRoute.contains('help-support')) return AppRoutes.helpSupport;
+    if (targetRoute.contains('projects')) return AppRoutes.myProjects;
+    if (targetRoute.contains('mentoring')) return AppRoutes.myMentors;
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.canvasWhite,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryNavy,
+                      ),
+                    )
+                  : _error != null
+                  ? _buildError()
+                  : _items.isEmpty
+                  ? _buildEmpty()
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      color: AppColors.primaryNavy,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+                        itemCount: _items.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        itemBuilder: (_, idx) => _buildNotificationCard(idx),
+                      ),
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildNotificationCard(NotificationItem item) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          item.isUnread = false;
-        });
-        if (item.routeDestination != null) {
-          Navigator.pushNamed(context, item.routeDestination!);
-        }
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.cardSurface,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.darkSlate.withValues(alpha: 0.04),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                Navigator.pushReplacementNamed(
+                  context,
+                  _role == 'mentor'
+                      ? AppRoutes.mentorDashboard
+                      : AppRoutes.studentDashboard,
+                );
+              }
+            },
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: AppColors.darkSlate,
+              ),
             ),
-          ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Notifikasi',
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+                Text(
+                  '$_unreadCount belum dibaca',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.secondarySlate,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_unreadCount > 0)
+            TextButton(
+              onPressed: _markAllRead,
+              child: const Text(
+                'Tandai dibaca',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationCard(int idx) {
+    final item = _items[idx];
+    final unread = item['is_read'] != true;
+    final type = (item['type'] as String?) ?? '';
+    final icon = type.contains('wallet') || type.contains('tc')
+        ? Icons.toll_rounded
+        : type.contains('mentor') || type.contains('endorse')
+        ? Icons.verified_rounded
+        : Icons.notifications_active_rounded;
+
+    return InkWell(
+      onTap: () => _handleTap(idx),
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: unread ? AppColors.lightBlueSurface : AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: unread
+                ? AppColors.primaryNavy.withValues(alpha: 0.25)
+                : AppColors.borderSlate,
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Leading Squircle Icon
             Container(
-              width: 48,
-              height: 48,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: item.iconBg,
-                borderRadius: BorderRadius.circular(16),
+                color: unread ? Colors.white : AppColors.canvasWhite,
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Center(
-                child: Icon(item.icon, color: item.iconColor, size: 24),
-              ),
+              child: Icon(icon, color: AppColors.primaryNavy, size: 20),
             ),
-            const SizedBox(width: 14),
-            // Middle Content: Title, Time, Unread Dot, Desc
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,24 +267,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          item.title,
+                          (item['title'] as String?) ?? 'Notifikasi',
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: AppColors.darkSlate,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        item.time,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.secondarySlate,
-                        ),
-                      ),
-                      if (item.isUnread) ...[
-                        const SizedBox(width: 6),
+                      if (unread)
                         Container(
                           width: 8,
                           height: 8,
@@ -183,14 +284,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             shape: BoxShape.circle,
                           ),
                         ),
-                      ],
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
-                    item.desc,
+                    (item['body'] as String?) ?? '',
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 12.5,
                       color: AppColors.secondarySlate,
                       height: 1.4,
                     ),
@@ -204,177 +304,65 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildNavIcon({required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        color: Colors.transparent,
-        child: Icon(icon, color: AppColors.secondarySlate, size: 24),
+  Widget _buildEmpty() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.notifications_none_rounded,
+              size: 46,
+              color: AppColors.secondarySlate,
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Belum Ada Notifikasi',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Pembaruan proyek, mentoring, dan transaksi TimeCoin akan tampil di sini.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.canvasWhite,
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top App Bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0,
-                    vertical: 16.0,
-                  ),
-                  child: Row(
-                    children: [
-                      // Back Button
-                      GestureDetector(
-                        onTap: () {
-                          if (Navigator.canPop(context)) {
-                            Navigator.pop(context);
-                          } else {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              AppRoutes.studentDashboard,
-                            );
-                          }
-                        },
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.05,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.keyboard_arrow_left_rounded,
-                              color: AppColors.darkSlate,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      const Expanded(
-                        child: Text(
-                          'Notifications',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkSlate,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: _markAllAsRead,
-                        child: const Text(
-                          'Tandai dibaca',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primaryNavy,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Notifications List
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.only(
-                      left: 24,
-                      right: 24,
-                      top: 8,
-                      bottom: 120,
-                    ),
-                    itemCount: _notifications.length,
-                    itemBuilder: (context, index) {
-                      return _buildNotificationCard(_notifications[index]);
-                    },
-                  ),
-                ),
-              ],
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _error ?? 'Terjadi kesalahan',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.secondarySlate),
             ),
-          ),
-
-          // Floating Capsule Bottom Navigation Bar (Explore, Tasks, Wallet, Profile)
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.cardSurface,
-                borderRadius: BorderRadius.circular(36),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkSlate.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavIcon(
-                    icon: Icons.explore_rounded,
-                    onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.studentDashboard,
-                        (route) => false,
-                      );
-                    },
-                  ),
-                  _buildNavIcon(
-                    icon: Icons.assignment_rounded,
-                    onTap: () {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        AppRoutes.myProjects,
-                      );
-                    },
-                  ),
-                  _buildNavIcon(
-                    icon: Icons.account_balance_wallet_rounded,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.wallet);
-                    },
-                  ),
-                  _buildNavIcon(
-                    icon: Icons.person_outline_rounded,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.settings);
-                    },
-                  ),
-                ],
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _load,
+                child: const Text('Coba Lagi'),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

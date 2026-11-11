@@ -3,80 +3,107 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\TimeCoinWallet;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Resources\StudentPresenter;
 use App\Models\MentorProfile;
 use App\Models\Role;
 use App\Models\StudentProfile;
+use App\Models\TimeCoinWallet;
 use App\Models\UmkmProfile;
 use App\Models\User;
+use App\Services\StudentAccountService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function register(Request $request): JsonResponse
+    public function __construct(private readonly StudentAccountService $studentAccountService)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:150'],
-            'email' => ['required', 'email', 'max:150', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', 'in:student,msme'],
-            'university' => ['required_if:role,student', 'nullable', 'string', 'max:150'],
-            'major' => ['required_if:role,student', 'nullable', 'string', 'max:100'],
-            'student_id_number' => ['required_if:role,student', 'nullable', 'string', 'max:50', 'unique:student_profiles,student_id_number'],
-            'ktm_document_url' => ['nullable', 'url', 'max:2048'],
-            'business_name' => ['required_if:role,msme', 'nullable', 'string', 'max:150'],
-            'business_sector' => ['required_if:role,msme', 'nullable', 'string', 'max:100'],
-            'address' => ['required_if:role,msme', 'nullable', 'string', 'max:5000'],
-            'business_document_url' => ['nullable', 'url', 'max:2048'],
-        ]);
-        [$user, $wallet] = DB::transaction(function () use ($data) {
-            $role = Role::where('name', $data['role'])->firstOrFail();
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => $data['password'],
-                'role_id' => $role->id,
-            ]);
+    }
 
-            if ($data['role'] === 'student') {
-                StudentProfile::create([
-                    'user_id' => $user->id,
-                    'university' => $data['university'],
-                    'major' => $data['major'],
-                    'student_id_number' => $data['student_id_number'],
-                    'ktm_document_url' => $data['ktm_document_url'] ?? null,
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+        $ktmPath = null;
+        $avatarPath = null;
+
+        if ($request->hasFile('ktm_file')) {
+            $ktmPath = $request->file('ktm_file')->store('student-ktms', 'public');
+            $data['ktm_document_url'] = Storage::disk('public')->url($ktmPath);
+        }
+        if ($request->hasFile('avatar_file')) {
+            $avatarPath = $request->file('avatar_file')->store('student-avatars', 'public');
+            $data['avatar_url'] = Storage::disk('public')->url($avatarPath);
+        }
+
+        try {
+            [$user, $wallet] = DB::transaction(function () use ($data) {
+                $role = Role::where('name', $data['role'])->firstOrFail();
+                $user = User::create([
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => $data['password'],
+                    'role_id' => $role->id,
                 ]);
-            } else {
-                UmkmProfile::create([
+                $user->roles()->syncWithoutDetaching([$role->id]);
+
+                if ($data['role'] === 'student') {
+                    StudentProfile::create([
+                        'user_id' => $user->id,
+                        'university' => $data['university'],
+                        'major' => $data['major'],
+                        'student_id_number' => $data['student_id_number'],
+                        'ktm_document_url' => $data['ktm_document_url'] ?? null,
+                        'ktm_verification_status' => 'approved',
+                        'avatar_url' => $data['avatar_url'] ?? null,
+                        'cohort_year' => $data['cohort_year'] ?? null,
+                        'bio' => $data['bio'] ?? null,
+                    ]);
+                    if (! empty($data['skills'])) {
+                        $this->studentAccountService->syncSkills($user, $data['skills']);
+                    }
+                } else {
+                    UmkmProfile::create([
+                        'user_id' => $user->id,
+                        'business_name' => $data['business_name'],
+                        'business_sector' => $data['business_sector'],
+                        'address' => $data['address'],
+                        'business_document_url' => $data['business_document_url'] ?? null,
+                    ]);
+                }
+
+                return [$user, TimeCoinWallet::create([
                     'user_id' => $user->id,
-                    'business_name' => $data['business_name'],
-                    'business_sector' => $data['business_sector'],
-                    'address' => $data['address'],
-                    'business_document_url' => $data['business_document_url'] ?? null,
-                ]);
+                    'balance' => 0,
+                    'locked_balance' => 0,
+                ])];
+            });
+        } catch (\Throwable $exception) {
+            if ($ktmPath !== null) {
+                Storage::disk('public')->delete($ktmPath);
             }
-
-            return [$user, TimeCoinWallet::create(['user_id' => $user->id])];
-        });
+            if ($avatarPath !== null) {
+                Storage::disk('public')->delete($avatarPath);
+            }
+            throw $exception;
+        }
 
         return response()->json([
             'status' => 'success',
             'message' => 'Registrasi berhasil.',
             'data' => [
                 'token' => $user->createToken('flutter')->plainTextToken,
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $data['role'],
-                    'balance_tc' => $wallet->balance,
-                ],
+                'user' => $this->formatSessionUser(
+                    $user->fresh(['roleRecord', 'studentProfile', 'mentorProfile', 'roles']),
+                    (int) ($wallet->balance ?? 0),
+                ),
             ],
         ], 201);
     }
@@ -110,6 +137,7 @@ class AuthController extends Controller
                     'password' => $data['password'],
                     'role_id' => $mentorRole->id,
                 ]);
+                $user->roles()->syncWithoutDetaching([$mentorRole->id]);
                 $profile = MentorProfile::create([
                     'user_id' => $user->id,
                     'title_headline' => $data['title_headline'],
@@ -120,7 +148,11 @@ class AuthController extends Controller
                     'verification_status' => 'approved',
                     'verification_reviewed_at' => now(),
                 ]);
-                $wallet = TimeCoinWallet::create(['user_id' => $user->id]);
+                $wallet = TimeCoinWallet::create([
+                    'user_id' => $user->id,
+                    'balance' => 0,
+                    'locked_balance' => 0,
+                ]);
 
                 return [$user, $profile, $wallet];
             });
@@ -135,50 +167,157 @@ class AuthController extends Controller
             'message' => 'Pendaftaran mentor berhasil dan akun sudah terverifikasi.',
             'data' => [
                 'token' => $user->createToken('flutter')->plainTextToken,
-                'user' => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'role' => 'mentor', 'balance_tc' => $wallet->balance],
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => 'mentor',
+                    'roles' => ['mentor'],
+                    'balance_tc' => (int) ($wallet->balance ?? 0),
+                ],
                 'verification_status' => $profile->verification_status,
                 'cv_url' => $profile->verification_document_url,
             ],
         ], 201);
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ]);
-        $user = User::where('email', $data['email'])->first();
+        $identifier = $request->identifierValue();
+        $password = $request->input('password');
 
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages(['email' => ['Email atau kata sandi tidak valid.']]);
+        $user = User::query()
+            ->where('email', $identifier)
+            ->orWhereHas('studentProfile', fn ($q) => $q->where('student_id_number', $identifier))
+            ->first();
+
+        if (! $user || ! Hash::check($password, $user->password)) {
+            throw ValidationException::withMessages(['email' => ['Email/NIM atau kata sandi tidak valid.']]);
         }
 
-        $wallet = TimeCoinWallet::firstOrCreate(['user_id' => $user->id]);
+        $wallet = TimeCoinWallet::firstOrCreate(
+            ['user_id' => $user->id],
+            ['balance' => 0, 'locked_balance' => 0],
+        );
         $token = $user->createToken('flutter')->plainTextToken;
+        $user->load(['roleRecord', 'roles', 'studentProfile', 'mentorProfile']);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Login berhasil.',
             'data' => [
                 'token' => $token,
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->roleRecord?->name,
-                    'balance_tc' => $wallet->balance,
-                    'verification_status' => $user->hasRole('mentor') ? $user->mentorProfile?->verification_status : null,
-                    'avatar_url' => $user->hasRole('mentor') ? $user->mentorProfile?->avatar_url : null,
-                ],
+                'user' => $this->formatSessionUser($user, (int) ($wallet->balance ?? 0)),
             ],
+        ]);
+    }
+
+    public function me(Request $request): JsonResponse
+    {
+        $user = $request->user()->load(['roleRecord', 'roles', 'studentProfile', 'studentSkills', 'mentorProfile']);
+        $balance = TimeCoinWallet::where('user_id', $user->id)->value('balance') ?? 0;
+
+        if ($user->hasRole('student')) {
+            return response()->json([
+                'status' => 'success',
+                'data' => StudentPresenter::profile($user, $balance),
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $this->formatSessionUser($user, $balance),
+        ]);
+    }
+
+    public function switchRole(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'role' => ['required', Rule::in(['student', 'mentor'])],
+        ]);
+        $user = $request->user();
+        abort_unless(
+            $user->hasAssignedRole($data['role']),
+            403,
+            'Akun Anda belum memiliki akses untuk peran tersebut.',
+        );
+
+        $role = Role::where('name', $data['role'])->firstOrFail();
+        $user->update(['role_id' => $role->id]);
+        $user = $user->fresh(['roleRecord', 'roles', 'studentProfile', 'mentorProfile']);
+        $balance = TimeCoinWallet::where('user_id', $user->id)->value('balance') ?? 0;
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Peran aktif berhasil dialihkan ke '.($data['role'] === 'mentor' ? 'Peer Mentor' : 'Mahasiswa').'.',
+            'data' => [
+                'user' => $this->formatSessionUser($user, $balance),
+            ],
+        ]);
+    }
+
+    public function sessions(Request $request): JsonResponse
+    {
+        $currentId = $request->user()->currentAccessToken()?->id;
+        $tokens = $request->user()->tokens()->latest()->get()->map(fn ($token) => [
+            'id' => $token->id,
+            'device_name' => $token->name ?: 'Perangkat Android',
+            'is_current' => $token->id === $currentId,
+            'last_used_at' => $token->last_used_at?->toIso8601String(),
+            'created_at' => $token->created_at?->toIso8601String(),
+        ]);
+
+        return response()->json(['status' => 'success', 'data' => $tokens]);
+    }
+
+    public function revokeOtherSessions(Request $request): JsonResponse
+    {
+        $currentId = $request->user()->currentAccessToken()?->id;
+        $deleted = $request->user()->tokens()->when($currentId, fn ($q) => $q->where('id', '!=', $currentId))->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $deleted > 0
+                ? "{$deleted} sesi perangkat lain berhasil dikeluarkan."
+                : 'Tidak ada sesi perangkat lain yang aktif.',
         ]);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()?->delete();
 
         return response()->json(['status' => 'success', 'message' => 'Logout berhasil.']);
+    }
+
+    private function formatSessionUser(User $user, int $balance): array
+    {
+        $roleName = $user->roleRecord?->name;
+        $roles = $user->roles->pluck('name')->values()->all();
+        if ($roleName && ! in_array($roleName, $roles, true)) {
+            $roles[] = $roleName;
+        }
+
+        $avatarUrl = match ($roleName) {
+            'mentor' => $user->mentorProfile?->avatar_url ?? $user->studentProfile?->avatar_url,
+            'student' => $user->studentProfile?->avatar_url,
+            default => null,
+        };
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $roleName,
+            'roles' => $roles,
+            'balance_tc' => $balance,
+            'verification_status' => $user->hasRole('mentor') ? $user->mentorProfile?->verification_status : null,
+            'avatar_url' => $avatarUrl,
+            'university' => $user->studentProfile?->university,
+            'major' => $user->studentProfile?->major,
+            'student_id_number' => $user->studentProfile?->student_id_number,
+            'completed_projects_count' => $user->studentProfile?->completed_projects_count ?? 0,
+            'is_mentor_eligible' => (bool) ($user->studentProfile?->is_mentor_eligible ?? false),
+        ];
     }
 }

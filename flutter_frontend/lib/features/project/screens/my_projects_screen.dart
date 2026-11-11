@@ -1,1049 +1,628 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/project/data/project_api.dart';
 
 class MyProjectsScreen extends StatefulWidget {
   final bool showBottomNav;
-  const MyProjectsScreen({super.key, this.showBottomNav = false});
+  final ProjectApi? projectApi;
+  const MyProjectsScreen({
+    super.key,
+    this.showBottomNav = false,
+    this.projectApi,
+  });
 
   @override
   State<MyProjectsScreen> createState() => _MyProjectsScreenState();
 }
 
 class _MyProjectsScreenState extends State<MyProjectsScreen> {
-  int _selectedTabIndex = 0; // 0: Aktif (2), 1: Menunggu (1), 2: Selesai (3)
+  late final ProjectApi _api = widget.projectApi ?? ProjectApi.instance;
 
-  Widget _buildMetricCard({
-    required IconData icon,
-    required Color iconColor,
-    required String value,
-    required String label,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-        decoration: BoxDecoration(
-          color: AppColors.cardSurface,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.darkSlate.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: iconColor, size: 20),
-            const SizedBox(height: 10),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkSlate,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.secondarySlate,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  int _selectedTabIndex = 0; // 0: Aktif, 1: Menunggu, 2: Selesai
+  late Future<Map<String, dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _api.myProjects();
   }
 
-  Widget _buildFilterTab(int index, String title) {
+  Future<void> _reload() async {
+    final f = _api.myProjects();
+    setState(() => _future = f);
+    await f;
+  }
+
+  Widget _buildFilterTab(String label, int index) {
     final bool isSelected = _selectedTabIndex == index;
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedTabIndex = index;
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
+        onTap: () => setState(() => _selectedTabIndex = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primaryNavy : Colors.transparent,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? Colors.white : AppColors.secondarySlate,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? Colors.white : AppColors.secondarySlate,
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildActiveProjectCard({
-    required String imageAsset,
-    required String imageUrl,
-    required String businessName,
-    required String locationMode,
-    required String title,
-    required int totalTc,
-    required int currentStage,
-    required int totalStages,
-    required int progressPercent,
-    required String nextStageTitle,
-    required int nextStageTc,
-    required String daysLeft,
-    required bool isUrgentDays,
-    required int cairTc,
-    required int escrowTc,
-    required VoidCallback onChat,
-    required VoidCallback onKanban,
-    required VoidCallback onMilestone,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkSlate.withValues(alpha: 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. Header: Image, Status & UMKM, TC Reward
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  color: const Color(0xFFF1F5F9),
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: const Color(0xFFE2E8F0),
-                      child: const Icon(
-                        Icons.store_rounded,
-                        color: AppColors.primaryNavy,
-                        size: 26,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEFF6FF),
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.timelapse_rounded,
-                                size: 12,
-                                color: AppColors.primaryNavy,
-                              ),
-                              SizedBox(width: 2),
-                              Text(
-                                'Aktif',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryNavy,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            '$businessName \u00B7 $locationMode',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.secondarySlate,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkSlate,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // TC Badge
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.toll_rounded,
-                    color: AppColors.accentAmberGold,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$totalTc TC',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkSlate,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // 2. Progress Bar
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: progressPercent / 100,
-                    minHeight: 5,
-                    backgroundColor: const Color(0xFFE2E8F0),
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      AppColors.primaryNavy,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Tahap $currentStage/$totalStages \u00B7 $progressPercent%',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.secondarySlate,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // 3. Next Stage Box (Tahap Berikutnya)
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryNavy,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${currentStage + 1}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'TAHAP BERIKUTNYA',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                          color: AppColors.secondarySlate,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        nextStageTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '$nextStageTc TC',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFD97706),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          // 4. 3 Metric Boxes: Sisa Waktu, Sudah Cair, Di Escrow
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        daysLeft,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: isUrgentDays
-                              ? const Color(0xFFDC2626)
-                              : AppColors.darkSlate,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Sisa waktu',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.secondarySlate,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        '$cairTc TC',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF16A34A),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Sudah cair',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.secondarySlate,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        '$escrowTc TC',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Di escrow',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppColors.secondarySlate,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // 5. Action Buttons: Chat, Kanban, Status & Milestone
-          Row(
-            children: [
-              GestureDetector(
-                onTap: onChat,
-                child: Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.chat_bubble_outline_rounded,
-                      color: AppColors.darkSlate,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: onKanban,
-                child: Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.view_kanban_rounded,
-                      color: AppColors.darkSlate,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: GestureDetector(
-                  onTap: onMilestone,
-                  child: Container(
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryNavy,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryNavy.withValues(alpha: 0.25),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'Status & Milestone',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 6),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenungguCard() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkSlate.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.hourglass_empty_rounded,
-                      size: 12,
-                      color: Color(0xFFD97706),
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Menunggu Seleksi',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFD97706),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              const Row(
-                children: [
-                  Icon(
-                    Icons.toll_rounded,
-                    color: AppColors.accentAmberGold,
-                    size: 16,
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    '300 TC',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: AppColors.darkSlate,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Redesain Kemasan & Katalog Online',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkSlate,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Sambal Bu Rudi \u00B7 Lamaran dikirim kemarin',
-            style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  size: 16,
-                  color: AppColors.secondarySlate,
-                ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'UMKM sedang meninjau portofolio dan pesan lamaranmu. Hasil seleksi diberitahukan paling lambat 2 hari.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.secondarySlate,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, AppRoutes.projectDetail);
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: const Center(
-                child: Text(
-                  'Lihat Detail Proyek',
-                  style: TextStyle(
-                    color: AppColors.darkSlate,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSelesaiCard({
-    required String title,
-    required String client,
-    required int earnedTc,
-    required String rating,
-    required String feedback,
-    required String date,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkSlate.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.check_circle_rounded,
-                      size: 12,
-                      color: Color(0xFF16A34A),
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Selesai & Valid',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF16A34A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.toll_rounded,
-                    color: AppColors.accentAmberGold,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '+$earnedTc TC',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Color(0xFF16A34A),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkSlate,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '$client \u00B7 Diselesaikan $date',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.secondarySlate,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFEF3C7)),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.star_rounded,
-                  color: AppColors.accentAmberGold,
-                  size: 18,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  rating,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: AppColors.darkSlate,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    feedback,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.secondarySlate,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.canvasWhite,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 120),
+    return Container(
+      color: AppColors.canvasWhite,
+      child: SafeArea(
+        bottom: false,
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: _future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        snapshot.error is ApiException
+                            ? (snapshot.error as ApiException).message
+                            : 'Gagal memuat daftar proyek Anda.',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: AppColors.secondarySlate),
+                      ),
+                      const SizedBox(height: 12),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primaryNavy,
+                        ),
+                        onPressed: _reload,
+                        child: const Text('Coba lagi'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            final data = snapshot.data ?? const {};
+            final summary =
+                (data['summary'] as Map<String, dynamic>?) ?? const {};
+            final active = ((data['active_projects'] as List?) ?? const [])
+                .whereType<Map<String, dynamic>>()
+                .toList();
+            final pending =
+                ((data['pending_applications'] as List?) ?? const [])
+                    .whereType<Map<String, dynamic>>()
+                    .toList();
+            final completed =
+                ((data['completed_projects'] as List?) ?? const [])
+                    .whereType<Map<String, dynamic>>()
+                    .toList();
+
+            return RefreshIndicator(
+              onRefresh: _reload,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 120),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Tugas & Proyek Saya',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Kelola milestone, kanban, dan status lamaran',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.secondarySlate,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.notifications,
+                          ),
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.borderSlate),
+                            ),
+                            child: const Icon(
+                              Icons.notifications_none_rounded,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Summary Metrics
+                    Row(
+                      children: [
+                        _metricCard(
+                          '${summary['active_count'] ?? active.length}',
+                          'Proyek aktif',
+                        ),
+                        const SizedBox(width: 10),
+                        _metricCard(
+                          '${summary['escrow_total_tc'] ?? 0} TC',
+                          'Di escrow',
+                        ),
+                        const SizedBox(width: 10),
+                        _metricCard(
+                          '${summary['completed_count'] ?? completed.length} Proyek',
+                          'Selesai',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Tabs
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: Row(
+                        children: [
+                          _buildFilterTab('Aktif (${active.length})', 0),
+                          _buildFilterTab('Menunggu (${pending.length})', 1),
+                          _buildFilterTab('Selesai (${completed.length})', 2),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    if (_selectedTabIndex == 0)
+                      _buildActiveList(active)
+                    else if (_selectedTabIndex == 1)
+                      _buildPendingList(pending)
+                    else
+                      _buildCompletedList(completed),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _metricCard(String value, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderSlate),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.darkSlate,
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.secondarySlate,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveList(List<Map<String, dynamic>> items) {
+    if (items.isEmpty) {
+      return _emptyBox('Belum ada proyek UMKM yang sedang aktif.');
+    }
+    return Column(
+      children: items.map((proj) {
+        final projectId = (proj['id'] as num).toInt();
+        final msme = (proj['msme'] as Map<String, dynamic>?) ?? const {};
+        final stage = (proj['current_stage'] as num?)?.toInt() ?? 1;
+        final total = (proj['total_stages'] as num?)?.toInt() ?? 1;
+        final pct = ((proj['progress_percent'] as num?)?.toInt() ?? 0);
+        final releasedTc = (proj['released_tc'] as num?)?.toInt() ?? 0;
+        final escrowTc = (proj['escrow_tc'] as num?)?.toInt() ?? 0;
+        final isUrgent = proj['is_urgent'] == true;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.borderSlate),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Top App Bar: Title & Notification Bell
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 24,
-                  right: 24,
-                  top: 16,
-                  bottom: 20,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Tugas Saya',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkSlate,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, AppRoutes.notifications);
-                      },
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.cardSurface,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.darkSlate.withValues(
-                                alpha: 0.05,
-                              ),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          (msme['business_name'] as String?) ?? 'Mitra UMKM',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryNavy,
+                          ),
                         ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            const Icon(
-                              Icons.notifications_rounded,
-                              color: AppColors.darkSlate,
-                              size: 22,
-                            ),
-                            Positioned(
-                              top: 10,
-                              right: 11,
-                              child: Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.accentAmberGold,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 2),
+                        Text(
+                          (proj['title'] as String?) ?? '',
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-
-              // 2. 3 Metric Summary Cards Row
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Row(
-                  children: [
-                    _buildMetricCard(
-                      icon: Icons.timelapse_rounded,
-                      iconColor: AppColors.primaryNavy,
-                      value: '2',
-                      label: 'Proyek aktif',
-                    ),
-                    const SizedBox(width: 10),
-                    _buildMetricCard(
-                      icon: Icons.lock_outline_rounded,
-                      iconColor: AppColors.accentAmberGold,
-                      value: '115 TC',
-                      label: 'Di escrow',
-                    ),
-                    const SizedBox(width: 10),
-                    _buildMetricCard(
-                      icon: Icons.school_rounded,
-                      iconColor: const Color(0xFF10B981),
-                      value: '3 Proyek',
-                      label: 'Selesai',
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 18),
-
-              // 3. Segmented Filter Tabs (Aktif, Menunggu, Selesai)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Row(
-                    children: [
-                      _buildFilterTab(0, 'Aktif (2)'),
-                      _buildFilterTab(1, 'Menunggu (1)'),
-                      _buildFilterTab(2, 'Selesai (3)'),
-                    ],
+                  Text(
+                    '${proj['reward_tc'] ?? 0} TC',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFB45309),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: (pct / 100).clamp(0.0, 1.0),
+                  minHeight: 7,
+                  backgroundColor: AppColors.borderSlate,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryNavy,
                   ),
                 ),
               ),
-
-              const SizedBox(height: 20),
-
-              // 4. Content List based on selected tab
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  children: [
-                    if (_selectedTabIndex == 0) ...[
-                      // Card 1: Toko Bu Sri
-                      _buildActiveProjectCard(
-                        imageAsset: 'assets/images/grocery.png',
-                        imageUrl: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=200',
-                        businessName: 'Toko Bu Sri',
-                        locationMode: 'Hybrid',
-                        title: 'Aplikasi Kasir Sederhana Toko Kelontong',
-                        totalTc: 120,
-                        currentStage: 1,
-                        totalStages: 3,
-                        progressPercent: 33,
-                        nextStageTitle: 'Fitur stok & transaksi',
-                        nextStageTc: 50,
-                        daysLeft: '11 hari',
-                        isUrgentDays: false,
-                        cairTc: 30,
-                        escrowTc: 90,
-                        onChat: () {
-                          Navigator.pushNamed(context, AppRoutes.workspaceChat);
-                        },
-                        onKanban: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRoutes.workspaceKanban,
-                          );
-                        },
-                        onMilestone: () {
-                          Navigator.pushNamed(context, AppRoutes.submission);
-                        },
-                      ),
-
-                      // Card 2: Keripik Tempe Mak Nah
-                      _buildActiveProjectCard(
-                        imageAsset: 'assets/images/chips.png',
-                        imageUrl: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=200',
-                        businessName: 'Keripik Tempe Mak Nah',
-                        locationMode: 'Remote',
-                        title: 'Logo dan Kemasan Baru Keripik Tempe',
-                        totalTc: 35,
-                        currentStage: 1,
-                        totalStages: 3,
-                        progressPercent: 33,
-                        nextStageTitle: 'Panduan brand & aset grafis',
-                        nextStageTc: 15,
-                        daysLeft: '4 hari',
-                        isUrgentDays: true,
-                        cairTc: 0,
-                        escrowTc: 35,
-                        onChat: () {
-                          Navigator.pushNamed(context, AppRoutes.workspaceChat);
-                        },
-                        onKanban: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRoutes.workspaceKanban,
-                          );
-                        },
-                        onMilestone: () {
-                          Navigator.pushNamed(context, AppRoutes.submission);
-                        },
-                      ),
-                    ] else if (_selectedTabIndex == 1) ...[
-                      _buildMenungguCard(),
-                    ] else ...[
-                      _buildSelesaiCard(
-                        title: 'Redesain Logo & Kemasan Kopi',
-                        client: 'Warung Pak Gito',
-                        earnedTc: 80,
-                        rating: '5.0',
-                        feedback:
-                            'Rapi dan komunikatif, hasilnya langsung dipakai.',
-                        date: '2 hari lalu',
-                      ),
-                      _buildSelesaiCard(
-                        title: 'Katalog Menu Digital Interaktif',
-                        client: 'Depot Makan Barokah',
-                        earnedTc: 150,
-                        rating: '5.0',
-                        feedback: 'Sangat puas, hasil kerja rapi dan sesuai kebutuhan.',
-                        date: '1 minggu lalu',
-                      ),
-                      _buildSelesaiCard(
-                        title: 'Setup Google My Business & SEO Lokal',
-                        client: 'Laundry Bersih Jaya',
-                        earnedTc: 45,
-                        rating: '4.9',
-                        feedback: 'Pesanan meningkat setelah optimasi maps.',
-                        date: '2 minggu lalu',
-                      ),
-                    ],
-                  ],
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Tahap $stage/$total · $pct%',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.darkSlate,
+                    ),
+                  ),
+                  Text(
+                    '$releasedTc TC cair · $escrowTc TC escrow',
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.secondarySlate,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Berikutnya: ${proj['next_milestone'] ?? '-'} · ${proj['days_left'] ?? 0} hari',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isUrgent
+                      ? const Color(0xFFDC2626)
+                      : AppColors.secondarySlate,
+                  fontWeight: isUrgent ? FontWeight.w600 : FontWeight.normal,
                 ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  IconButton(
+                    tooltip: 'Chat UMKM',
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.workspaceChat,
+                      arguments: ProjectRouteArgs(projectId: projectId),
+                    ),
+                    icon: const Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      color: AppColors.primaryNavy,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Kanban Workspace',
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.workspaceKanban,
+                      arguments: ProjectRouteArgs(projectId: projectId),
+                    ),
+                    icon: const Icon(
+                      Icons.view_kanban_rounded,
+                      color: AppColors.primaryNavy,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primaryNavy,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.submission,
+                        arguments: ProjectRouteArgs(projectId: projectId),
+                      ),
+                      child: const Text('Status & Milestone'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildPendingList(List<Map<String, dynamic>> items) {
+    if (items.isEmpty) {
+      return _emptyBox('Tidak ada lamaran proyek yang sedang menunggu.');
+    }
+    return Column(
+      children: items.map((app) {
+        final proj = (app['project'] as Map<String, dynamic>?) ?? const {};
+        final msme = (proj['msme'] as Map<String, dynamic>?) ?? const {};
+        final projectId = (proj['id'] as num?)?.toInt();
+        final status = (app['status'] as String?) ?? 'pending';
+        final statusLabel = status == 'rejected_referred_mentor'
+            ? 'Disarankan Bimbingan Mentor'
+            : status == 'rejected'
+            ? 'Belum Terpilih'
+            : 'Menunggu Seleksi';
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.borderSlate),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      (msme['business_name'] as String?) ?? 'Mitra UMKM',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryNavy,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      statusLabel,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFB45309),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                (proj['title'] as String?) ?? '',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: projectId == null
+                    ? null
+                    : () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.projectDetail,
+                        arguments: ProjectRouteArgs(projectId: projectId),
+                      ),
+                child: const Text('Lihat Detail Proyek'),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildCompletedList(List<Map<String, dynamic>> items) {
+    if (items.isEmpty) {
+      return _emptyBox('Belum ada proyek UMKM yang selesai.');
+    }
+    return Column(
+      children: items.map((proj) {
+        final projectId = (proj['id'] as num?)?.toInt();
+        final msme = (proj['msme'] as Map<String, dynamic>?) ?? const {};
+        return GestureDetector(
+          onTap: projectId == null
+              ? null
+              : () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.projectCompleted,
+                  arguments: ProjectRouteArgs(projectId: projectId),
+                ),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.borderSlate),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.task_alt_rounded,
+                  color: Color(0xFF16A34A),
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        (msme['business_name'] as String?) ?? 'Mitra UMKM',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondarySlate,
+                        ),
+                      ),
+                      Text(
+                        (proj['title'] as String?) ?? '',
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '+${proj['reward_tc'] ?? 0} TC',
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF16A34A),
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star_rounded,
+                          size: 14,
+                          color: AppColors.accentAmberGold,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${proj['rating'] ?? 5.0}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _emptyBox(String msg) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Text(
+        msg,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: AppColors.secondarySlate, fontSize: 13),
       ),
     );
   }

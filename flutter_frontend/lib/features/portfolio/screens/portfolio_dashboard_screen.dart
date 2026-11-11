@@ -1,11 +1,24 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/portfolio/data/portfolio_api.dart';
 
 class PortfolioDashboardScreen extends StatefulWidget {
-  const PortfolioDashboardScreen({super.key});
+  const PortfolioDashboardScreen({
+    super.key,
+    this.portfolioApi,
+    this.authApi,
+  });
+
+  final PortfolioApi? portfolioApi;
+  final AuthApi? authApi;
 
   @override
   State<PortfolioDashboardScreen> createState() =>
@@ -13,356 +26,522 @@ class PortfolioDashboardScreen extends StatefulWidget {
 }
 
 class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
-  bool _isSyncing = false;
+  late final PortfolioApi _api = widget.portfolioApi ?? PortfolioApi.instance;
+  late final AuthApi _authApi = widget.authApi ?? AuthApi();
 
-  void _syncGitHub() {
-    setState(() {
-      _isSyncing = true;
-    });
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _isSyncing = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Repository GitHub berhasil disinkronkan.'),
-            backgroundColor: AppColors.darkSlate,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    });
+  bool _isLoading = true;
+  bool _isSyncingGithub = false;
+  String? _error;
+  Map<String, dynamic> _data = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
   }
 
-  void _shareCV() {
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final res = await _api.portfolio();
+      if (!mounted) return;
+      setState(() {
+        _data = res;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat data portofolio mahasiswa.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openGithubSyncDialog(String? currentUsername) async {
+    final controller = TextEditingController(text: currentUsername ?? '');
+    final submitted = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Sinkronkan Akun GitHub',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkSlate,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: 'Username GitHub',
+            hintText: 'contoh: arya-pratama',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryNavy,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Sinkronkan'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (submitted == null) return;
+
+    setState(() => _isSyncingGithub = true);
+    try {
+      await _api.syncGithub(username: submitted);
+      if (!mounted) return;
+      _showSnack('Repository GitHub berhasil disinkronkan.');
+      await _load();
+    } on ApiException catch (e) {
+      _showSnack(e.message, isError: true);
+    } catch (_) {
+      _showSnack('Gagal menyinkronkan GitHub.', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSyncingGithub = false);
+    }
+  }
+
+  Future<void> _disconnectGithub() async {
+    setState(() => _isSyncingGithub = true);
+    try {
+      await _api.disconnectGithub();
+      if (!mounted) return;
+      _showSnack('Integrasi GitHub diputuskan.');
+      await _load();
+    } on ApiException catch (e) {
+      _showSnack(e.message, isError: true);
+    } catch (_) {
+      _showSnack('Gagal memutuskan integrasi GitHub.', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSyncingGithub = false);
+    }
+  }
+
+  Future<void> _verifySkill(int skillId) async {
+    try {
+      await _api.verifySkill(skillId);
+      if (!mounted) return;
+      _showSnack('Keahlian berhasil diverifikasi.');
+      await _load();
+    } on ApiException catch (e) {
+      _showSnack(e.message, isError: true);
+    } catch (_) {
+      _showSnack('Gagal memverifikasi keahlian.', isError: true);
+    }
+  }
+
+  void _shareCvModal(String publicCvUrl) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 48,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.borderSlate,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Bagikan Portofolio & CV Terverifikasi',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkSlate,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Tautan portofolio ini mencakup rekam jejak proyek UMKM resmi, jam kontribusi terverifikasi, serta ulasan bintang.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.secondarySlate,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.canvasWhite,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.borderSlate),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.link_rounded,
-                      size: 18,
-                      color: AppColors.primaryNavy,
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'talentsync.id/cv/arya-pratama',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      'Salin',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryNavy,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryNavy,
-                  minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Tautan CV berhasil disalin ke clipboard!'),
-                      backgroundColor: AppColors.darkSlate,
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Salin Tautan CV',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildBottomNavFloating(BuildContext context) {
-    return Positioned(
-      left: 20,
-      right: 20,
-      bottom: 20,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppColors.cardSurface,
-          borderRadius: BorderRadius.circular(36),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.darkSlate.withValues(alpha: 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: () => Navigator.pushReplacementNamed(
-                context,
-                AppRoutes.studentDashboard,
-              ),
-              child: const Padding(
-                padding: EdgeInsets.all(10),
-                child: Icon(
-                  Icons.explore_rounded,
-                  color: AppColors.secondarySlate,
-                  size: 24,
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.borderSlate,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            GestureDetector(
-              onTap: () =>
-                  Navigator.pushReplacementNamed(context, AppRoutes.submission),
-              child: const Padding(
-                padding: EdgeInsets.all(10),
-                child: Icon(
-                  Icons.assignment_rounded,
-                  color: AppColors.secondarySlate,
-                  size: 24,
-                ),
+            const SizedBox(height: 18),
+            const Text(
+              'Bagikan Portofolio & CV Terverifikasi',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
               ),
             ),
-            GestureDetector(
-              onTap: () =>
-                  Navigator.pushReplacementNamed(context, AppRoutes.wallet),
-              child: const Padding(
-                padding: EdgeInsets.all(10),
-                child: Icon(
-                  Icons.account_balance_wallet_rounded,
-                  color: AppColors.secondarySlate,
-                  size: 24,
-                ),
+            const SizedBox(height: 8),
+            const Text(
+              'Tautan portofolio ini memuat proyek UMKM, rekomendasi mentor, dan sertifikat terverifikasi.',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.secondarySlate,
+                height: 1.4,
               ),
             ),
+            const SizedBox(height: 14),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.primaryNavy,
-                borderRadius: BorderRadius.circular(24),
+                color: AppColors.canvasWhite,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.borderSlate),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.person_rounded, color: Colors.white, size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'Profil',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                  const Icon(
+                    Icons.link_rounded,
+                    size: 18,
+                    color: AppColors.primaryNavy,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      publicCvUrl,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.darkSlate,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: publicCvUrl));
+                  if (!ctx.mounted) return;
+                  Navigator.pop(ctx);
+                  _showSnack('Tautan CV berhasil disalin ke clipboard.');
+                },
+                icon: const Icon(Icons.copy_rounded, size: 18),
+                label: const Text(
+                  'Salin Tautan CV',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLegendItem(String label, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.secondarySlate,
-            fontWeight: FontWeight.w500,
+  Future<void> _confirmLogout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Keluar dari Akun?',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkSlate,
           ),
+        ),
+        content: const Text(
+          'Sesi akun Anda akan berakhir dan Anda dapat masuk kembali kapan saja.',
+          style: TextStyle(color: AppColors.secondarySlate),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFB91C1C),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    await _authApi.logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.roleSelection,
+      (_) => false,
+    );
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError
+            ? const Color(0xFFB91C1C)
+            : AppColors.primaryNavy,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final profile =
+        (_data['profile'] as Map<String, dynamic>?) ?? const {};
+    final radarMetrics = (_data['radar_metrics'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    final endorsements = (_data['endorsements'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    final verifiedProjects = (_data['verified_projects'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    final skills = (profile['skills'] as List? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    final github =
+        (profile['github_integration'] as Map<String, dynamic>?) ?? const {};
+    final publicCvUrl =
+        (_data['public_cv_url'] as String?) ?? 'https://talentsync.id/cv/profil';
+
+    return Scaffold(
+      backgroundColor: AppColors.canvasWhite,
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primaryNavy),
+              )
+            : _error != null
+            ? _buildErrorState()
+            : RefreshIndicator(
+                onRefresh: _load,
+                color: AppColors.primaryNavy,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 110),
+                  children: [
+                    _buildTopBar(publicCvUrl),
+                    const SizedBox(height: 16),
+                    _buildProfileCard(profile),
+                    const SizedBox(height: 16),
+                    _buildStatsRow(profile),
+                    const SizedBox(height: 16),
+                    if (radarMetrics.isNotEmpty) ...[
+                      _buildRadarCard(radarMetrics),
+                      const SizedBox(height: 16),
+                    ],
+                    _buildGithubCard(github),
+                    const SizedBox(height: 16),
+                    _buildSkillsCard(skills),
+                    const SizedBox(height: 16),
+                    _buildQuickLinksRow(),
+                    const SizedBox(height: 16),
+                    if (endorsements.isNotEmpty) ...[
+                      _buildEndorsementsCard(endorsements),
+                      const SizedBox(height: 16),
+                    ],
+                    _buildProjectsSection(verifiedProjects),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildTopBar(String publicCvUrl) {
+    final canPop = Navigator.canPop(context);
+    return Row(
+      children: [
+        if (canPop) ...[
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+        ],
+        const Expanded(
+          child: Text(
+            'Portofolio & Profil',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+        ),
+        _headerAction(
+          icon: Icons.share_rounded,
+          onTap: () => _shareCvModal(publicCvUrl),
+        ),
+        const SizedBox(width: 8),
+        _headerAction(
+          icon: Icons.settings_rounded,
+          onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+        ),
+        const SizedBox(width: 8),
+        _headerAction(
+          icon: Icons.logout_rounded,
+          iconColor: const Color(0xFFB91C1C),
+          onTap: _confirmLogout,
         ),
       ],
     );
   }
 
-  Widget _buildVerifiedSkillItem({
-    required Widget leadingIconWidget,
-    required String title,
-    required String subtitle,
-    Widget? trailingWidget,
+  Widget _headerAction({
+    required IconData icon,
+    required VoidCallback onTap,
+    Color iconColor = AppColors.darkSlate,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          leadingIconWidget,
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkSlate,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.secondarySlate,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          trailingWidget ??
-              const Icon(
-                Icons.verified_rounded,
-                color: AppColors.primaryNavy,
-                size: 20,
-              ),
-        ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderSlate),
+        ),
+        child: Icon(icon, size: 20, color: iconColor),
       ),
     );
   }
 
-  Widget _buildProjectCard({
-    required String title,
-    required String subtitle,
-    required String rating,
-    required List<String> tags,
-  }) {
+  Widget _buildProfileCard(Map<String, dynamic> profile) {
+    final name = (profile['name'] as String?) ?? 'Mahasiswa';
+    final headline =
+        (profile['headline'] as String?) ?? 'Mahasiswa Talenta Digital';
+    final university = (profile['university'] as String?) ?? 'Universitas';
+    final major = (profile['major'] as String?) ?? 'Program Studi';
+    final avatarUrl = ApiClient.resolveMediaUrl(
+      profile['avatar_url'] as String?,
+    );
+    final ktmStatus =
+        (profile['ktm_verification_status'] as String?) ?? 'approved';
+    final hasEndorsement = profile['has_mentor_endorsement'] == true;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppColors.borderSlate),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkSlate.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.check_circle_outline_rounded,
-                    color: Color(0xFF16A34A),
-                    size: 24,
-                  ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  color: AppColors.lightBlueSurface,
+                  child: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? Image.network(
+                          avatarUrl,
+                          width: 56,
+                          height: 56,
+                          cacheWidth: 168,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Center(
+                            child: Text(
+                              name.isNotEmpty ? name[0].toUpperCase() : 'M',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryNavy,
+                              ),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : 'M',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryNavy,
+                            ),
+                          ),
+                        ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      name,
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkSlate,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      subtitle,
+                      headline,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryNavy,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$major | $university',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.secondarySlate,
@@ -371,73 +550,37 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                   ],
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.star_rounded,
-                    size: 16,
-                    color: AppColors.accentAmberGold,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    rating,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkSlate,
-                    ),
-                  ),
-                ],
+              IconButton(
+                tooltip: 'Edit Profil',
+                onPressed: () async {
+                  await Navigator.pushNamed(context, AppRoutes.editProfile);
+                  if (mounted) _load();
+                },
+                icon: const Icon(
+                  Icons.edit_rounded,
+                  color: AppColors.primaryNavy,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              Wrap(
-                spacing: 8,
-                children: tags.map((t) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      t,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryNavy,
-                      ),
-                    ),
-                  );
-                }).toList(),
+              _badgeChip(
+                Icons.badge_rounded,
+                ktmStatus == 'approved' ? 'KTM Terverifikasi' : 'KTM Menunggu',
+                AppColors.lightGreenSurface,
+                const Color(0xFF15803D),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(
-                    Icons.check_circle_rounded,
-                    size: 14,
-                    color: Color(0xFF16A34A),
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    'Divalidasi UMKM',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF16A34A),
-                    ),
-                  ),
-                ],
-              ),
+              if (hasEndorsement)
+                _badgeChip(
+                  Icons.verified_rounded,
+                  'Rekomendasi Mentor',
+                  const Color(0xFFFEF3C7),
+                  AppColors.accentAmberDeep,
+                ),
             ],
           ),
         ],
@@ -445,63 +588,110 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
     );
   }
 
-  void _showLogoutConfirmation(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
+  Widget _badgeChip(IconData icon, String label, Color bg, Color fg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: fg),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.bold,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(Map<String, dynamic> profile) {
+    final completed = (profile['completed_projects_count'] as num?)?.toInt() ?? 0;
+    final certs = (_data['certificates_count'] as num?)?.toInt() ?? 0;
+    final sessions = (_data['mentoring_sessions_count'] as num?)?.toInt() ?? 0;
+    final hours = _data['mentoring_hours'] ?? 0;
+
+    return Row(
+      children: [
+        _statBox('$completed', 'Proyek Selesai'),
+        const SizedBox(width: 8),
+        _statBox('$certs', 'Sertifikat'),
+        const SizedBox(width: 8),
+        _statBox('$sessions (${hours}j)', 'Mentoring'),
+      ],
+    );
+  }
+
+  Widget _statBox(String value, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderSlate),
+        ),
+        child: Column(
           children: [
-            Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
-            SizedBox(width: 10),
             Text(
-              'Keluar dari Akun?',
-              style: TextStyle(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.darkSlate,
+                color: AppColors.primaryNavy,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11.5,
+                color: AppColors.secondarySlate,
               ),
             ),
           ],
         ),
-        content: const Text(
-          'Apakah Anda yakin ingin keluar dari akun mahasiswa? Anda harus masuk kembali dengan NIM dan kata sandi.',
-          style: TextStyle(
-            fontSize: 13,
-            height: 1.4,
-            color: AppColors.secondarySlate,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Batal',
-              style: TextStyle(color: AppColors.secondarySlate),
+      ),
+    );
+  }
+
+  Widget _buildRadarCard(List<Map<String, dynamic>> metrics) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Peta Kompetensi Skill',
+            style: TextStyle(
+              fontSize: 15.5,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
             ),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFDC2626),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRoutes.roleSelection,
-                (route) => false,
-              );
-            },
-            child: const Text(
-              'Keluar',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 220,
+            width: double.infinity,
+            child: CustomPaint(
+              painter: _RadarChartPainter(metrics: metrics),
             ),
           ),
         ],
@@ -509,1300 +699,659 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.canvasWhite,
-      body: Stack(
+  Widget _buildGithubCard(Map<String, dynamic> github) {
+    final connected = github['connected'] == true;
+    final username = github['username'] as String?;
+    final repos = (github['repos_count'] as num?)?.toInt() ?? 0;
+    final commits = (github['commits_count'] as num?)?.toInt() ?? 0;
+    final langs = (github['languages'] as List? ?? const [])
+        .map(
+          (e) => e is Map
+              ? '${e['name'] ?? ''} ${e['percent'] != null ? '${e['percent']}%' : ''}'
+                    .trim()
+              : e.toString(),
+        )
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Bar: Profil Saya & Settings
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Profil Saya',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.settings,
-                            ),
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.darkSlate.withValues(
-                                      alpha: 0.05,
-                                    ),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.settings_rounded,
-                                color: AppColors.darkSlate,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: () => _showLogoutConfirmation(context),
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFEF2F2),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: const Color(0xFFFCA5A5)
-                                      .withValues(alpha: 0.5),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.darkSlate.withValues(
-                                      alpha: 0.05,
-                                    ),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.logout_rounded,
-                                color: Color(0xFFDC2626),
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+          Row(
+            children: [
+              const Icon(Icons.code_rounded, color: AppColors.primaryNavy),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Integrasi GitHub',
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
                   ),
-                  const SizedBox(height: 18),
-
-                  // 1. Profil Header Card (Top Card)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: AppColors.borderSlate),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkSlate.withValues(alpha: 0.03),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                ),
+              ),
+              TextButton(
+                onPressed: _isSyncingGithub
+                    ? null
+                    : () => _openGithubSyncDialog(username),
+                child: Text(connected ? 'Sinkronkan Ulang' : 'Hubungkan'),
+              ),
+            ],
+          ),
+          if (connected) ...[
+            Text(
+              '@${username ?? '-'} | $repos repositori | $commits kontribusi',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.secondarySlate,
+              ),
+            ),
+            if (langs.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: langs
+                    .map(
+                      (lang) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 4,
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Avatar & Name Row
-                        Row(
-                          children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryNavy,
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'A',
-                                  style: TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: const [
-                                      Text(
-                                        'Arya Pratama',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.darkSlate,
-                                        ),
-                                      ),
-                                      SizedBox(width: 6),
-                                      Icon(
-                                        Icons.verified_rounded,
-                                        color: AppColors.primaryNavy,
-                                        size: 18,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  const Text(
-                                    'Flutter Developer',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  const Text(
-                                    'Sistem Informasi \u00B7 UNESA',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                        decoration: BoxDecoration(
+                          color: AppColors.lightBlueSurface,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        const SizedBox(height: 14),
-
-                        // Bio
-                        const Text(
-                          'Mahasiswa Sistem Informasi yang suka membangun aplikasi mobile untuk usaha kecil.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.secondarySlate,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-
-                        // Social Links
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.canvasWhite,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: AppColors.borderSlate,
-                                ),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.business_center_rounded,
-                                    size: 14,
-                                    color: Color(0xFF0A66C2),
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'arya-pratama',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.darkSlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.canvasWhite,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: AppColors.borderSlate,
-                                ),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.terminal_rounded,
-                                    size: 14,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'aryapratama',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.darkSlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Stats Summary Row
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 14,
-                            horizontal: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.canvasWhite,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.borderSlate),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  children: const [
-                                    Text(
-                                      '4',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Proyek selesai',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 1,
-                                height: 28,
-                                color: AppColors.borderSlate,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  children: const [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.star_rounded,
-                                          size: 16,
-                                          color: AppColors.accentAmberGold,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          '4.9',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.darkSlate,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Rata-rata rating',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 1,
-                                height: 28,
-                                color: AppColors.borderSlate,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  children: const [
-                                    Text(
-                                      '96',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Jam kontribusi',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Action Buttons: Edit Profil & Bagikan CV
-                        Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.darkSlate,
-                                  side: const BorderSide(
-                                    color: AppColors.borderSlate,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoutes.editProfile,
-                                  );
-                                },
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.edit_rounded,
-                                      size: 15,
-                                      color: AppColors.darkSlate,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Edit Profil',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primaryNavy,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                                onPressed: _shareCV,
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Bagikan CV',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Icon(Icons.upload_rounded, size: 16),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 2. Quick Cards Grid (Sertifikat & Log Bimbingan)
-                  Row(
-                    children: [
-                      // Sertifikat Card
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.certificates,
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppColors.borderSlate),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.03,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 38,
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFEF3C7),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    Icons.military_tech_rounded,
-                                    color: AppColors.accentAmberGold,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'Sertifikat',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  '3 sertifikat',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.secondarySlate,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Log Bimbingan Card
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.bookingSession,
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppColors.borderSlate),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.03,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 38,
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.lightBlueSurface,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    Icons.menu_book_rounded,
-                                    color: AppColors.primaryNavy,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'Log Bimbingan',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  '5 sesi \u00B7 3.8 jam',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.secondarySlate,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 3. GitHub Integration Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.borderSlate),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkSlate.withValues(alpha: 0.03),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: const BoxDecoration(
-                                color: AppColors.canvasWhite,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.terminal_rounded,
-                                color: AppColors.darkSlate,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Expanded(
-                              child: Text(
-                                '@aryapratama \u00B7 12 repo \u00B7 baru saja',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: _syncGitHub,
-                              child: _isSyncing
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.north_east_rounded,
-                                      size: 16,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Multi-color language progress bar
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Row(
-                            children: const [
-                              Expanded(
-                                flex: 52,
-                                child: SizedBox(
-                                  height: 8,
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryNavy,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 2),
-                              Expanded(
-                                flex: 31,
-                                child: SizedBox(
-                                  height: 8,
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 2),
-                              Expanded(
-                                flex: 17,
-                                child: SizedBox(
-                                  height: 8,
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      color: AppColors.accentAmberGold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Language Legend Row
-                        Row(
-                          children: [
-                            _buildLegendItem('Dart 52%', AppColors.primaryNavy),
-                            const SizedBox(width: 14),
-                            _buildLegendItem(
-                              'PHP 31%',
-                              AppColors.secondarySlate,
-                            ),
-                            const SizedBox(width: 14),
-                            _buildLegendItem(
-                              'JavaScript 17%',
-                              AppColors.accentAmberGold,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 3 Stats Grid
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  children: const [
-                                    Text(
-                                      '12',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Repositori',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 1,
-                                height: 24,
-                                color: AppColors.borderSlate,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  children: const [
-                                    Text(
-                                      '284',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Commit 2025',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 1,
-                                height: 24,
-                                color: AppColors.borderSlate,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  children: const [
-                                    Text(
-                                      '3',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      'Repo disematkan',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        // Disconnect Link
-                        GestureDetector(
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Koneksi GitHub tetap aktif.'),
-                                backgroundColor: AppColors.darkSlate,
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Putuskan koneksi',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.secondarySlate,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 22),
-
-                  // 4. Section Header: Keahlian terverifikasi
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Keahlian terverifikasi',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () =>
-                            Navigator.pushNamed(context, AppRoutes.editProfile),
-                        child: const Text(
-                          'Kelola',
-                          style: TextStyle(
-                            fontSize: 13,
+                        child: Text(
+                          lang,
+                          style: const TextStyle(
+                            fontSize: 11,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primaryNavy,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
+                    )
+                    .toList(),
+              ),
+            ],
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: _isSyncingGithub ? null : _disconnectGithub,
+                child: const Text(
+                  'Putuskan GitHub',
+                  style: TextStyle(color: Color(0xFFB91C1C), fontSize: 12),
+                ),
+              ),
+            ),
+          ] else
+            const Text(
+              'Hubungkan akun GitHub untuk memvalidasi kontribusi kode secara otomatis.',
+              style: TextStyle(fontSize: 12.5, color: AppColors.secondarySlate),
+            ),
+        ],
+      ),
+    );
+  }
 
-                  // Card Keahlian terverifikasi (Radar Chart + Skill List)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
+  Widget _buildSkillsCard(List<Map<String, dynamic>> skills) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Keahlian Terverifikasi',
+                style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  await Navigator.pushNamed(context, AppRoutes.editProfile);
+                  if (mounted) _load();
+                },
+                child: const Text('Kelola'),
+              ),
+            ],
+          ),
+          if (skills.isEmpty)
+            const Text(
+              'Belum ada keahlian ditambahkan.',
+              style: TextStyle(fontSize: 12.5, color: AppColors.secondarySlate),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: skills.map((s) {
+                final id = (s['id'] as num?)?.toInt();
+                final verified = s['is_verified'] == true;
+                return InkWell(
+                  onTap: (!verified && id != null)
+                      ? () => _verifySkill(id)
+                      : null,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      color: verified
+                          ? AppColors.lightBlueSurface
+                          : AppColors.canvasWhite,
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: AppColors.borderSlate),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkSlate.withValues(alpha: 0.03),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
                     ),
-                    child: Column(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Custom Radar Chart Widget
-                        const SizedBox(
-                          height: 240,
-                          width: double.infinity,
-                          child: RadarChartWidget(),
+                        Icon(
+                          verified
+                              ? Icons.verified_rounded
+                              : Icons.add_task_rounded,
+                          size: 15,
+                          color: verified
+                              ? AppColors.primaryNavy
+                              : AppColors.secondarySlate,
                         ),
-                        const SizedBox(height: 16),
-                        const Divider(color: AppColors.borderSlate, height: 1),
-                        const SizedBox(height: 8),
-
-                        // Skill 1: Flutter \u00B7 Mahir
-                        _buildVerifiedSkillItem(
-                          leadingIconWidget: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFEF3C7),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.military_tech_rounded,
-                              color: AppColors.accentAmberGold,
-                              size: 22,
-                            ),
-                          ),
-                          title: 'Flutter \u00B7 Mahir',
-                          subtitle: 'Endorse Dimas Prasetyo \u00B7 2 proyek',
-                        ),
-                        const Divider(color: Color(0xFFF1F5F9), height: 1),
-
-                        // Skill 2: Laravel \u00B7 Menengah
-                        _buildVerifiedSkillItem(
-                          leadingIconWidget: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFDCFCE7),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.check_circle_outline_rounded,
-                              color: Color(0xFF16A34A),
-                              size: 22,
-                            ),
-                          ),
-                          title: 'Laravel \u00B7 Menengah',
-                          subtitle: 'Divalidasi 2 proyek UMKM',
-                        ),
-                        const Divider(color: Color(0xFFF1F5F9), height: 1),
-
-                        // Skill 3: MySQL \u00B7 Menengah
-                        _buildVerifiedSkillItem(
-                          leadingIconWidget: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFDCFCE7),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.check_circle_outline_rounded,
-                              color: Color(0xFF16A34A),
-                              size: 22,
-                            ),
-                          ),
-                          title: 'MySQL \u00B7 Menengah',
-                          subtitle: 'Divalidasi Warung Pak Gito',
-                        ),
-                        const Divider(color: Color(0xFFF1F5F9), height: 1),
-
-                        // Skill 4: Dart \u00B7 Mahir
-                        _buildVerifiedSkillItem(
-                          leadingIconWidget: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFEFF6FF),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.code_rounded,
-                              color: AppColors.primaryNavy,
-                              size: 20,
-                            ),
-                          ),
-                          title: 'Dart \u00B7 Mahir',
-                          subtitle: '7 repositori di GitHub',
-                        ),
-                        const Divider(color: Color(0xFFF1F5F9), height: 1),
-
-                        // Skill 5: Figma \u00B7 Dasar (Belum ada bukti)
-                        _buildVerifiedSkillItem(
-                          leadingIconWidget: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFF1F5F9),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.help_outline_rounded,
-                              color: AppColors.secondarySlate,
-                              size: 20,
-                            ),
-                          ),
-                          title: 'Figma \u00B7 Dasar',
-                          subtitle: 'Belum ada bukti terverifikasi',
-                          trailingWidget: GestureDetector(
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Unggah portofolio Figma untuk verifikasi.',
-                                  ),
-                                  backgroundColor: AppColors.darkSlate,
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Verifikasi',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryNavy,
-                              ),
-                            ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${s['name']} (${s['score']}%)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: verified
+                                ? AppColors.primaryNavy
+                                : AppColors.darkSlate,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                );
+              }).toList(),
+            ),
+        ],
+      ),
+    );
+  }
 
-                  // 5. Section Header: Proyek terverifikasi
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildQuickLinksRow() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _quickCard(
+                icon: Icons.workspace_premium_rounded,
+                title: 'Sertifikat Saya',
+                subtitle: 'Lencana proyek & mentor',
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.certificates),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _quickCard(
+                icon: Icons.history_edu_rounded,
+                title: 'Log Bimbingan',
+                subtitle: 'Riwayat & evaluasi',
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.logBimbingan),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        InkWell(
+          onTap: () => Navigator.pushNamed(context, AppRoutes.switchToMentor),
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primaryNavy,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Row(
+              children: [
+                Icon(
+                  Icons.school_rounded,
+                  color: AppColors.accentAmberGold,
+                  size: 24,
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Proyek terverifikasi',
+                      Text(
+                        'Beralih Menjadi Peer Mentor',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 14.5,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
+                          color: Colors.white,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () =>
-                            Navigator.pushNamed(context, AppRoutes.myProjects),
-                        child: const Text(
-                          'Semua',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryNavy,
-                          ),
+                      Text(
+                        'Syarat minimal 5 proyek selesai & reputasi baik',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFDBEAFE),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-                  // Project Card 1: Sistem reservasi meja
-                  _buildProjectCard(
-                    title: 'Sistem reservasi meja',
-                    subtitle: 'Warung Pak Gito \u00B7 3 minggu',
-                    rating: '5.0',
-                    tags: ['Laravel', 'MySQL'],
-                  ),
+  Widget _quickCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderSlate),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: AppColors.primaryNavy, size: 22),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11.5,
+                color: AppColors.secondarySlate,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                  // Project Card 2: Katalog digital produk
-                  _buildProjectCard(
-                    title: 'Katalog digital produk',
-                    subtitle: 'Kerajinan Anyam Ayu \u00B7 2 minggu',
-                    rating: '4.8',
-                    tags: ['Flutter', 'Firebase'],
-                  ),
-
-                  // Project Card 3: Landing page promo
-                  _buildProjectCard(
-                    title: 'Landing page promo',
-                    subtitle: 'Laundry Bersih \u00B7 6 hari',
-                    rating: '4.9',
-                    tags: ['Figma', 'HTML'],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 6. Kartu Sesi Akun & Logout
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFFEE2E2)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkSlate.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+  Widget _buildEndorsementsCard(List<Map<String, dynamic>> endorsements) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Rekomendasi Mentor',
+            style: TextStyle(
+              fontSize: 15.5,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...endorsements.map((item) {
+            final enrollmentId = (item['enrollment_id'] as num?)?.toInt();
+            return InkWell(
+              onTap: enrollmentId == null
+                  ? null
+                  : () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.mentoringResult,
+                      arguments: MentoringEnrollmentArgs(
+                        enrollmentId: enrollmentId,
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${item['mentor_name']} (Skor ${item['score'] ?? '-'})',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      (item['notes'] as String?) ?? '',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProjectsSection(List<Map<String, dynamic>> projects) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Studi Kasus Proyek Terverifikasi',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkSlate,
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (projects.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.cardSurface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.borderSlate),
+            ),
+            child: const Text(
+              'Selesaikan proyek UMKM atau validasi bimbingan mentor untuk mengisi portofolio terverifikasi Anda.',
+              style: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+            ),
+          )
+        else
+          ...projects.map((p) {
+            final id = (p['id'] as num?)?.toInt();
+            final tags = (p['tags'] as List? ?? const [])
+                .map((e) => e.toString())
+                .take(3)
+                .toList();
+            return InkWell(
+              onTap: id == null
+                  ? null
+                  : () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.caseStudy,
+                      arguments: CaseStudyArgs(portfolioId: id),
+                    ),
+              borderRadius: BorderRadius.circular(18),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.cardSurface,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.borderSlate),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        const Text(
-                          'Sesi Akun Mahasiswa',
-                          style: TextStyle(
-                            fontSize: 15,
+                        Expanded(
+                          child: Text(
+                            (p['title'] as String?) ?? 'Portofolio Proyek',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.star_rounded,
+                          color: AppColors.accentAmberGold,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          '${p['rating'] ?? 5.0}',
+                          style: const TextStyle(
+                            fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.darkSlate,
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Keluar dari sesi akun mahasiswa jika Anda ingin berganti akun atau beralih ke peran Mitra UMKM / Mentor.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.secondarySlate,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        GestureDetector(
-                          onTap: () => _showLogoutConfirmation(context),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF2F2),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFFCA5A5),
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.logout_rounded,
-                                  color: Color(0xFFDC2626),
-                                  size: 18,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Keluar dari Akun Mahasiswa',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFDC2626),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      '${p['client_name'] ?? 'UMKM'} | ${p['role_title'] ?? 'Kontributor'}',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                    if (tags.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: tags
+                            .map(
+                              (t) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.canvasWhite,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  t,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.darkSlate,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          }),
+      ],
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.work_outline_rounded,
+              size: 46,
+              color: AppColors.secondarySlate,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _error ?? 'Terjadi kesalahan',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13.5,
+                color: AppColors.secondarySlate,
               ),
             ),
-          ),
-
-          // Bottom Floating Navigation
-          _buildBottomNavFloating(context),
-        ],
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _load,
+                child: const Text('Coba Lagi'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class RadarChartWidget extends StatelessWidget {
-  const RadarChartWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(painter: _RadarChartPainter());
-  }
-}
-
 class _RadarChartPainter extends CustomPainter {
-  final List<String> labels = [
-    'Flutter',
-    'Laravel',
-    'UI Design',
-    'Database',
-    'Komunikasi',
-    'Testing',
-  ];
+  _RadarChartPainter({required this.metrics});
 
-  // Normalized values (0.0 to 1.0)
-  final List<double> values = [
-    0.92, // Flutter
-    0.70, // Laravel
-    0.65, // UI Design
-    0.75, // Database
-    0.88, // Komunikasi
-    0.60, // Testing
-  ];
+  final List<Map<String, dynamic>> metrics;
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (metrics.length < 3) return;
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = math.min(size.width / 2 - 45, size.height / 2 - 35);
-    final count = labels.length;
+    final radius = math.min(size.width, size.height) * 0.34;
+    final count = metrics.length;
+    final step = (2 * math.pi) / count;
 
-    // Grid paint
     final gridPaint = Paint()
-      ..color = const Color(0xFFE2E8F0)
+      ..color = AppColors.borderSlate
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+      ..strokeWidth = 1;
 
-    // Concentric Web Polygons
-    const int rings = 3;
-    for (int r = 1; r <= rings; r++) {
-      final ringRadius = radius * (r / rings);
-      final ringPath = Path();
-      for (int i = 0; i < count; i++) {
-        final angle = -math.pi / 2 + i * (2 * math.pi / count);
-        final x = center.dx + ringRadius * math.cos(angle);
-        final y = center.dy + ringRadius * math.sin(angle);
+    for (var ring = 1; ring <= 4; ring++) {
+      final r = radius * (ring / 4);
+      final path = Path();
+      for (var i = 0; i < count; i++) {
+        final angle = -math.pi / 2 + step * i;
+        final pt = Offset(
+          center.dx + r * math.cos(angle),
+          center.dy + r * math.sin(angle),
+        );
         if (i == 0) {
-          ringPath.moveTo(x, y);
+          path.moveTo(pt.dx, pt.dy);
         } else {
-          ringPath.lineTo(x, y);
+          path.lineTo(pt.dx, pt.dy);
         }
       }
-      ringPath.close();
-      canvas.drawPath(ringPath, gridPaint);
+      path.close();
+      canvas.drawPath(path, gridPaint);
     }
 
-    // Radial Spokes
-    for (int i = 0; i < count; i++) {
-      final angle = -math.pi / 2 + i * (2 * math.pi / count);
-      final x = center.dx + radius * math.cos(angle);
-      final y = center.dy + radius * math.sin(angle);
-      canvas.drawLine(center, Offset(x, y), gridPaint);
-    }
-
-    // Shaded Value Polygon
     final valuePath = Path();
-    final List<Offset> valuePoints = [];
-
-    for (int i = 0; i < count; i++) {
-      final angle = -math.pi / 2 + i * (2 * math.pi / count);
-      final valRadius = radius * values[i];
-      final x = center.dx + valRadius * math.cos(angle);
-      final y = center.dy + valRadius * math.sin(angle);
-      final pt = Offset(x, y);
-      valuePoints.add(pt);
+    for (var i = 0; i < count; i++) {
+      final score = ((metrics[i]['score'] as num?)?.toDouble() ?? 60.0).clamp(
+        0.0,
+        100.0,
+      );
+      final r = radius * (score / 100.0);
+      final angle = -math.pi / 2 + step * i;
+      final pt = Offset(
+        center.dx + r * math.cos(angle),
+        center.dy + r * math.sin(angle),
+      );
       if (i == 0) {
-        valuePath.moveTo(x, y);
+        valuePath.moveTo(pt.dx, pt.dy);
       } else {
-        valuePath.lineTo(x, y);
+        valuePath.lineTo(pt.dx, pt.dy);
       }
+
+      final labelPos = Offset(
+        center.dx + (radius + 22) * math.cos(angle),
+        center.dy + (radius + 16) * math.sin(angle),
+      );
+      final tp = TextPainter(
+        text: TextSpan(
+          text: '${metrics[i]['label']}',
+          style: const TextStyle(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w600,
+            color: AppColors.darkSlate,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, labelPos - Offset(tp.width / 2, tp.height / 2));
     }
     valuePath.close();
 
-    // Fill paint
-    final fillPaint = Paint()
-      ..color = AppColors.primaryNavy.withValues(alpha: 0.15)
-      ..style = PaintingStyle.fill;
-    canvas.drawPath(valuePath, fillPaint);
-
-    // Stroke paint
-    final strokePaint = Paint()
-      ..color = AppColors.primaryNavy
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-    canvas.drawPath(valuePath, strokePaint);
-
-    // Vertex dots
-    final dotPaint = Paint()
-      ..color = AppColors.primaryNavy
-      ..style = PaintingStyle.fill;
-    final dotBorderPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    for (final pt in valuePoints) {
-      canvas.drawCircle(pt, 4.5, dotPaint);
-      canvas.drawCircle(pt, 4.5, dotBorderPaint);
-    }
-
-    // Text labels around vertices
-    for (int i = 0; i < count; i++) {
-      final angle = -math.pi / 2 + i * (2 * math.pi / count);
-      final labelRadius = radius + 18;
-      final lx = center.dx + labelRadius * math.cos(angle);
-      final ly = center.dy + labelRadius * math.sin(angle);
-
-      final textSpan = TextSpan(
-        text: labels[i],
-        style: const TextStyle(
-          color: AppColors.darkSlate,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      );
-      final tp = TextPainter(
-        text: textSpan,
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      );
-      tp.layout();
-
-      // Adjust offset based on position relative to center
-      double ox = lx - tp.width / 2;
-      double oy = ly - tp.height / 2;
-
-      // Small adjustment for vertical edges
-      if (i == 0) {
-        oy -= 4; // Top
-      } else if (i == 3) {
-        oy += 4; // Bottom
-      }
-
-      tp.paint(canvas, Offset(ox, oy));
-    }
+    canvas.drawPath(
+      valuePath,
+      Paint()
+        ..color = AppColors.primaryNavy.withValues(alpha: 0.22)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawPath(
+      valuePath,
+      Paint()
+        ..color = AppColors.primaryNavy
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _RadarChartPainter oldDelegate) =>
+      oldDelegate.metrics != metrics;
 }

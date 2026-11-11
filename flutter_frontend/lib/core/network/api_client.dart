@@ -110,6 +110,9 @@ class ApiClient {
     await _send('DELETE', path);
   }
 
+  Future<Map<String, dynamic>> sendDeleteWithResponse(String path) =>
+      _send('DELETE', path);
+
   Future<void> saveSession({
     required String token,
     required Map<String, dynamic> user,

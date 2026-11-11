@@ -1,269 +1,288 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/workspace/data/workspace_api.dart';
 
-class InboxScreen extends StatelessWidget {
-  const InboxScreen({super.key});
+class InboxScreen extends StatefulWidget {
+  const InboxScreen({super.key, this.workspaceApi});
 
-  Widget _buildChatItem(
-    BuildContext context,
-    String name,
-    String message,
-    String time,
-    int unreadCount,
-    Color avatarColor,
-    IconData icon,
-  ) {
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.workspaceChat),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.darkBrown.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: avatarColor.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: avatarColor, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: AppColors.darkBrown,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        time,
-                        style: TextStyle(
-                          color: unreadCount > 0
-                              ? AppColors.primaryTan
-                              : Colors.grey,
-                          fontSize: 12,
-                          fontWeight: unreadCount > 0
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          message,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: unreadCount > 0
-                                ? AppColors.darkBrown
-                                : Colors.grey.shade600,
-                            fontWeight: unreadCount > 0
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      if (unreadCount > 0)
-                        Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: AppColors.primaryTan,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            unreadCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  final WorkspaceApi? workspaceApi;
+
+  @override
+  State<InboxScreen> createState() => _InboxScreenState();
+}
+
+class _InboxScreenState extends State<InboxScreen> {
+  late final WorkspaceApi _api = widget.workspaceApi ?? WorkspaceApi.instance;
+
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+  bool _isLoading = true;
+  String? _error;
+  List<Map<String, dynamic>> _threads = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final rows = await _api.inbox(query: _searchController.text);
+      if (!mounted) return;
+      setState(() {
+        _threads = rows;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat kotak pesan.';
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.warmOffWhite,
+      backgroundColor: AppColors.canvasWhite,
+      appBar: AppBar(
+        backgroundColor: AppColors.canvasWhite,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.keyboard_arrow_left_rounded,
+            color: AppColors.darkSlate,
+            size: 28,
+          ),
+        ),
+        title: const Text(
+          'Kotak Pesan',
+          style: TextStyle(
+            color: AppColors.darkSlate,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkBrown.withValues(alpha: 0.05),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.warmOffWhite,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_left_rounded,
-                        color: AppColors.darkBrown,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Text(
-                    'Inbox',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkBrown,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          child: Column(
+            children: [
+              Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderSlate),
                 ),
-                child: Row(
-                  children: [
-                    Icon(
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (_) {
+                    _debounce?.cancel();
+                    _debounce = Timer(const Duration(milliseconds: 300), _load);
+                  },
+                  decoration: const InputDecoration(
+                    hintText: 'Cari pesan atau nama mitra / mentor...',
+                    hintStyle: TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 13.5,
+                    ),
+                    prefixIcon: Icon(
                       Icons.search_rounded,
-                      color: Colors.grey.shade400,
-                      size: 20,
+                      color: AppColors.secondarySlate,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Search messages...',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Colors.grey.shade400),
-                      ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 14,
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _error != null
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_error!),
+                            const SizedBox(height: 12),
+                            FilledButton(
+                              onPressed: _load,
+                              child: const Text('Coba lagi'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _threads.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'Belum ada percakapan aktif dengan UMKM atau Mentor.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.secondarySlate),
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _load,
+                        child: ListView.separated(
+                          itemCount: _threads.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 10),
+                          itemBuilder: (context, index) {
+                            final item = _threads[index];
+                            final type = item['thread_type'] as String?;
+                            final refId =
+                                (item['reference_id'] as num?)?.toInt();
+                            final unread =
+                                (item['unread_count'] as num?)?.toInt() ?? 0;
 
-            // Chat List
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  const Text(
-                    'Active Projects',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildChatItem(
-                    context,
-                    'Toko Makmur (E-Commerce)',
-                    'Bro, desain bannernya udah jadi?',
-                    '10:42 AM',
-                    2,
-                    const Color(0xFF1976D2),
-                    Icons.store_rounded,
-                  ),
-                  _buildChatItem(
-                    context,
-                    'PT Angkasa (Company Profile)',
-                    'Tolong revisi fontnya dikit ya.',
-                    'Yesterday',
-                    0,
-                    const Color(0xFF388E3C),
-                    Icons.business_rounded,
-                  ),
-
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Mentors',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildChatItem(
-                    context,
-                    'Budi Santoso',
-                    'Besok kita mulai sesi jam 8 pagi ya.',
-                    'Yesterday',
-                    1,
-                    const Color(0xFF7B1FA2),
-                    Icons.person_rounded,
-                  ),
-                ],
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(18),
+                              onTap: refId == null
+                                  ? null
+                                  : () {
+                                      if (type == 'mentor') {
+                                        Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.mentorChat,
+                                          arguments: MentoringEnrollmentArgs(
+                                            enrollmentId: refId,
+                                          ),
+                                        );
+                                      } else {
+                                        Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.workspaceChat,
+                                          arguments: ProjectRouteArgs(
+                                            projectId: refId,
+                                          ),
+                                        );
+                                      }
+                                    },
+                              child: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: AppColors.borderSlate,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 22,
+                                      backgroundColor: AppColors.lightBlueSurface,
+                                      child: Icon(
+                                        type == 'mentor'
+                                            ? Icons.school_rounded
+                                            : Icons.storefront_rounded,
+                                        color: AppColors.primaryNavy,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            (item['partner_name'] as String?) ??
+                                                '',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14.5,
+                                              color: AppColors.darkSlate,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            (item['subtitle'] as String?) ?? '',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 11.5,
+                                              color: AppColors.primaryNavy,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            (item['last_message'] as String?) ??
+                                                '',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 12.5,
+                                              color: AppColors.secondarySlate,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (unread > 0)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryNavy,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          '$unread',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

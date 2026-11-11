@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
 
 class StudentSetupProfileScreen extends StatefulWidget {
   const StudentSetupProfileScreen({super.key});
@@ -12,10 +16,14 @@ class StudentSetupProfileScreen extends StatefulWidget {
 
 class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
   final TextEditingController _nimController = TextEditingController();
+  final TextEditingController _majorController = TextEditingController(
+    text: 'S1 Sistem Informasi',
+  );
   String _selectedUniversity = 'Universitas Negeri Surabaya';
   bool _agreedToPrivacy = false;
   bool _isUploading = false;
   String? _uploadedFileName;
+  Uint8List? _ktmBytes;
 
   final List<String> _universities = [
     'Universitas Negeri Surabaya',
@@ -29,6 +37,7 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
   @override
   void dispose() {
     _nimController.dispose();
+    _majorController.dispose();
     super.dispose();
   }
 
@@ -93,21 +102,50 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
     );
   }
 
-  void _simulateUploadKtm() {
-    setState(() {
-      _isUploading = true;
-    });
-    Future.delayed(const Duration(milliseconds: 1000), () {
+  Future<void> _pickKtmFile() async {
+    setState(() => _isUploading = true);
+    try {
+      final file = await FilePicker.pickFile(
+        dialogTitle: 'Pilih Berkas KTM',
+        type: FileType.custom,
+        allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      if (bytes.lengthInBytes > 5 * 1024 * 1024) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ukuran berkas KTM maksimal 5 MB.'),
+              backgroundColor: AppColors.darkSlate,
+            ),
+          );
+        }
+        return;
+      }
       if (mounted) {
         setState(() {
-          _isUploading = false;
-          _uploadedFileName = 'KTM_24051214017.jpg';
+          _uploadedFileName = file.name;
+          _ktmBytes = bytes;
         });
       }
-    });
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
   }
 
   void _onSubmit() {
+    final nim = _nimController.text.trim();
+    final major = _majorController.text.trim();
+    if (nim.isEmpty || major.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Isi Program Studi dan NIM mahasiswa terlebih dahulu.'),
+          backgroundColor: AppColors.darkSlate,
+        ),
+      );
+      return;
+    }
     if (!_agreedToPrivacy) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -120,7 +158,17 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
       return;
     }
 
-    Navigator.pushNamed(context, AppRoutes.studentSetupProfileStep2);
+    Navigator.pushNamed(
+      context,
+      AppRoutes.studentSetupProfileStep2,
+      arguments: StudentSetupArgs(
+        university: _selectedUniversity,
+        major: major,
+        studentIdNumber: nim,
+        ktmFileName: _uploadedFileName,
+        ktmBytes: _ktmBytes,
+      ),
+    );
   }
 
   @override
@@ -281,7 +329,51 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
 
                     const SizedBox(height: 20),
 
-                    // Field 2: NIM
+                    // Field 2: Program Studi
+                    const Text(
+                      'Program Studi',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: TextField(
+                        controller: _majorController,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.darkSlate,
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: 'Contoh: S1 Sistem Informasi',
+                          hintStyle: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 14,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.school_outlined,
+                            color: AppColors.secondarySlate,
+                            size: 20,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Field 3: NIM
                     const Text(
                       'NIM',
                       style: TextStyle(
@@ -337,7 +429,7 @@ class _StudentSetupProfileScreenState extends State<StudentSetupProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     GestureDetector(
-                      onTap: _simulateUploadKtm,
+                      onTap: _pickKtmFile,
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(

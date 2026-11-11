@@ -40,6 +40,34 @@ class TimeCoinLedgerService
         $this->record($mentorWallet, $studentId, $mentorId, 'mentoring_payment', 'credit', 'balance', $amount, $reference);
     }
 
+    public function recordTopUp(TimeCoinWallet $wallet, int $userId, int $amount, Model $reference): void
+    {
+        $wallet->increment('balance', $amount);
+        $this->record($wallet, null, $userId, 'top_up', 'credit', 'balance', $amount, $reference);
+    }
+
+    public function transferBetweenUsers(
+        TimeCoinWallet $senderWallet,
+        TimeCoinWallet $recipientWallet,
+        int $senderId,
+        int $recipientId,
+        int $amount,
+        Model $reference,
+    ): void {
+        abort_if($senderWallet->balance < $amount, 422, 'Saldo TimeCoin tidak mencukupi untuk transfer.');
+        $senderWallet->decrement('balance', $amount);
+        $recipientWallet->increment('balance', $amount);
+        $this->record($senderWallet, $senderId, $recipientId, 'p2p_transfer', 'debit', 'balance', $amount, $reference);
+        $this->record($recipientWallet, $senderId, $recipientId, 'p2p_transfer', 'credit', 'balance', $amount, $reference);
+    }
+
+    public function redeemReward(TimeCoinWallet $wallet, int $studentId, int $amount, Model $reference): void
+    {
+        abort_if($wallet->balance < $amount, 422, 'Saldo TimeCoin tidak mencukupi untuk menukar reward.');
+        $wallet->decrement('balance', $amount);
+        $this->record($wallet, $studentId, $studentId, 'voucher_redeem', 'debit', 'balance', $amount, $reference);
+    }
+
     private function assertEscrowBalance(TimeCoinWallet $wallet, int $amount): void
     {
         abort_if($wallet->locked_balance < $amount, 409, 'Saldo escrow tidak sesuai dengan booking.');
@@ -47,7 +75,7 @@ class TimeCoinLedgerService
 
     private function record(
         TimeCoinWallet $wallet,
-        int $senderId,
+        ?int $senderId,
         int $recipientId,
         string $type,
         string $direction,

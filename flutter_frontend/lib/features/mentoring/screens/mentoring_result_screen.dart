@@ -1,1578 +1,807 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/mentoring/data/student_mentoring_api.dart';
 
 class MentoringResultScreen extends StatefulWidget {
-  const MentoringResultScreen({super.key});
+  const MentoringResultScreen({
+    super.key,
+    this.enrollmentId,
+    this.mentoringApi,
+  });
+
+  final int? enrollmentId;
+  final StudentMentoringApi? mentoringApi;
 
   @override
   State<MentoringResultScreen> createState() => _MentoringResultScreenState();
 }
 
 class _MentoringResultScreenState extends State<MentoringResultScreen> {
-  bool _isEscrowReleased = false;
+  late final StudentMentoringApi _api =
+      widget.mentoringApi ?? StudentMentoringApi.instance;
 
-  // Action Items Checklist State
-  final List<Map<String, dynamic>> _actionItems = [
-    {
-      'title': 'Rapikan spacing & auto-layout pada 6 layar checkout',
-      'tag': 'Selesai',
-      'tagColor': const Color(0xFF16A34A),
-      'tagBg': const Color(0xFFDCFCE7),
-      'isCompleted': true,
-      'isExpanded': false,
-      'detail': 'Pastikan margin horizontal konsisten 24px dan skala tipografi mengikuti standar Plus Jakarta Sans.',
-    },
-    {
-      'title': 'Tambahkan metrik estimasi peningkatan konversi UMKM',
-      'tag': 'Prioritas tinggi',
-      'tagColor': const Color(0xFFDC2626),
-      'tagBg': const Color(0xFFFEE2E2),
-      'isCompleted': false,
-      'isExpanded': true, // Expanded by default according to Figma
-      'detail': 'Sertakan kalkulasi perkiraan kenaikan transaksi berdasarkan benchmark lokal.',
-    },
-    {
-      'title': 'Seragamkan ikon sesuai Material Rounded',
-      'tag': 'Konsistensi',
-      'tagColor': AppColors.secondarySlate,
-      'tagBg': const Color(0xFFF1F5F9),
-      'isCompleted': false,
-      'isExpanded': false,
-      'detail': 'Gunakan 100% native Material Icons Rounded (Icons.<name>_rounded) tanpa emoji atau stiker 3D.',
-    },
-    {
-      'title': 'Ekspor PDF portofolio 1 lembar untuk lampiran tender',
-      'tag': 'Siap kirim',
-      'tagColor': AppColors.secondarySlate,
-      'tagBg': const Color(0xFFF1F5F9),
-      'isCompleted': false,
-      'isExpanded': false,
-      'detail': 'Format ringkas satu halaman berisi problem, wireframe, solusi, dan hasil validasi UMKM.',
-    },
-  ];
+  bool _argsParsed = false;
+  int? _routeEnrollmentId;
+  int? _resolvedEnrollmentId;
+  bool _isLoading = true;
+  String? _error;
+  Map<String, dynamic> _enrollment = const {};
+  List<Map<String, dynamic>> _actionItems = const [];
+  final Set<int> _expandedIds = {};
 
-  void _releaseEscrow() {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: const BoxDecoration(
-                color: Color(0xFFDCFCE7),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  color: Color(0xFF16A34A),
-                  size: 34,
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Escrow Berhasil Dilepas!',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkSlate,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '30 TC telah ditransfer ke Dimas Prasetyo. Portofolio kamu kini berstatus Terverifikasi Siap Tender!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.secondarySlate,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: () {
-                Navigator.pop(dialogContext); // Close dialog
-                setState(() {
-                  _isEscrowReleased = true;
-                });
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.studentDashboard,
-                  (route) => false,
-                );
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryNavy,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Center(
-                  child: Text(
-                    'Kembali ke Dashboard',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_argsParsed) return;
+    _argsParsed = true;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is MentoringEnrollmentArgs) {
+      _routeEnrollmentId = args.enrollmentId;
+    }
+    _load();
   }
 
-  Widget _buildScoreBox({
-    required String title,
-    required int score,
-    required String grade,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      var targetId = widget.enrollmentId ?? _routeEnrollmentId;
+      if (targetId == null) {
+        final mine = await _api.myEnrollments();
+        if (mine.isEmpty) {
+          throw const ApiException('Belum ada evaluasi bimbingan tersedia.');
+        }
+        final prioritized = mine.firstWhere(
+          (e) =>
+              e['status'] == 'pending_confirmation' ||
+              e['status'] == 'completed',
+          orElse: () => mine.first,
+        );
+        targetId = (prioritized['id'] as num?)?.toInt();
+      }
+      if (targetId == null) {
+        throw const ApiException('Evaluasi sesi tidak ditemukan.');
+      }
+      final detail = await _api.enrollmentDetail(targetId);
+      final items = (detail['action_items'] as List? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+
+      if (!mounted) return;
+      setState(() {
+        _resolvedEnrollmentId = targetId;
+        _enrollment = detail;
+        _actionItems = items;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat hasil evaluasi bimbingan.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleActionItem(int idx) async {
+    final enrollmentId = _resolvedEnrollmentId;
+    if (enrollmentId == null) return;
+    final item = _actionItems[idx];
+    final itemId = (item['id'] as num?)?.toInt();
+    if (itemId == null) return;
+
+    final previous = item['is_completed'] == true;
+    setState(() {
+      _actionItems[idx]['is_completed'] = !previous;
+    });
+    try {
+      final updated = await _api.toggleActionItem(enrollmentId, itemId);
+      if (!mounted) return;
+      setState(() {
+        _actionItems[idx]['is_completed'] = updated['is_completed'] == true;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _actionItems[idx]['is_completed'] = previous;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: const Color(0xFFB91C1C),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 10,
-                color: AppColors.secondarySlate,
-                fontWeight: FontWeight.w500,
-              ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _actionItems[idx]['is_completed'] = previous;
+      });
+    }
+  }
+
+  List<({String label, int score})> _parseRubricScores() {
+    final raw = _enrollment['rubric_scores'];
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map(
+            (e) => (
+              label: (e['label'] ?? e['aspect'] ?? 'Aspek').toString(),
+              score: (e['score'] as num?)?.toInt() ?? 0,
             ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Text(
-                  '$score',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkSlate,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    grade,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryNavy,
-                    ),
-                  ),
-                ),
-              ],
+          )
+          .toList();
+    }
+    if (raw is Map) {
+      return raw.entries
+          .map(
+            (e) => (
+              label: e.key.toString(),
+              score: (e.value as num?)?.toInt() ?? 0,
             ),
-            const SizedBox(height: 8),
-            // Blue Progress Bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: score / 100,
-                minHeight: 4,
-                backgroundColor: const Color(0xFFE2E8F0),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.primaryNavy,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+          )
+          .toList();
+    }
+    return const [];
   }
 
   @override
   Widget build(BuildContext context) {
-    final completedCount = _actionItems
-        .where((item) => item['isCompleted'] == true)
-        .length;
-    final totalCount = _actionItems.length;
+    final classData =
+        (_enrollment['class'] as Map<String, dynamic>?) ?? const {};
+    final mentorName = (classData['mentor_name'] as String?) ?? 'Mentor';
+    final topic =
+        (_enrollment['topic_focus'] as String?) ??
+        (classData['topic'] as String?) ??
+        'Hasil Bimbingan';
+    final status = (_enrollment['status'] as String?) ?? 'accepted';
+    final score = (_enrollment['assessment_score'] as num?)?.toInt();
+    final paidTc = (_enrollment['paid_tc'] as num?)?.toInt() ?? 0;
+    final hasEndorsement = _enrollment['has_endorsement'] == true;
+    final rubric = _parseRubricScores();
 
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
-      body: Stack(
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryNavy,
+                      ),
+                    )
+                  : _error != null
+                  ? _buildError()
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      color: AppColors.primaryNavy,
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+                        children: [
+                          _buildScoreCard(
+                            mentorName: mentorName,
+                            topic: topic,
+                            score: score,
+                            status: status,
+                            hasEndorsement: hasEndorsement,
+                            endorsementNotes:
+                                _enrollment['endorsement_notes'] as String?,
+                          ),
+                          if (rubric.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            _buildRubricSection(rubric),
+                          ],
+                          const SizedBox(height: 16),
+                          _buildFeedbackCard(
+                            (_enrollment['mentor_feedback'] as String?) ??
+                                'Mentor belum menambahkan ringkasan evaluasi tertulis.',
+                          ),
+                          const SizedBox(height: 16),
+                          _buildActionItemsSection(),
+                          const SizedBox(height: 20),
+                          _buildBottomAction(status, paidTc),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      child: Row(
         children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 120),
-              child: Column(
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: AppColors.darkSlate,
+                size: 24,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Lembar Evaluasi Mentoring',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoreCard({
+    required String mentorName,
+    required String topic,
+    required int? score,
+    required String status,
+    required bool hasEndorsement,
+    String? endorsementNotes,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.primaryNavy,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      topic,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Mentor: $mentorName',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFFDBEAFE),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      score != null ? '$score' : '-',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.accentAmberGold,
+                      ),
+                    ),
+                    const Text(
+                      'Skor',
+                      style: TextStyle(fontSize: 11, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (hasEndorsement) ...[
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Top Bar: Back, Title, Share & Download
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 16.0,
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.05,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.keyboard_arrow_left_rounded,
-                                color: AppColors.darkSlate,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Hasil Bimbingan',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Evaluasi & action plan',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondarySlate,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.05,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.share_rounded,
-                              color: AppColors.darkSlate,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.05,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.download_rounded,
-                              color: AppColors.darkSlate,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  const Icon(
+                    Icons.verified_rounded,
+                    color: AppColors.accentAmberGold,
+                    size: 20,
                   ),
-
-                  // 2. Mentor Header Card with Escrow Alert
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.05),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  color: const Color(0xFFEFF6FF),
-                                  child: Image.network(
-                                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            const Center(
-                                              child: Text(
-                                                'DP',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.primaryNavy,
-                                                ),
-                                              ),
-                                            ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Dimas Prasetyo',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.darkSlate,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFEFF6FF),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'Verified Mentor',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    const Text(
-                                      'Senior Flutter Engineer',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.folder_open_rounded,
-                                          size: 13,
-                                          color: AppColors.primaryNavy,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Kurasi portofolio tender UMKM',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.darkSlate,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 14),
-
-                          // Escrow Alert Box (Amber Tint)
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFFBEB),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: const Color(0xFFFEF3C7),
-                              ),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(
-                                  Icons.lock_clock_rounded,
-                                  color: Color(0xFFD97706),
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: RichText(
-                                    text: TextSpan(
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.darkSlate,
-                                        height: 1.4,
-                                      ),
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Escrow bimbingan: 30 TC. ',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: _isEscrowReleased
-                                              ? 'Dana telah berhasil dialihkan ke mentor.'
-                                              : 'Menunggu konfirmasi kepuasanmu sebelum dana dialihkan ke mentor.',
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // 3. Evaluasi Nilai Card
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.05),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Text(
-                                'Evaluasi nilai',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFDCFCE7),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'Lolos kurasi',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF16A34A),
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: [
-                                  const Text(
-                                    '88',
-                                    style: TextStyle(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primaryNavy,
-                                    ),
-                                  ),
-                                  Text(
-                                    '/100',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // 3 Score Columns
-                          Row(
-                            children: [
-                              _buildScoreBox(
-                                title: 'Visual & desain',
-                                score: 92,
-                                grade: 'A+',
-                              ),
-                              const SizedBox(width: 8),
-                              _buildScoreBox(
-                                title: 'UX flow',
-                                score: 85,
-                                grade: 'A',
-                              ),
-                              const SizedBox(width: 8),
-                              _buildScoreBox(
-                                title: 'Bisnis UMKM',
-                                score: 87,
-                                grade: 'A',
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 14),
-
-                          // Footnote
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.shield_rounded,
-                                    size: 14,
-                                    color: Color(0xFF16A34A),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Standar kurasi siap tender',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                'Terverifikasi 24 Jun 2025',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.secondarySlate,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // 4. Luaran & Hasil Bimbingan Section (4 Deliverable from User Screenshots 2 & 3)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  const SizedBox(width: 8),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Luaran & hasil bimbingan',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.darkSlate,
-                              ),
+                        const Text(
+                          'Badge Rekomendasi Mentor Tersemat',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        if (endorsementNotes != null &&
+                            endorsementNotes.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            endorsementNotes,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFFDBEAFE),
                             ),
-                            Text(
-                              '4 deliverable',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.secondarySlate,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Deliverable Card 1: Portofolio terverifikasi mentor
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.04,
-                                ),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEFF6FF),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.verified_rounded,
-                                        color: AppColors.primaryNavy,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            const Expanded(
-                                              child: Text(
-                                                'Portofolio terverifikasi mentor',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.darkSlate,
-                                                ),
-                                              ),
-                                            ),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFFFFF7ED),
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                              child: const Text(
-                                                'Siap tender',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFFEA580C),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 2),
-                                        const Text(
-                                          'Case study dengan rubrik standar industri',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: AppColors.secondarySlate,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 14),
-
-                              // 2 Action Buttons: Lihat Portofolio & Ekspor PDF
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          AppRoutes.caseStudy,
-                                        );
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: const Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.visibility_rounded,
-                                              size: 16,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                            SizedBox(width: 6),
-                                            Text(
-                                              'Lihat Portofolio',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.primaryNavy,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFEFF6FF),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.picture_as_pdf_rounded,
-                                            size: 16,
-                                            color: AppColors.primaryNavy,
-                                          ),
-                                          SizedBox(width: 6),
-                                          Text(
-                                            'Ekspor PDF',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Deliverable Card 2: Sertifikat Kelulusan
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.04,
-                                ),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEFF6FF),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.workspace_premium_rounded,
-                                        color: AppColors.primaryNavy,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Sertifikat kelulusan bimbingan',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.darkSlate,
-                                          ),
-                                        ),
-                                        SizedBox(height: 2),
-                                        Text(
-                                          'E-certificate resmi dengan tanda tangan digital Dimas Prasetyo',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: AppColors.secondarySlate,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFEFF6FF),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.download_rounded,
-                                            size: 16,
-                                            color: AppColors.primaryNavy,
-                                          ),
-                                          SizedBox(width: 6),
-                                          Text(
-                                            'Unduh',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          AppRoutes.portfolio,
-                                        );
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: const Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.add_circle_outline_rounded,
-                                              size: 16,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                            SizedBox(width: 6),
-                                            Text(
-                                              'Tambah ke Profil',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.primaryNavy,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Deliverable Card 3: Showcase bukti proyek (From User Screenshot 3)
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.04,
-                                ),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEFF6FF),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.storefront_rounded,
-                                        color: AppColors.primaryNavy,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Showcase bukti proyek',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.darkSlate,
-                                          ),
-                                        ),
-                                        SizedBox(height: 2),
-                                        Text(
-                                          'Implementasi live pada proyek UMKM',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: AppColors.secondarySlate,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoutes.projectDetail,
-                                  );
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEFF6FF),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.launch_rounded,
-                                        size: 16,
-                                        color: AppColors.primaryNavy,
-                                      ),
-                                      SizedBox(width: 6),
-                                      Text(
-                                        'Showcase',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.primaryNavy,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Deliverable Card 4: Materi & tugas lanjutan (From User Screenshot 3)
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 14),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.04,
-                                ),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEFF6FF),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.menu_book_rounded,
-                                        color: AppColors.primaryNavy,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Materi & tugas lanjutan',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.darkSlate,
-                                          ),
-                                        ),
-                                        SizedBox(height: 2),
-                                        Text(
-                                          'Materi sesi dan tugas yang perlu dikerjakan',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: AppColors.secondarySlate,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFEFF6FF),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.menu_book_rounded,
-                                            size: 16,
-                                            color: AppColors.primaryNavy,
-                                          ),
-                                          SizedBox(width: 6),
-                                          Text(
-                                            'Buka Materi',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.pushNamed(
-                                          context,
-                                          AppRoutes.mentorChat,
-                                        );
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: const Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.chat_bubble_outline_rounded,
-                                              size: 16,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                            SizedBox(width: 6),
-                                            Text(
-                                              'Chat Mentor',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.primaryNavy,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // 5. Informasi Rekaman Box (From User Screenshot 3 & 4)
-                        Container(
-                          margin: const EdgeInsets.only(bottom: 20),
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Icon(
-                                Icons.info_outline_rounded,
-                                size: 18,
-                                color: AppColors.secondarySlate,
-                              ),
-                              SizedBox(width: 10),
-                              Expanded(
-                                child: Text.rich(
-                                  TextSpan(
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.secondarySlate,
-                                      height: 1.45,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                        text: 'Informasi rekaman: ',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.darkSlate,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: 'sesi 1-on-1 tidak disimpan di cloud TalentSync. Kamu boleh merekam mandiri untuk keperluan review pribadi.',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // 6. Section: Daftar Aksi Perbaikan (From User Screenshot 4)
-                        Container(
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardSurface,
-                            borderRadius: BorderRadius.circular(22),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.darkSlate.withValues(
-                                  alpha: 0.05,
-                                ),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Daftar aksi perbaikan',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.darkSlate,
-                                    ),
-                                  ),
-                                  Text(
-                                    '$completedCount dari $totalCount selesai',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.primaryNavy,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-
-                              // Progress bar
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: LinearProgressIndicator(
-                                  value: totalCount > 0
-                                      ? (completedCount / totalCount)
-                                      : 0,
-                                  minHeight: 5,
-                                  backgroundColor: const Color(0xFFE2E8F0),
-                                  valueColor:
-                                      const AlwaysStoppedAnimation<Color>(
-                                        AppColors.primaryNavy,
-                                      ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // Checklist items
-                              ...List.generate(_actionItems.length, (index) {
-                                final item = _actionItems[index];
-                                final isCompleted = item['isCompleted'] as bool;
-                                final isExpanded = item['isExpanded'] as bool;
-
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 12),
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: index == _actionItems.length - 1
-                                            ? Colors.transparent
-                                            : const Color(0xFFF1F5F9),
-                                      ),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                item['isCompleted'] =
-                                                    !isCompleted;
-                                              });
-                                            },
-                                            child: Container(
-                                              width: 22,
-                                              height: 22,
-                                              margin: const EdgeInsets.only(
-                                                top: 2,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: isCompleted
-                                                    ? AppColors.primaryNavy
-                                                    : Colors.transparent,
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                                border: Border.all(
-                                                  color: isCompleted
-                                                      ? AppColors.primaryNavy
-                                                      : const Color(0xFFCBD5E1),
-                                                  width: 1.5,
-                                                ),
-                                              ),
-                                              child: isCompleted
-                                                  ? const Center(
-                                                      child: Icon(
-                                                        Icons.check_rounded,
-                                                        color: Colors.white,
-                                                        size: 16,
-                                                      ),
-                                                    )
-                                                  : null,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                setState(() {
-                                                  item['isExpanded'] =
-                                                      !isExpanded;
-                                                });
-                                              },
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    item['title'] as String,
-                                                    style: TextStyle(
-                                                      fontSize: 13,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: isCompleted
-                                                          ? AppColors
-                                                                .secondarySlate
-                                                          : AppColors.darkSlate,
-                                                      decoration: isCompleted
-                                                          ? TextDecoration
-                                                                .lineThrough
-                                                          : null,
-                                                      height: 1.35,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 7,
-                                              vertical: 3,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: item['tagBg'] as Color,
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              item['tag'] as String,
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                                color:
-                                                    item['tagColor'] as Color,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                item['isExpanded'] =
-                                                    !isExpanded;
-                                              });
-                                            },
-                                            child: Icon(
-                                              isExpanded
-                                                  ? Icons
-                                                        .keyboard_arrow_up_rounded
-                                                  : Icons
-                                                        .keyboard_arrow_down_rounded,
-                                              size: 18,
-                                              color: AppColors.secondarySlate,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      // Expanded explanation body
-                                      if (isExpanded) ...[
-                                        const SizedBox(height: 8),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            left: 34.0,
-                                            right: 8.0,
-                                          ),
-                                          child: Text(
-                                            item['detail'] as String,
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors.secondarySlate,
-                                              height: 1.4,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                );
-                              }),
-                            ],
-                          ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
                 ],
               ),
             ),
+          ],
+          const SizedBox(height: 12),
+          Text(
+            status == 'completed'
+                ? 'Status: Selesai & Escrow Tervalidasi'
+                : status == 'pending_confirmation'
+                ? 'Status: Menunggu Konfirmasi Mahasiswa'
+                : 'Status: Evaluasi Aktif',
+            style: const TextStyle(fontSize: 12, color: Color(0xFFDBEAFE)),
           ),
+        ],
+      ),
+    );
+  }
 
-          // Primary Bottom CTA Button: Konfirmasi Selesai & Lepas Escrow
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 24,
-            child: GestureDetector(
-              onTap: _releaseEscrow,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryNavy,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primaryNavy.withValues(alpha: 0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _isEscrowReleased
-                          ? 'Escrow Telah Dilepas'
-                          : 'Konfirmasi Selesai & Lepas Escrow',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+  Widget _buildRubricSection(List<({String label, int score})> rubric) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Rincian Rubrik Penilaian',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...rubric.map((entry) {
+            final ratio = (entry.score / 100).clamp(0.0, 1.0);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          entry.label,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
                       ),
+                      Text(
+                        '${entry.score}/100',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryNavy,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: ratio,
+                      minHeight: 7,
+                      backgroundColor: const Color(0xFFE2E8F0),
+                      color: AppColors.primaryNavy,
                     ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.check_circle_outline_rounded,
-                      color: Colors.white,
-                      size: 18,
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeedbackCard(String feedback) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.rate_review_rounded,
+                color: AppColors.primaryNavy,
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Catatan Evaluasi Mentor',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            feedback,
+            style: const TextStyle(
+              fontSize: 13.5,
+              color: AppColors.secondarySlate,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionItemsSection() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Daftar Tindak Lanjut',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
+              ),
+              Text(
+                '${_actionItems.where((e) => e['is_completed'] == true).length}/${_actionItems.length} selesai',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryNavy,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_actionItems.isEmpty)
+            const Text(
+              'Belum ada action items tambahan dari mentor.',
+              style: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+            )
+          else
+            ...List.generate(_actionItems.length, (idx) {
+              final item = _actionItems[idx];
+              final itemId = (item['id'] as num?)?.toInt() ?? idx;
+              final done = item['is_completed'] == true;
+              final expanded = _expandedIds.contains(itemId);
+              final detail = (item['detail'] as String?) ?? '';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.canvasWhite,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.borderSlate),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: () => _toggleActionItem(idx),
+                          borderRadius: BorderRadius.circular(8),
+                          child: SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Icon(
+                              done
+                                  ? Icons.check_box_rounded
+                                  : Icons.check_box_outline_blank_rounded,
+                              color: done
+                                  ? AppColors.successGreen
+                                  : AppColors.secondarySlate,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setState(() {
+                              if (expanded) {
+                                _expandedIds.remove(itemId);
+                              } else {
+                                _expandedIds.add(itemId);
+                              }
+                            }),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    (item['title'] as String?) ?? 'Tindak lanjut',
+                                    style: TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: done
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                      color: done
+                                          ? AppColors.secondarySlate
+                                          : AppColors.darkSlate,
+                                    ),
+                                  ),
+                                  if (((item['tag'] as String?) ?? '')
+                                      .isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item['tag'] as String,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primaryNavy,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                    if (expanded && detail.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 44, right: 8),
+                        child: Text(
+                          detail,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: AppColors.secondarySlate,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomAction(String status, int paidTc) {
+    if (status == 'pending_confirmation' && _resolvedEnrollmentId != null) {
+      return SizedBox(
+        width: double.infinity,
+        height: 50,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryNavy,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          onPressed: () => Navigator.pushNamed(
+            context,
+            AppRoutes.selesaiBimbingan,
+            arguments: MentoringEnrollmentArgs(
+              enrollmentId: _resolvedEnrollmentId,
+            ),
+          ),
+          child: Text(
+            'Konfirmasi Selesai & Lepas $paidTc TC',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+        ),
+      );
+    }
+
+    if (status == 'completed') {
+      return Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.lightGreenSurface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppColors.successGreen.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.verified_user_rounded,
+                  color: AppColors.successGreen,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Escrow $paidTc TC sudah diteruskan ke mentor dan sertifikat tersedia.',
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkSlate,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryNavy,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.portfolio),
+              child: const Text(
+                'Lihat Portofolio & Sertifikat',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
         ],
+      );
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primaryNavy,
+          side: const BorderSide(color: AppColors.primaryNavy),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        onPressed: () => Navigator.pushNamed(
+          context,
+          AppRoutes.ruangBelajar,
+          arguments: MentoringEnrollmentArgs(
+            enrollmentId: _resolvedEnrollmentId,
+          ),
+        ),
+        child: const Text(
+          'Buka Ruang Belajar',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.assessment_outlined,
+              size: 46,
+              color: AppColors.secondarySlate,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _error ?? 'Terjadi kesalahan',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13.5,
+                color: AppColors.secondarySlate,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _load,
+                child: const Text('Coba Lagi'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

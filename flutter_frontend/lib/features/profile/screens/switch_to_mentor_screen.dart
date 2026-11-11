@@ -1,53 +1,217 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/profile/data/student_profile_api.dart';
 
 class SwitchToMentorScreen extends StatefulWidget {
-  const SwitchToMentorScreen({super.key});
+  const SwitchToMentorScreen({
+    super.key,
+    this.profileApi,
+    this.authApi,
+  });
+
+  final StudentProfileApi? profileApi;
+  final AuthApi? authApi;
 
   @override
   State<SwitchToMentorScreen> createState() => _SwitchToMentorScreenState();
 }
 
 class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
-  final List<Map<String, dynamic>> _portfolioProofs = [
-    {
-      'title': 'Rekomendasi Kerja: Flutter Develop...',
-      'subtitle': 'Sertifikat · TS-END-0087',
-      'icon': Icons.workspace_premium_rounded,
-      'iconColor': Color(0xFFD97706),
-      'iconBg': Color(0xFFFEF3C7),
-      'selected': true,
-    },
-    {
-      'title': 'Lulus Bimbingan: Arsitektur Flutter ...',
-      'subtitle': 'Sertifikat · TS-MNT-0211',
-      'icon': Icons.workspace_premium_rounded,
-      'iconColor': Color(0xFFD97706),
-      'iconBg': Color(0xFFFEF3C7),
-      'selected': false,
-    },
-    {
-      'title': 'Modul offline-sync aplikasi koperasi',
-      'subtitle': 'Proyek nyata · skor 92',
-      'icon': Icons.rocket_launch_rounded,
-      'iconColor': AppColors.primaryNavy,
-      'iconBg': Color(0xFFEFF6FF),
-      'selected': true,
-    },
-  ];
+  late final StudentProfileApi _profileApi =
+      widget.profileApi ?? StudentProfileApi.instance;
+  late final AuthApi _authApi = widget.authApi ?? AuthApi();
 
-  final List<Map<String, dynamic>> _skills = [
-    {'name': 'Flutter', 'selected': true},
-    {'name': 'Laravel', 'selected': false},
-    {'name': 'MySQL', 'selected': false},
-    {'name': 'Dart', 'selected': false},
-  ];
+  final TextEditingController _headlineCtrl = TextEditingController();
+  final TextEditingController _customSkillCtrl = TextEditingController();
 
-  void _activateMentorMode() {
+  bool _isLoading = true;
+  bool _isSubmitting = false;
+  String? _error;
+
+  bool _isEligible = false;
+  bool _alreadyMentor = false;
+  int _completedProjects = 0;
+  int _minRequired = 5;
+  int _hourlyRateTc = 35;
+
+  List<Map<String, dynamic>> _checks = const [];
+  List<Map<String, dynamic>> _proofs = const [];
+  final Set<int> _selectedProofIds = {};
+  final Set<String> _selectedSkills = {'Flutter', 'UI Design'};
+  List<String> _availableSkills = const ['Flutter', 'UI Design', 'Laravel'];
+
+  String? _certFileName;
+  Uint8List? _certBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _headlineCtrl.dispose();
+    _customSkillCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final data = await _profileApi.mentorEligibility();
+      if (!mounted) return;
+      final proofs = (data['available_proofs'] as List? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .toList();
+      final skills = (data['skills'] as List? ?? const [])
+          .map((e) => e.toString())
+          .where((e) => e.isNotEmpty)
+          .toList();
+
+      _selectedProofIds
+        ..clear()
+        ..addAll(
+          proofs
+              .where((p) => p['selected'] != false)
+              .map((p) => (p['id'] as num?)?.toInt())
+              .whereType<int>(),
+        );
+
+      if (skills.isNotEmpty) {
+        _availableSkills = skills;
+        _selectedSkills
+          ..clear()
+          ..addAll(skills.take(3));
+      }
+
+      setState(() {
+        _isEligible = data['is_eligible'] == true;
+        _alreadyMentor = data['already_mentor'] == true;
+        _completedProjects =
+            (data['completed_projects_count'] as num?)?.toInt() ?? 0;
+        _minRequired = (data['min_projects_required'] as num?)?.toInt() ?? 5;
+        _checks = (data['checks'] as List? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+        _proofs = proofs;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memeriksa kelayakan Peer Mentor.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickCertificate() async {
+    try {
+      final file = await FilePicker.pickFile(
+        dialogTitle: 'Pilih Sertifikat Tambahan',
+        type: FileType.custom,
+        allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      setState(() {
+        _certFileName = file.name;
+        _certBytes = bytes;
+      });
+    } catch (_) {
+      _showSnack('Gagal memilih file sertifikat.', isError: true);
+    }
+  }
+
+  void _addCustomSkill() {
+    final skill = _customSkillCtrl.text.trim();
+    if (skill.isEmpty) return;
+    setState(() {
+      if (!_availableSkills.contains(skill)) {
+        _availableSkills = [..._availableSkills, skill];
+      }
+      _selectedSkills.add(skill);
+    });
+    _customSkillCtrl.clear();
+  }
+
+  Future<void> _switchExistingMentorRole() async {
+    setState(() => _isSubmitting = true);
+    try {
+      await _authApi.switchRole('mentor');
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.mentorDashboard,
+        (_) => false,
+      );
+    } on ApiException catch (e) {
+      _showSnack(e.message, isError: true);
+    } catch (_) {
+      _showSnack('Gagal beralih ke dasbor mentor.', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  Future<void> _activateMentorMode() async {
+    if (!_isEligible || _isSubmitting) return;
+    if (_selectedSkills.isEmpty) {
+      _showSnack('Pilih minimal 1 keahlian mengajar.', isError: true);
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      final res = await _profileApi.switchToMentor(
+        selectedProofIds: _selectedProofIds.toList(),
+        teachingSkills: _selectedSkills.toList(),
+        titleHeadline: _headlineCtrl.text.trim().isEmpty
+            ? 'Peer Mentor Mahasiswa'
+            : _headlineCtrl.text.trim(),
+        hourlyRateTc: _hourlyRateTc,
+        externalCertFileName: _certFileName,
+        externalCertBytes: _certBytes,
+      );
+      final user = res['user'];
+      if (user is Map<String, dynamic>) {
+        await ApiClient.instance.updateSessionUser(user);
+      }
+      if (!mounted) return;
+      _showActivatedDialog();
+    } on ApiException catch (e) {
+      _showSnack(e.message, isError: true);
+    } catch (_) {
+      _showSnack('Gagal mengaktifkan mode Peer Mentor.', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  void _showActivatedDialog() {
     showDialog(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         content: Column(
@@ -60,15 +224,13 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
                 color: Color(0xFFDCFCE7),
                 shape: BoxShape.circle,
               ),
-              child: const Center(
-                child: Icon(
-                  Icons.check_rounded,
-                  color: Color(0xFF16A34A),
-                  size: 34,
-                ),
+              child: const Icon(
+                Icons.verified_rounded,
+                color: Color(0xFF16A34A),
+                size: 32,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             const Text(
               'Mode Mentor Aktif!',
               style: TextStyle(
@@ -79,40 +241,33 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Selamat Arya, profilmu kini terdaftar sebagai Peer Mentor TalentSync. Kamu siap membuka layanan bimbingan dan menerima TimeCoin!',
+              'Selamat! Profil Peer Mentor Anda aktif dan siap membuka sesi bimbingan mahasiswa.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.secondarySlate,
-                height: 1.4,
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
             ),
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: () {
-                Navigator.pop(dialogCtx);
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.mentorDashboard,
-                  (route) => false,
-                );
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryNavy,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Center(
-                  child: Text(
-                    'Masuk Dashboard Mentor',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
+                ),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.mentorDashboard,
+                    (_) => false,
+                  );
+                },
+                child: const Text(
+                  'Masuk Dasbor Mentor',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -122,53 +277,15 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
     );
   }
 
-  Widget _buildChecklistRow(String title, String subtitle) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 22,
-            height: 22,
-            margin: const EdgeInsets.only(top: 2),
-            decoration: const BoxDecoration(
-              color: Color(0xFFDCFCE7),
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.check_rounded,
-                color: Color(0xFF16A34A),
-                size: 14,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkSlate,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppColors.secondarySlate,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+  void _showSnack(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError
+            ? const Color(0xFFB91C1C)
+            : AppColors.primaryNavy,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -177,502 +294,530 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
-      body: Stack(
-        children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 140),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Top App Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 16.0,
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.05,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.keyboard_arrow_left_rounded,
-                                color: AppColors.darkSlate,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Switch to Mentor',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.darkSlate,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Jadi peer mentor TalentSync',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.secondarySlate,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 2. Banner Solid Navy Card (Figma 35)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(22),
-                      decoration: BoxDecoration(
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
                         color: AppColors.primaryNavy,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryNavy.withValues(
-                              alpha: 0.25,
-                            ),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Icon(
-                            Icons.school_rounded,
-                            color: AppColors.accentAmberGold,
-                            size: 28,
-                          ),
-                          SizedBox(height: 14),
-                          Text(
-                            'Ajarkan yang sudah kamu kuasai.',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.3,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Peer mentor mendapat TimeCoin dari murid dan bisa merekomendasikan teman ke UMKM. Syaratnya portofolio resmi: sertifikat atau proyek nyata terverifikasi.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFFE2E8F0),
-                              height: 1.45,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 3. Syarat Kelayakan Card (Figma 35)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.04),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    )
+                  : _error != null
+                  ? _buildError()
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      color: AppColors.primaryNavy,
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
                         children: [
-                          const Text(
-                            'Syarat kelayakan',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildChecklistRow(
-                            'KTM terverifikasi',
-                            'Universitas Negeri Surabaya',
-                          ),
-                          _buildChecklistRow(
-                            'Portofolio resmi',
-                            '2 sertifikat · 1 proyek nyata terverifikasi',
-                          ),
-                          _buildChecklistRow(
-                            'Rating minimal 4.5',
-                            'Rating kamu 4.9 dari 4 proyek UMKM',
-                          ),
-                          _buildChecklistRow(
-                            'Tanpa sengketa escrow',
-                            'Riwayat kerja bersih',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 4. Lampirkan Bukti Portofolio Resmi Card (Figma 35 - Scrolled)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.04),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Lampirkan bukti portofolio resmi',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Pilih minimal satu. Dicek tim kurasi dalam 1x24 jam.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.secondarySlate,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Proof Item Checkboxes
-                          ...List.generate(_portfolioProofs.length, (index) {
-                            final proof = _portfolioProofs[index];
-                            final isSelected = proof['selected'] as bool;
-
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primaryNavy
-                                      : const Color(0xFFE2E8F0),
-                                  width: isSelected ? 1.5 : 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        proof['selected'] = !isSelected;
-                                      });
-                                    },
-                                    child: Container(
-                                      width: 22,
-                                      height: 22,
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? AppColors.primaryNavy
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? AppColors.primaryNavy
-                                              : const Color(0xFFCBD5E1),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: isSelected
-                                          ? const Center(
-                                              child: Icon(
-                                                Icons.check_rounded,
-                                                color: Colors.white,
-                                                size: 16,
-                                              ),
-                                            )
-                                          : null,
+                          if (_alreadyMentor) ...[
+                            _buildAlreadyMentorCard(),
+                          ] else ...[
+                            _buildEligibilityBanner(),
+                            const SizedBox(height: 16),
+                            _buildChecklistCard(),
+                            const SizedBox(height: 16),
+                            if (_proofs.isNotEmpty) ...[
+                              _buildProofsCard(),
+                              const SizedBox(height: 16),
+                            ],
+                            _buildTeachingSetupCard(),
+                            const SizedBox(height: 20),
+                            if (_isEligible)
+                              SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryNavy,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Container(
-                                    width: 36,
-                                    height: 36,
-                                    decoration: BoxDecoration(
-                                      color: proof['iconBg'] as Color,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Icon(
-                                      proof['icon'] as IconData,
-                                      color: proof['iconColor'] as Color,
-                                      size: 18,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          proof['title'] as String,
-                                          style: const TextStyle(
-                                            fontSize: 13,
+                                  onPressed: _isSubmitting
+                                      ? null
+                                      : _activateMentorMode,
+                                  child: _isSubmitting
+                                      ? const SizedBox(
+                                          width: 22,
+                                          height: 22,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2.2,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Aktifkan Mode Peer Mentor',
+                                          style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.darkSlate,
+                                            fontSize: 15,
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          proof['subtitle'] as String,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: AppColors.secondarySlate,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-
-                          const SizedBox(height: 12),
-
-                          // Dashed External Certificate Upload Button
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: const Color(0xFFCBD5E1),
-                                style: BorderStyle.solid,
-                              ),
-                            ),
-                            child: Row(
-                              children: const [
-                                Icon(
-                                  Icons.upload_file_rounded,
-                                  color: AppColors.primaryNavy,
-                                  size: 20,
                                 ),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    'Unggah sertifikat eksternal (Dicoding, BNSP, Google)',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.darkSlate,
+                              )
+                            else
+                              SizedBox(
+                                width: double.infinity,
+                                height: 48,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryNavy,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 5. Keahlian yang akan diajarkan Card (Figma 35)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.04),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Keahlian yang akan diajarkan',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: List.generate(_skills.length, (index) {
-                              final skill = _skills[index];
-                              final isSelected = skill['selected'] as bool;
-
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    skill['selected'] = !isSelected;
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
+                                  onPressed: () => Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.exploreProjects,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.primaryNavy
-                                        : Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.primaryNavy
-                                          : const Color(0xFFCBD5E1),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    skill['name'] as String,
+                                  child: const Text(
+                                    'Cari & Selesaikan Proyek UMKM',
                                     style: TextStyle(
-                                      fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : AppColors.darkSlate,
                                     ),
                                   ),
                                 ),
-                              );
-                            }),
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Hanya keahlian terverifikasi yang bisa diajarkan.',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.secondarySlate,
-                            ),
-                          ),
+                              ),
+                          ],
                         ],
                       ),
                     ),
-                  ),
-                ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: AppColors.darkSlate,
               ),
             ),
           ),
-
-          // Primary Sticky Bottom Bar
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 14,
-                bottom: 24,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkSlate.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, -6),
-                  ),
-                ],
-              ),
-              child: GestureDetector(
-                onTap: _activateMentorMode,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryNavy,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryNavy.withValues(alpha: 0.25),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Aktifkan Mode Mentor',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Icon(
-                        Icons.swap_horiz_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ],
-                  ),
-                ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Switch as a Peer Mentor',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAlreadyMentorCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.verified_rounded,
+            size: 46,
+            color: AppColors.successGreen,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Akses Peer Mentor Sudah Aktif',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Akun mahasiswa Anda sudah memiliki akses ganda untuk beralih ke Dasbor Mentor kapan saja.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: AppColors.secondarySlate),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryNavy,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onPressed: _isSubmitting ? null : _switchExistingMentorRole,
+              child: const Text(
+                'Buka Dasbor Peer Mentor',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEligibilityBanner() {
+    final ratio = _minRequired > 0
+        ? (_completedProjects / _minRequired).clamp(0.0, 1.0)
+        : 0.0;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: _isEligible
+            ? AppColors.primaryNavy
+            : const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                _isEligible ? Icons.verified_rounded : Icons.lock_clock_rounded,
+                color: AppColors.accentAmberGold,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _isEligible
+                      ? 'Memenuhi Syarat Peer Mentor!'
+                      : 'Lengkapi Syarat Minimal 5 Proyek',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Progres Proyek UMKM Selesai: $_completedProjects/$_minRequired',
+            style: const TextStyle(fontSize: 13, color: Color(0xFFDBEAFE)),
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 8,
+              backgroundColor: Colors.white24,
+              color: AppColors.accentAmberGold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChecklistCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Checklist Verifikasi Ekosistem',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ..._checks.map((c) {
+            final passed = c['passed'] == true;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    passed
+                        ? Icons.check_circle_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    color: passed
+                        ? AppColors.successGreen
+                        : AppColors.accentAmberGold,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          (c['label'] as String?) ?? '',
+                          style: const TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
+                          ),
+                        ),
+                        Text(
+                          (c['detail'] as String?) ?? '',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProofsCard() {
+    return Material(
+      color: AppColors.cardSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: AppColors.borderSlate),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Portofolio Proyek Terverifikasi',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ..._proofs.map((p) {
+            final id = (p['id'] as num?)?.toInt();
+            final selected = id != null && _selectedProofIds.contains(id);
+            return CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              activeColor: AppColors.primaryNavy,
+              title: Text(
+                (p['title'] as String?) ?? 'Portofolio',
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: Text(
+                (p['subtitle'] as String?) ?? '',
+                style: const TextStyle(fontSize: 12),
+              ),
+              value: selected,
+              onChanged: id == null
+                  ? null
+                  : (v) {
+                      setState(() {
+                        if (v == true) {
+                          _selectedProofIds.add(id);
+                        } else {
+                          _selectedProofIds.remove(id);
+                        }
+                      });
+                    },
+            );
+          }),
+        ],
+      ),
+      ),
+    );
+  }
+
+  Widget _buildTeachingSetupCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Profil Pengajar Peer Mentor',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _headlineCtrl,
+            decoration: InputDecoration(
+              labelText: 'Headline Mentor (opsional)',
+              hintText: 'Contoh: Peer Mentor Flutter & Sistem Kasir',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Tarif Bimbingan per Sesi 60 Menit',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [25, 35, 50].map((rate) {
+              final active = _hourlyRateTc == rate;
+              return ChoiceChip(
+                label: Text('$rate TC'),
+                selected: active,
+                selectedColor: AppColors.primaryNavy,
+                labelStyle: TextStyle(
+                  color: active ? Colors.white : AppColors.darkSlate,
+                  fontWeight: FontWeight.bold,
+                ),
+                onSelected: (_) => setState(() => _hourlyRateTc = rate),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Keahlian yang Diajarkan',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: _availableSkills.map((skill) {
+              final selected = _selectedSkills.contains(skill);
+              return FilterChip(
+                label: Text(skill),
+                selected: selected,
+                selectedColor: AppColors.lightBlueSurface,
+                checkmarkColor: AppColors.primaryNavy,
+                onSelected: (v) {
+                  setState(() {
+                    if (v) {
+                      _selectedSkills.add(skill);
+                    } else {
+                      _selectedSkills.remove(skill);
+                    }
+                  });
+                },
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _customSkillCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'Tambah bidang ajar...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: _addCustomSkill,
+                  child: const Text('Tambah'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: _pickCertificate,
+              icon: const Icon(Icons.upload_file_rounded, size: 18),
+              label: Text(
+                _certFileName ?? 'Unggah Sertifikat Tambahan (Opsional)',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _error ?? 'Terjadi kesalahan',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.secondarySlate),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _load,
+                child: const Text('Coba Lagi'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

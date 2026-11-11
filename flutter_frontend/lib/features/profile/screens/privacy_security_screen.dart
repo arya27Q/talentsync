@@ -1,386 +1,257 @@
-import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/profile/data/student_profile_api.dart';
 
 class PrivacySecurityScreen extends StatefulWidget {
-  const PrivacySecurityScreen({super.key});
+  const PrivacySecurityScreen({
+    super.key,
+    this.profileApi,
+    this.authApi,
+  });
+
+  final StudentProfileApi? profileApi;
+  final AuthApi? authApi;
 
   @override
   State<PrivacySecurityScreen> createState() => _PrivacySecurityScreenState();
 }
 
 class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
-  bool _twoFactorEnabled = true;
+  late final StudentProfileApi _profileApi =
+      widget.profileApi ?? StudentProfileApi.instance;
+  late final AuthApi _authApi = widget.authApi ?? AuthApi();
+
+  bool _isLoading = true;
+  String? _error;
+
+  bool _twoFactorEnabled = false;
   bool _publicPortfolio = true;
   bool _showOnlineStatus = true;
   bool _showEndorseBadge = true;
+  bool _hasPin = false;
+  List<Map<String, dynamic>> _sessions = const [];
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 10, top: 22),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: AppColors.secondarySlate,
-          letterSpacing: 0.6,
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _load();
   }
 
-  Widget _buildSettingsTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    Widget? trailing,
-    VoidCallback? onTap,
-    Color iconColor = AppColors.primaryNavy,
-    Color titleColor = AppColors.darkSlate,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.borderSlate),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkSlate.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-            child: Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 20),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: titleColor,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          color: AppColors.secondarySlate,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (trailing != null)
-                  trailing
-                else
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: Color(0xFF94A3B8),
-                    size: 20,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final results = await Future.wait<dynamic>([
+        _profileApi.privacy(),
+        _authApi.sessions(),
+      ]);
+      if (!mounted) return;
+      final privacy = results[0] as Map<String, dynamic>;
+      setState(() {
+        _twoFactorEnabled = privacy['two_factor_enabled'] == true;
+        _publicPortfolio = privacy['is_public_profile'] != false;
+        _showOnlineStatus = privacy['show_online_status'] != false;
+        _showEndorseBadge = privacy['show_endorse_badge'] != false;
+        _hasPin = privacy['has_transaction_pin'] == true;
+        _sessions = results[1] as List<Map<String, dynamic>>;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat pengaturan privasi dan keamanan.';
+          _isLoading = false;
+        });
+      }
+    }
   }
 
-  void _showChangePinDialog() {
-    final pinController = TextEditingController();
+  Future<void> _togglePrivacy(String field, bool nextValue) async {
+    final prev2fa = _twoFactorEnabled;
+    final prevPub = _publicPortfolio;
+    final prevOnline = _showOnlineStatus;
+    final prevEndorse = _showEndorseBadge;
+
+    setState(() {
+      if (field == 'two_factor_enabled') _twoFactorEnabled = nextValue;
+      if (field == 'is_public_profile') _publicPortfolio = nextValue;
+      if (field == 'show_online_status') _showOnlineStatus = nextValue;
+      if (field == 'show_endorse_badge') _showEndorseBadge = nextValue;
+    });
+
+    try {
+      await _profileApi.updatePrivacy({field: nextValue});
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _twoFactorEnabled = prev2fa;
+        _publicPortfolio = prevPub;
+        _showOnlineStatus = prevOnline;
+        _showEndorseBadge = prevEndorse;
+      });
+      _showSnack(e.message, isError: true);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _twoFactorEnabled = prev2fa;
+        _publicPortfolio = prevPub;
+        _showOnlineStatus = prevOnline;
+        _showEndorseBadge = prevEndorse;
+      });
+      _showSnack('Gagal memperbarui preferensi privasi.', isError: true);
+    }
+  }
+
+  void _openPinDialog() {
+    final pinCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.pin_rounded, color: AppColors.primaryNavy),
-            SizedBox(width: 10),
-            Text(
-              'Ubah PIN Transaksi',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkSlate,
-              ),
-            ),
-          ],
+        title: Text(
+          _hasPin ? 'Ubah PIN Transaksi' : 'Buat PIN Transaksi',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Masukkan 6 digit angka untuk mengamankan otorisasi pencairan TimeCoin ke rekening bank.',
-              style: TextStyle(
-                fontSize: 12.5,
-                color: AppColors.secondarySlate,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: pinController,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: 'PIN Baru (6 angka)',
-                counterText: '',
-                filled: true,
-                fillColor: const Color(0xFFF8FAFC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.borderSlate),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-              ),
-            ),
-          ],
+        content: TextField(
+          controller: pinCtrl,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          obscureText: true,
+          decoration: InputDecoration(
+            labelText: 'PIN 6 Digit Angka',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Batal',
-              style: TextStyle(color: AppColors.secondarySlate),
-            ),
+            child: const Text('Batal'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryNavy,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              foregroundColor: Colors.white,
             ),
-            onPressed: () {
+            onPressed: () async {
+              final pin = pinCtrl.text.trim();
+              if (!RegExp(r'^\d{6}$').hasMatch(pin)) {
+                _showSnack('PIN harus terdiri dari 6 digit angka.', isError: true);
+                return;
+              }
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('PIN transaksi berhasil diperbarui.'),
-                  backgroundColor: AppColors.primaryNavy,
-                ),
-              );
+              try {
+                await _profileApi.updatePin(pin);
+                if (!mounted) return;
+                setState(() => _hasPin = true);
+                _showSnack('PIN keamanan transaksi berhasil disimpan.');
+              } on ApiException catch (e) {
+                _showSnack(e.message, isError: true);
+              } catch (_) {
+                _showSnack('Gagal menyimpan PIN.', isError: true);
+              }
             },
-            child: const Text(
-              'Simpan PIN',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+            child: const Text('Simpan PIN'),
+          ),
+        ],
+      ),
+    ).whenComplete(pinCtrl.dispose);
+  }
+
+  Future<void> _revokeOtherSessions() async {
+    try {
+      final msg = await _authApi.revokeOtherSessions();
+      if (!mounted) return;
+      _showSnack(msg);
+      await _load();
+    } on ApiException catch (e) {
+      _showSnack(e.message, isError: true);
+    } catch (_) {
+      _showSnack('Gagal mengeluarkan perangkat lain.', isError: true);
+    }
+  }
+
+  Future<void> _logout() async {
+    await _authApi.logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.roleSelection,
+      (_) => false,
+    );
+  }
+
+  Future<void> _confirmDeleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Hapus Akun Permanen?',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFB91C1C),
+          ),
+        ),
+        content: const Text(
+          'Tindakan ini akan menonaktifkan akun, menghapus sesi akses, dan memutus koneksi profil Anda.',
+          style: TextStyle(color: AppColors.secondarySlate),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFB91C1C),
+              foregroundColor: Colors.white,
             ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus Akun'),
           ),
         ],
       ),
     );
+    if (confirmed != true) return;
+
+    try {
+      await _profileApi.deleteAccount();
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.roleSelection,
+        (_) => false,
+      );
+    } on ApiException catch (e) {
+      _showSnack(e.message, isError: true);
+    } catch (_) {
+      _showSnack('Gagal menghapus akun mahasiswa.', isError: true);
+    }
   }
 
-  void _showDevicesModal() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Perangkat & Sesi Aktif',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkSlate,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Daftar perangkat yang saat ini masuk ke akun TalentSync Anda.',
-              style: TextStyle(fontSize: 12, color: AppColors.secondarySlate),
-            ),
-            const SizedBox(height: 18),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.borderSlate),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.smartphone_rounded,
-                    color: AppColors.primaryNavy,
-                    size: 28,
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Samsung Galaxy A54 (Perangkat Ini)',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkSlate,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Surabaya, Indonesia \u00B7 Aktif sekarang',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF16A34A),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'Utama',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF16A34A),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(color: Color(0xFFEF4444)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Semua sesi di perangkat lain telah diakhiri.',
-                      ),
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Keluarkan dari Semua Perangkat Lain',
-                  style: TextStyle(
-                    color: Color(0xFFEF4444),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showPrivacyPolicyModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.75,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        expand: false,
-        builder: (_, scrollController) => ListView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(24),
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-            const Text(
-              'Kebijakan Privasi & Smart Escrow TalentSync',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.darkSlate,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              '1. Perlindungan Data Mahasiswa & KTM\nData Nomor Induk Mahasiswa (NIM) dan foto Kartu Tanda Mahasiswa (KTM) yang diunggah hanya dipergunakan untuk proses validasi status akademik perguruan tinggi dan tidak pernah dibagikan kepada pihak ketiga di luar verifikasi akun.\n\n'
-              '2. Keamanan Dana Smart Escrow\nSeluruh transaksi TimeCoin dan imbalan proyek disimpan dalam sistem smart escrow terenkripsi. Dana mahasiswa aman hingga mitra UMKM memvalidasi deliverable kerja yang disepakati.\n\n'
-              '3. Hak Kepemilikan Portofolio\nHak cipta karya desain, kode sumber aplikasi, dan aset yang dihasilkan mahasiswa tetap dihormati sesuai kesepakatan surat penugasan proyek UMKM.\n\n'
-              '4. Transparansi Rekomendasi Mentor\nStempel rekomendasi kerja (endorsement) dari mentor terhubung dengan ID unik kredensial yang dapat diverifikasi publik tanpa memperlihatkan catatan pribadi bimbingan 1-on-1.',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.secondarySlate,
-                height: 1.6,
-              ),
-            ),
-          ],
-        ),
+  void _showSnack(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError
+            ? const Color(0xFFB91C1C)
+            : AppColors.primaryNavy,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -392,358 +263,342 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.borderSlate),
+            _buildHeader(),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryNavy,
                       ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_left_rounded,
-                        color: AppColors.darkSlate,
-                        size: 24,
+                    )
+                  : _error != null
+                  ? _buildError()
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      color: AppColors.primaryNavy,
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+                        children: [
+                          _buildSecuritySwitches(),
+                          const SizedBox(height: 16),
+                          _buildPinCard(),
+                          const SizedBox(height: 16),
+                          _buildSessionsCard(),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primaryNavy,
+                                side: const BorderSide(
+                                  color: AppColors.primaryNavy,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              onPressed: _logout,
+                              icon: const Icon(Icons.logout_rounded),
+                              label: const Text(
+                                'Keluar dari Akun Ini',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFB91C1C),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              onPressed: _confirmDeleteAccount,
+                              icon: const Icon(Icons.delete_forever_rounded),
+                              label: const Text(
+                                'Hapus Akun Permanen',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 14),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Privasi & Keamanan',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                      Text(
-                        'Kontrol keamanan akun, PIN dompet, dan privasi',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.secondarySlate,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: AppColors.darkSlate,
               ),
             ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Privasi & Keamanan',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // Content List
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
+  Widget _buildSecuritySwitches() {
+    return Material(
+      color: AppColors.cardSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(color: AppColors.borderSlate),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          SwitchListTile(
+            title: const Text(
+              'Verifikasi Dua Langkah (2FA)',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            subtitle: const Text(
+              'Tambahan konfirmasi saat masuk perangkat baru',
+              style: TextStyle(fontSize: 12),
+            ),
+            activeThumbColor: AppColors.primaryNavy,
+            value: _twoFactorEnabled,
+            onChanged: (v) => _togglePrivacy('two_factor_enabled', v),
+          ),
+          const Divider(height: 1, color: AppColors.borderSlate),
+          SwitchListTile(
+            title: const Text(
+              'Portofolio Dapat Dilihat UMKM',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            activeThumbColor: AppColors.primaryNavy,
+            value: _publicPortfolio,
+            onChanged: (v) => _togglePrivacy('is_public_profile', v),
+          ),
+          const Divider(height: 1, color: AppColors.borderSlate),
+          SwitchListTile(
+            title: const Text(
+              'Tampilkan Status Online',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            activeThumbColor: AppColors.primaryNavy,
+            value: _showOnlineStatus,
+            onChanged: (v) => _togglePrivacy('show_online_status', v),
+          ),
+          const Divider(height: 1, color: AppColors.borderSlate),
+          SwitchListTile(
+            title: const Text(
+              'Tampilkan Lencana Rekomendasi Mentor',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            activeThumbColor: AppColors.primaryNavy,
+            value: _showEndorseBadge,
+            onChanged: (v) => _togglePrivacy('show_endorse_badge', v),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPinCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.lightBlueSurface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.pin_rounded, color: AppColors.primaryNavy),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'PIN Transaksi TimeCoin',
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
                 ),
-                children: [
-                  // Info Security Badge
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.verified_user_rounded,
-                          color: AppColors.primaryNavy,
-                          size: 24,
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Akun Anda terproteksi enkripsi TLS 1.3 dan Smart Escrow resmi TalentSync.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.primaryNavy,
-                              fontWeight: FontWeight.w600,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                Text(
+                  _hasPin ? 'PIN 6-digit sudah aktif' : 'Belum diatur',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.secondarySlate,
                   ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 44,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryNavy,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _openPinDialog,
+              child: Text(_hasPin ? 'Ubah PIN' : 'Atur PIN'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                  // Section 1: Keamanan Akun
-                  _buildSectionHeader('KEAMANAN AKUN & DOMPET'),
-                  _buildSettingsTile(
-                    icon: Icons.pin_rounded,
-                    title: 'PIN Transaksi TimeCoin',
-                    subtitle: 'PIN 6-digit untuk otorisasi transfer dan pencairan dana',
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
+  Widget _buildSessionsCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Sesi Perangkat Aktif',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColors.darkSlate,
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (_sessions.isEmpty)
+            const Text(
+              'Hanya perangkat ini yang tercatat aktif.',
+              style: TextStyle(fontSize: 12.5, color: AppColors.secondarySlate),
+            )
+          else
+            ..._sessions.map((s) {
+              final current = s['is_current'] == true;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.smartphone_rounded,
+                      size: 18,
+                      color: AppColors.primaryNavy,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        (s['device_name'] as String?) ?? 'Perangkat',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'Terpasang',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF16A34A),
+                    ),
+                    if (current)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.lightGreenSurface,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'Perangkat Ini',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF15803D),
+                          ),
                         ),
                       ),
-                    ),
-                    onTap: _showChangePinDialog,
-                  ),
-                  _buildSettingsTile(
-                    icon: Icons.lock_rounded,
-                    title: 'Kata Sandi Akun',
-                    subtitle: 'Terakhir diperbarui 14 hari yang lalu',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Tautan pengaturan ulang sandi dikirim ke email terdaftar.',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildSettingsTile(
-                    icon: Icons.security_rounded,
-                    title: 'Autentikasi Dua Langkah (2FA)',
-                    subtitle: 'Minta kode verifikasi OTP saat masuk dari perangkat baru',
-                    trailing: Switch(
-                      value: _twoFactorEnabled,
-                      activeThumbColor: AppColors.primaryNavy,
-                      activeTrackColor: const Color(0xFFBFDBFE),
-                      onChanged: (val) {
-                        setState(() {
-                          _twoFactorEnabled = val;
-                        });
-                      },
-                    ),
-                  ),
-                  _buildSettingsTile(
-                    icon: Icons.devices_rounded,
-                    title: 'Perangkat & Sesi Login',
-                    subtitle: '1 perangkat ponsel terhubung aktif',
-                    onTap: _showDevicesModal,
-                  ),
+                  ],
+                ),
+              );
+            }),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton(
+              onPressed: _revokeOtherSessions,
+              child: const Text('Keluarkan Semua Perangkat Lain'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                  // Section 2: Privasi Profil & Portofolio
-                  _buildSectionHeader('PRIVASI PROFIL & PORTOFOLIO'),
-                  _buildSettingsTile(
-                    icon: Icons.public_rounded,
-                    title: 'Visibilitas Portofolio Publik',
-                    subtitle: 'Izinkan mitra UMKM dan pengunjung menemukan profil karya Anda',
-                    trailing: Switch(
-                      value: _publicPortfolio,
-                      activeThumbColor: AppColors.primaryNavy,
-                      activeTrackColor: const Color(0xFFBFDBFE),
-                      onChanged: (val) {
-                        setState(() {
-                          _publicPortfolio = val;
-                        });
-                      },
-                    ),
-                  ),
-                  _buildSettingsTile(
-                    icon: Icons.circle_rounded,
-                    title: 'Tampilkan Status Online',
-                    subtitle: 'Tampilkan titik hijau aktif di ruang chat proyek dan bimbingan',
-                    trailing: Switch(
-                      value: _showOnlineStatus,
-                      activeThumbColor: AppColors.primaryNavy,
-                      activeTrackColor: const Color(0xFFBFDBFE),
-                      onChanged: (val) {
-                        setState(() {
-                          _showOnlineStatus = val;
-                        });
-                      },
-                    ),
-                  ),
-                  _buildSettingsTile(
-                    icon: Icons.workspace_premium_rounded,
-                    title: 'Tampilkan Rekomendasi Mentor',
-                    subtitle: 'Sertakan stempel badge endorsement mentor di profil pelamar',
-                    trailing: Switch(
-                      value: _showEndorseBadge,
-                      activeThumbColor: AppColors.primaryNavy,
-                      activeTrackColor: const Color(0xFFBFDBFE),
-                      onChanged: (val) {
-                        setState(() {
-                          _showEndorseBadge = val;
-                        });
-                      },
-                    ),
-                  ),
-
-                  // Section 3: Data & Ketentuan Layanan
-                  _buildSectionHeader('MANAJEMEN DATA & KETENTUAN'),
-                  _buildSettingsTile(
-                    icon: Icons.download_rounded,
-                    title: 'Unduh Salinan Data Portofolio',
-                    subtitle: 'Dapatkan arsip PDF ringkasan proyek & transaksi TimeCoin',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Permintaan data diproses. File akan dikirim ke email dalam 5 menit.',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildSettingsTile(
-                    icon: Icons.description_rounded,
-                    title: 'Kebijakan Privasi & Smart Escrow',
-                    subtitle:
-                        'Baca komitmen perlindungan data dan aturan transaksi',
-                    onTap: _showPrivacyPolicyModal,
-                  ),
-                  _buildSettingsTile(
-                    icon: Icons.logout_rounded,
-                    title: 'Keluar dari Akun',
-                    subtitle: 'Akhiri sesi masuk mahasiswa pada perangkat ini',
-                    iconColor: const Color(0xFFEF4444),
-                    titleColor: const Color(0xFFDC2626),
-                    trailing: const Icon(
-                      Icons.chevron_right_rounded,
-                      color: Color(0xFFEF4444),
-                      size: 20,
-                    ),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          title: const Row(
-                            children: [
-                              Icon(
-                                Icons.logout_rounded,
-                                color: Color(0xFFDC2626),
-                              ),
-                              SizedBox(width: 10),
-                              Text(
-                                'Keluar dari Akun?',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: AppColors.darkSlate,
-                                ),
-                              ),
-                            ],
-                          ),
-                          content: const Text(
-                            'Apakah Anda yakin ingin keluar dari akun mahasiswa? Anda harus masuk kembali dengan NIM dan kata sandi.',
-                            style: TextStyle(fontSize: 13, height: 1.4),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Batal'),
-                            ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFDC2626),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              onPressed: () {
-                                Navigator.pop(ctx);
-                                Navigator.pushNamedAndRemoveUntil(
-                                  context,
-                                  AppRoutes.roleSelection,
-                                  (route) => false,
-                                );
-                              },
-                              child: const Text(
-                                'Keluar',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                  _buildSettingsTile(
-                    icon: Icons.delete_forever_rounded,
-                    title: 'Hapus atau Nonaktifkan Akun',
-                    subtitle:
-                        'Tutup akun secara permanen beserta saldo TimeCoin',
-                    iconColor: const Color(0xFFEF4444),
-                    titleColor: const Color(0xFFDC2626),
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          title: const Text(
-                            'Nonaktifkan Akun?',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color(0xFFDC2626),
-                            ),
-                          ),
-                          content: const Text(
-                            'Setelah dinonaktifkan, portofolio dan riwayat bimbingan Anda tidak dapat diakses kembali oleh mitra UMKM.',
-                            style: TextStyle(fontSize: 13, height: 1.4),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Batal'),
-                            ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFDC2626),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              onPressed: () {
-                                Navigator.pop(ctx);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Permintaan penutupan akun sedang ditinjau tim admin.',
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                'Ya, Lanjutkan',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 40),
-                ],
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _error ?? 'Terjadi kesalahan',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.secondarySlate),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 44,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryNavy,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _load,
+                child: const Text('Coba Lagi'),
               ),
             ),
           ],

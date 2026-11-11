@@ -64,6 +64,10 @@ import 'package:flutter_frontend/features/msme/screens/msme_barter_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_upgrade_pro_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_store_profile_screen.dart';
 
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/wallet/screens/history_screen.dart';
+import 'package:flutter_frontend/features/wallet/screens/transfer_screen.dart';
+
 class AppRoutes {
   // Define Route Names
   static const String splash = '/';
@@ -114,6 +118,8 @@ class AppRoutes {
   static const String certificates = '/portfolio/certificates';
   static const String caseStudy = '/portfolio/case-study';
   static const String wallet = '/wallet';
+  static const String walletHistory = '/wallet/history';
+  static const String walletTransfer = '/wallet/transfer';
   static const String findMentors = '/mentors';
   static const String myMentors = '/mentors/my-mentors';
   static const String mentorProfile = '/mentors/profile';
@@ -230,33 +236,131 @@ class AppRoutes {
       return MentorFeaturedUpgradeScreen(balanceTc: balanceTc);
     },
     studentSetupProfile: (context) => const StudentSetupProfileScreen(),
-    studentSetupProfileStep2: (context) =>
-        const StudentSetupProfileStep2Screen(),
+    studentSetupProfileStep2: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      return StudentSetupProfileStep2Screen(
+        args: args is StudentSetupArgs ? args : null,
+      );
+    },
     exploreProjects: (context) => const ExploreProjectsScreen(),
-    projectDetail: (context) => const ProjectDetailScreen(),
-    applyProject: (context) => const ApplyProjectScreen(),
+    projectDetail: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final projectId = args is ProjectRouteArgs
+          ? args.projectId
+          : (args is int ? args : null);
+      return ProjectDetailScreen(projectId: projectId);
+    },
+    applyProject: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final projectId = args is ProjectRouteArgs
+          ? args.projectId
+          : (args is int ? args : null);
+      return ApplyProjectScreen(projectId: projectId);
+    },
     myProjects: (context) => const MyProjectsScreen(),
-    projectCompleted: (context) => const ProjectCompletedScreen(),
+    projectCompleted: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final projectId = args is ProjectRouteArgs
+          ? args.projectId
+          : (args is int ? args : null);
+      return ProjectCompletedScreen(projectId: projectId);
+    },
     notifications: (context) => const NotificationsScreen(),
-    workspaceKanban: (context) => const WorkspaceKanbanScreen(),
-    workspaceChat: (context) => const WorkspaceChatScreen(),
-    videoCall: (context) => const VideoCallScreen(),
+    workspaceKanban: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final projectId = args is ProjectRouteArgs
+          ? args.projectId
+          : (args is int ? args : null);
+      return WorkspaceKanbanScreen(projectId: projectId);
+    },
+    workspaceChat: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final projectId = args is ProjectRouteArgs
+          ? args.projectId
+          : (args is int ? args : null);
+      return WorkspaceChatScreen(projectId: projectId);
+    },
+    videoCall: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      return VideoCallScreen(args: args is VideoCallArgs ? args : null);
+    },
     inbox: (context) => const InboxScreen(),
-    submission: (context) => const SubmissionScreen(),
+    submission: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final projectId = args is ProjectRouteArgs
+          ? args.projectId
+          : (args is int ? args : null);
+      return SubmissionScreen(projectId: projectId);
+    },
     portfolio: (context) => const PortfolioDashboardScreen(),
     certificates: (context) => const CertificatesScreen(),
-    caseStudy: (context) => const CaseStudyScreen(),
+    caseStudy: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final portfolioId = args is CaseStudyArgs
+          ? args.portfolioId
+          : (args is int ? args : null);
+      return CaseStudyScreen(portfolioId: portfolioId);
+    },
     wallet: (context) => const WalletDashboardScreen(),
+    walletHistory: (context) => const HistoryScreen(),
+    walletTransfer: (context) => const TransferScreen(),
     findMentors: (context) => const FindMentorsScreen(),
     myMentors: (context) => const MyMentorsScreen(),
-    mentorProfile: (context) => const MentorProfileScreen(),
-    mentorChat: (context) => const MentorChatScreen(),
-    bookingSession: (context) => const BookingSessionScreen(),
-    mentoringSession: (context) => const MentoringSessionScreen(),
-    selesaiBimbingan: (context) => const SelesaiBimbinganScreen(),
-    mentoringResult: (context) => const MentoringResultScreen(),
+    mentorProfile: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is MentorDetailArgs) {
+        return MentorProfileScreen(
+          mentorId: args.mentorId,
+          classId: args.classId,
+        );
+      }
+      return const MentorProfileScreen();
+    },
+    mentorChat: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final enrollmentId = args is MentoringEnrollmentArgs
+          ? args.enrollmentId
+          : (args is int ? args : null);
+      return MentorChatScreen(enrollmentId: enrollmentId);
+    },
+    bookingSession: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      return BookingSessionScreen(
+        args: args is BookingSessionArgs ? args : null,
+      );
+    },
+    mentoringSession: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final enrollmentId = args is MentoringEnrollmentArgs
+          ? args.enrollmentId
+          : (args is int ? args : null);
+      return MentoringSessionScreen(enrollmentId: enrollmentId);
+    },
+    selesaiBimbingan: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final enrollmentId = args is MentoringEnrollmentArgs
+          ? args.enrollmentId
+          : (args is int ? args : null);
+      return SelesaiBimbinganScreen(enrollmentId: enrollmentId);
+    },
+    mentoringResult: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final enrollmentId = args is MentoringEnrollmentArgs
+          ? args.enrollmentId
+          : (args is int ? args : null);
+      return MentoringResultScreen(enrollmentId: enrollmentId);
+    },
     logBimbingan: (context) => const LogBimbinganScreen(),
-    ruangBelajar: (context) => const RuangBelajarScreen(),
+    ruangBelajar: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is MentoringEnrollmentArgs) {
+        return RuangBelajarScreen(
+          enrollmentId: args.enrollmentId,
+          initialTab: args.initialTab,
+        );
+      }
+      return const RuangBelajarScreen();
+    },
     rewardHub: (context) => const RewardHubScreen(),
     settings: (context) => const StudentSettingsScreen(),
     editProfile: (context) => const EditProfileScreen(),

@@ -1,56 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/features/workspace/data/workspace_api.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HelpSupportScreen extends StatefulWidget {
-  const HelpSupportScreen({super.key});
+  const HelpSupportScreen({super.key, this.workspaceApi});
+
+  final WorkspaceApi? workspaceApi;
 
   @override
   State<HelpSupportScreen> createState() => _HelpSupportScreenState();
 }
 
 class _HelpSupportScreenState extends State<HelpSupportScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  int _selectedCategoryIndex = 0;
+  late final WorkspaceApi _workspaceApi =
+      widget.workspaceApi ?? WorkspaceApi.instance;
 
-  final List<Map<String, dynamic>> _categories = [
-    {
-      'icon': Icons.account_balance_wallet_rounded,
-      'title': 'Dompet & TC',
-      'desc': 'Escrow & cash-out',
-    },
-    {
-      'icon': Icons.assignment_rounded,
-      'title': 'Proyek UMKM',
-      'desc': 'Deliverable & revisi',
-    },
-    {
-      'icon': Icons.school_rounded,
-      'title': 'Mentoring',
-      'desc': 'Sesi & endorsement',
-    },
-    {
-      'icon': Icons.verified_user_rounded,
-      'title': 'Verifikasi KTM',
-      'desc': 'Status akun kampus',
-    },
+  final TextEditingController _searchController = TextEditingController();
+  int _selectedCategoryIdx = 0;
+
+  static const List<String> _categories = [
+    'Semua',
+    'Dompet & TC',
+    'Proyek UMKM',
+    'Mentoring',
+    'Akun',
   ];
 
-  final List<Map<String, String>> _faqItems = [
+  static const List<Map<String, String>> _faqs = [
     {
-      'question': 'Berapa lama proses pencairan TimeCoin ke rekening bank?',
-      'answer': 'Pencairan TimeCoin diproses instan hingga maksimal 1x24 jam kerja. Mahasiswa menikmati potongan admin 0% sehingga seluruh nilai 1 TC setara Rp1.000 masuk utuh ke rekening bank Anda.',
+      'category': 'Proyek UMKM',
+      'q': 'Mengapa saya belum bisa melamar proyek UMKM tertentu?',
+      'a':
+          'Proyek UMKM mewajibkan mahasiswa memiliki minimal 1 Portofolio Terverifikasi ATAU Badge Rekomendasi dari Mentor. Jika belum punya, pesan sesi bimbingan bersama Peer Mentor terlebih dahulu.',
     },
     {
-      'question': 'Bagaimana jika mitra UMKM belum memvalidasi hasil kerja?',
-      'answer': 'Sistem Smart Escrow TalentSync dilengkapi fitur auto-release. Apabila mitra tidak memberikan catatan revisi atau validasi dalam 3x24 jam kerja, dana TC otomatis diteruskan ke saldo Anda.',
+      'category': 'Dompet & TC',
+      'q': 'Berapa biaya admin pencairan TimeCoin (Cash-Out)?',
+      'a':
+          'Pencairan TimeCoin ke Rupiah untuk mahasiswa dikenakan 0% biaya admin dengan kurs tetap 1 TC = Rp1.000.',
     },
     {
-      'question': 'Apa syarat mendapatkan Badge Rekomendasi Kerja dari mentor?',
-      'answer': 'Mahasiswa perlu menyelesaikan minimal satu paket mentoring dengan evaluasi nilai akhir di atas 80/100 serta membuktikan artefak hasil kerja nyata yang siap dipresentasikan ke mitra UMKM.',
+      'category': 'Mentoring',
+      'q': 'Kapan escrow bimbingan diteruskan ke mentor?',
+      'a':
+          'TimeCoin ditahan di smart escrow saat booking dan baru cair ke mentor setelah kamu menekan Konfirmasi Selesai & Lepas Escrow pada lembar evaluasi.',
     },
     {
-      'question': 'Apakah saya bisa menjadwalkan ulang sesi mentoring?',
-      'answer': 'Bisa. Anda dapat mengajukan perubahan jadwal melalui fitur chat langsung dengan mentor minimal 2 jam sebelum waktu sesi dimulai.',
+      'category': 'Akun',
+      'q': 'Apa syarat mengaktifkan mode Peer Mentor?',
+      'a':
+          'Mahasiswa wajib memiliki KTM terverifikasi, menyelesaikan minimal 5 proyek UMKM nyata dengan rating >= 4.0, dan bebas dari sengketa escrow aktif.',
     },
   ];
 
@@ -60,395 +61,381 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     super.dispose();
   }
 
-  Widget _buildQuickCategoryCard(int index, Map<String, dynamic> item) {
-    final bool isSelected = _selectedCategoryIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedCategoryIndex = index;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryNavy : AppColors.borderSlate,
-            width: isSelected ? 1.5 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.darkSlate.withValues(alpha: 0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              item['icon'] as IconData,
-              color: isSelected
-                  ? AppColors.primaryNavy
-                  : AppColors.secondarySlate,
-              size: 24,
-            ),
-            const Spacer(),
-            Text(
-              item['title'] as String,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? AppColors.primaryNavy : AppColors.darkSlate,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              item['desc'] as String,
-              style: const TextStyle(
-                fontSize: 10.5,
-                color: AppColors.secondarySlate,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  List<Map<String, String>> get _filteredFaqs {
+    final query = _searchController.text.trim().toLowerCase();
+    final cat = _categories[_selectedCategoryIdx];
+    return _faqs.where((item) {
+      final catMatch = cat == 'Semua' || item['category'] == cat;
+      final qMatch =
+          query.isEmpty ||
+          item['q']!.toLowerCase().contains(query) ||
+          item['a']!.toLowerCase().contains(query);
+      return catMatch && qMatch;
+    }).toList();
   }
 
-  Widget _buildContactOption({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    Color iconColor = AppColors.primaryNavy,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderSlate),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.darkSlate.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
+  void _openTicketModal() {
+    final descCtrl = TextEditingController();
+    String category = 'wallet_issue';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 22),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.secondarySlate,
-                        ),
-                      ),
-                    ],
+                const Text(
+                  'Ajukan Tiket Bantuan & Mediasi',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
                   ),
                 ),
-                const Icon(
-                  Icons.arrow_forward_rounded,
-                  color: Color(0xFF94A3B8),
-                  size: 18,
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: category,
+                  decoration: InputDecoration(
+                    labelText: 'Kategori Masalah',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'wallet_issue',
+                      child: Text('Dompet / Pencairan TimeCoin'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'project_dispute',
+                      child: Text('Kendala Proyek UMKM'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'account_issue',
+                      child: Text('Verifikasi KTM / Akun'),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) setModalState(() => category = v);
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descCtrl,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Jelaskan kendala Anda (minimal 10 karakter)...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryNavy,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: () async {
+                      final desc = descCtrl.text.trim();
+                      if (desc.length < 10) {
+                        _showSnack(
+                          'Deskripsi kendala minimal 10 karakter.',
+                          isError: true,
+                        );
+                        return;
+                      }
+                      Navigator.pop(ctx);
+                      try {
+                        await _workspaceApi.fileDispute(
+                          referenceType: 'wallet',
+                          referenceId: 1,
+                          category: category,
+                          description: desc,
+                        );
+                        _showSnack(
+                          'Tiket bantuan berhasil dikirim. Tim kami segera merespons.',
+                        );
+                      } on ApiException catch (e) {
+                        _showSnack(e.message, isError: true);
+                      } catch (_) {
+                        _showSnack(
+                          'Gagal mengirim tiket bantuan.',
+                          isError: true,
+                        );
+                      }
+                    },
+                    child: const Text(
+                      'Kirim Tiket Kendala',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
+    ).whenComplete(descCtrl.dispose);
+  }
+
+  Future<void> _launchExternal(String uriString) async {
+    final uri = Uri.tryParse(uriString);
+    if (uri == null ||
+        !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      _showSnack('Tidak dapat membuka aplikasi tujuan.', isError: true);
+    }
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError
+            ? const Color(0xFFB91C1C)
+            : AppColors.primaryNavy,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final faqs = _filteredFaqs;
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar
+            _buildHeader(),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.borderSlate),
-                      ),
-                      child: const Icon(
-                        Icons.keyboard_arrow_left_rounded,
-                        color: AppColors.darkSlate,
-                        size: 24,
-                      ),
-                    ),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: 'Cari pertanyaan atau panduan...',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  filled: true,
+                  fillColor: AppColors.cardSurface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.borderSlate),
                   ),
-                  const SizedBox(width: 14),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Pusat Bantuan',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                      Text(
-                        'Panduan fitur, kendala transaksi, dan kontak CS',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.secondarySlate,
-                        ),
-                      ),
-                    ],
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.borderSlate),
                   ),
-                ],
+                ),
               ),
             ),
-
-            // Scrollable Content
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 44,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: _categories.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (_, idx) {
+                  final active = _selectedCategoryIdx == idx;
+                  return InkWell(
+                    onTap: () => setState(() => _selectedCategoryIdx = idx),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      decoration: BoxDecoration(
+                        color: active
+                            ? AppColors.primaryNavy
+                            : AppColors.cardSurface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: active
+                              ? AppColors.primaryNavy
+                              : AppColors.borderSlate,
+                        ),
+                      ),
+                      child: Text(
+                        _categories[idx],
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: active
+                              ? Colors.white
+                              : AppColors.secondarySlate,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
                 children: [
-                  // Search Bar
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.borderSlate),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.darkSlate.withValues(alpha: 0.03),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: const InputDecoration(
-                        hintText: 'Cari topik bantuan atau kendala...',
-                        hintStyle: TextStyle(
-                          color: AppColors.secondarySlate,
-                          fontSize: 13,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.search_rounded,
-                          color: AppColors.secondarySlate,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 14),
+                  if (faqs.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Text(
+                        'Tidak ada topik FAQ yang cocok.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppColors.secondarySlate),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Kategori Cepat
-                  const Text(
-                    'Kategori Pertanyaan',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkSlate,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.45,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: List.generate(
-                      _categories.length,
-                      (index) =>
-                          _buildQuickCategoryCard(index, _categories[index]),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // FAQ Section
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Pertanyaan Umum (FAQ)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                      Text(
-                        'Lihat Semua',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryNavy,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ..._faqItems.map(
-                    (faq) => Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.borderSlate),
-                      ),
-                      child: Theme(
-                        data: Theme.of(context)
-                            .copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          iconColor: AppColors.primaryNavy,
-                          collapsedIconColor: AppColors.secondarySlate,
-                          tilePadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 2,
+                    )
+                  else
+                    ...faqs.map(
+                      (faq) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Material(
+                          color: AppColors.cardSurface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: const BorderSide(
+                              color: AppColors.borderSlate,
+                            ),
                           ),
-                          childrenPadding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            bottom: 16,
-                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: ExpansionTile(
                           title: Text(
-                            faq['question']!,
+                            faq['q']!,
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 13.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.darkSlate,
                             ),
                           ),
+                          childrenPadding: const EdgeInsets.fromLTRB(
+                            16,
+                            0,
+                            16,
+                            14,
+                          ),
                           children: [
                             Text(
-                              faq['answer']!,
+                              faq['a']!,
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: AppColors.secondarySlate,
-                                height: 1.5,
+                                height: 1.45,
                               ),
                             ),
                           ],
                         ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryNavy,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: _openTicketModal,
+                      icon: const Icon(Icons.support_agent_rounded),
+                      label: const Text(
+                        'Ajukan Tiket Kendala / Mediasi',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // Hubungi Tim Dukungan
-                  const Text(
-                    'Hubungi Kami',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.darkSlate,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildContactOption(
-                    icon: Icons.chat_rounded,
-                    title: 'Live Chat Dukungan TalentSync',
-                    subtitle: 'Respon cepat dalam waktu kurang dari 5 menit',
-                    iconColor: AppColors.primaryNavy,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Menghubungkan ke layanan live chat dukungan...',
-                          ),
-                          backgroundColor: AppColors.primaryNavy,
-                        ),
-                      );
-                    },
-                  ),
-                  _buildContactOption(
-                    icon: Icons.forum_rounded,
-                    title: 'WhatsApp Layanan Pengguna',
-                    subtitle: 'Bantuan instan via hotline resmi WhatsApp',
-                    iconColor: const Color(0xFF16A34A),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Membuka kontak WhatsApp resmi TalentSync.',
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 46,
+                          child: OutlinedButton.icon(
+                            onPressed: () =>
+                                _launchExternal('mailto:support@talentsync.id'),
+                            icon: const Icon(Icons.email_outlined, size: 18),
+                            label: const Text('Email Support'),
                           ),
                         ),
-                      );
-                    },
-                  ),
-                  _buildContactOption(
-                    icon: Icons.mail_rounded,
-                    title: 'Email Tim Resolusi',
-                    subtitle: 'bantuan@talentsync.id · Penanganan 1x24 jam',
-                    iconColor: const Color(0xFF2563EB),
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Membuka aplikasi email ke bantuan@talentsync.id.',
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: SizedBox(
+                          height: 46,
+                          child: OutlinedButton.icon(
+                            onPressed: () =>
+                                _launchExternal('https://wa.me/6281234567890'),
+                            icon: const Icon(Icons.chat_rounded, size: 18),
+                            label: const Text('WhatsApp'),
                           ),
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
-
-                  const SizedBox(height: 40),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () => Navigator.pop(context),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.cardSurface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: const Icon(
+                Icons.keyboard_arrow_left_rounded,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Pusat Bantuan & Mediasi',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

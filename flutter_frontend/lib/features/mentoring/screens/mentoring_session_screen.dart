@@ -1,688 +1,402 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/mentoring/data/student_mentoring_api.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MentoringSessionScreen extends StatefulWidget {
-  const MentoringSessionScreen({super.key});
+  const MentoringSessionScreen({
+    super.key,
+    this.enrollmentId,
+    this.mentoringApi,
+  });
+
+  final int? enrollmentId;
+  final StudentMentoringApi? mentoringApi;
 
   @override
   State<MentoringSessionScreen> createState() => _MentoringSessionScreenState();
 }
 
 class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
+  late final StudentMentoringApi _api =
+      widget.mentoringApi ?? StudentMentoringApi.instance;
+
   bool _isMicOn = true;
   bool _isVideoOn = true;
   final TextEditingController _noteController = TextEditingController();
+  Timer? _elapsedTimer;
+  int _elapsedSeconds = 0;
 
-  final List<Map<String, dynamic>> _notes = [
-    {
-      'sender': 'mentor',
-      'text': 'Coba pisahkan logika stok ke repository terpisah, lalu panggil lewat BLoC. Nanti saya kirim contoh strukturnya.',
-    },
-    {
-      'sender': 'student',
-      'text': 'Siap, Mas. Folder-nya per fitur atau per layer?',
-    },
-  ];
+  bool _isLoading = true;
+  bool _isSending = false;
+  String? _error;
+  int? _resolvedEnrollmentId;
+  int? _currentUserId;
+  Map<String, dynamic> _enrollment = const {};
+  List<Map<String, dynamic>> _notes = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _elapsedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _elapsedSeconds++);
+    });
+    _load();
+  }
 
   @override
   void dispose() {
+    _elapsedTimer?.cancel();
     _noteController.dispose();
     super.dispose();
   }
 
-  void _sendNote() {
-    final text = _noteController.text.trim();
-    if (text.isNotEmpty) {
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final user = await ApiClient.instance.readSessionUser();
+      _currentUserId = (user?['id'] as num?)?.toInt();
+
+      var targetId = widget.enrollmentId ?? _resolvedEnrollmentId;
+      if (targetId == null) {
+        final mine = await _api.myEnrollments();
+        if (mine.isEmpty) {
+          throw const ApiException('Belum ada sesi bimbingan yang dipesan.');
+        }
+        targetId = (mine.first['id'] as num).toInt();
+      }
+      final results = await Future.wait([
+        _api.enrollmentDetail(targetId),
+        _api.messages(targetId),
+      ]);
+      if (!mounted) return;
       setState(() {
-        _notes.add({'sender': 'student', 'text': text});
-        _noteController.clear();
+        _resolvedEnrollmentId = targetId;
+        _enrollment = results[0] as Map<String, dynamic>;
+        _notes = (results[1] as List).whereType<Map<String, dynamic>>().toList();
+        _isLoading = false;
       });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat ruang sesi mentoring.';
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  void _endCall() {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text(
-          'Akhiri Sesi Bimbingan?',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.darkSlate,
-          ),
-        ),
-        content: const Text(
-          'Sesi bimbingan 1-on-1 dengan Dimas Prasetyo telah selesai. Apakah kamu ingin melihat lembar Evaluasi & Hasil Bimbingan sekarang?',
-          style: TextStyle(
-            fontSize: 13,
-            color: AppColors.secondarySlate,
-            height: 1.4,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text(
-              'Tetap di Sesi',
-              style: TextStyle(color: AppColors.secondarySlate),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryNavy,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            ),
-            onPressed: () {
-              Navigator.pop(dialogContext); // Close dialog
-              Navigator.pushReplacementNamed(
-                context,
-                AppRoutes.selesaiBimbingan,
-              );
-            },
-            child: const Text(
-              'Selesai & Evaluasi Bimbingan',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  Future<void> _sendNote() async {
+    final enrollmentId = _resolvedEnrollmentId;
+    final text = _noteController.text.trim();
+    if (enrollmentId == null || text.isEmpty || _isSending) return;
+    _noteController.clear();
+    setState(() => _isSending = true);
+    try {
+      final sent = await _api.sendMessage(enrollmentId, message: text);
+      if (!mounted) return;
+      setState(() {
+        _notes = [..._notes, sent];
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
   }
 
-  Widget _buildNavIcon({required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        color: Colors.transparent,
-        child: Icon(icon, color: AppColors.secondarySlate, size: 24),
-      ),
-    );
+  Future<void> _openMeet() async {
+    final cls = (_enrollment['class'] as Map<String, dynamic>?) ?? const {};
+    final link = (cls['meeting_link'] as String?) ?? '';
+    if (link.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Tautan pertemuan tersedia setelah mentor menerima booking sesi.',
+          ),
+        ),
+      );
+      return;
+    }
+    final uri = Uri.tryParse(link);
+    if (uri != null) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  String _formatDuration(int totalSeconds) {
+    final mins = (totalSeconds ~/ 60).toString().padLeft(2, '0');
+    final secs = (totalSeconds % 60).toString().padLeft(2, '0');
+    return '$mins:$secs';
   }
 
   @override
   Widget build(BuildContext context) {
+    final cls = (_enrollment['class'] as Map<String, dynamic>?) ?? const {};
+    final mentorName = (cls['mentor_name'] as String?) ?? 'Mentor';
+
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
-      body: Stack(
-        children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 120),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Top Bar: Back, Title, Subtitle
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 16.0,
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (Navigator.canPop(context)) {
-                              Navigator.pop(context);
-                            } else {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                AppRoutes.studentDashboard,
-                              );
-                            }
-                          },
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.05,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.keyboard_arrow_left_rounded,
-                                color: AppColors.darkSlate,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Mentoring Session',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.darkSlate,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Bersama Dimas Prasetyo',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.secondarySlate,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 2. Virtual Video Container (Dark Navy Box)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      height: 250,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        children: [
-                          // Top-left Mentor Tag
-                          Positioned(
-                            top: 14,
-                            left: 14,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.4),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Text(
-                                'Dimas Prasetyo',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          // Center Avatar: DP
-                          Center(
-                            child: Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryNavy,
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'DP',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          // Bottom-right PIP: AP (Student)
-                          Positioned(
-                            right: 14,
-                            bottom: 74,
-                            child: Container(
-                              width: 56,
-                              height: 72,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1E293B),
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                ),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'AP',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          // Bottom Action Controls Bar
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 14,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Mic
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _isMicOn = !_isMicOn;
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: _isMicOn
-                                          ? const Color(0xFF334155)
-                                          : const Color(0xFFDC2626),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      _isMicOn
-                                          ? Icons.mic_rounded
-                                          : Icons.mic_off_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                // Video
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _isVideoOn = !_isVideoOn;
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: _isVideoOn
-                                          ? const Color(0xFF334155)
-                                          : const Color(0xFFDC2626),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      _isVideoOn
-                                          ? Icons.videocam_rounded
-                                          : Icons.videocam_off_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                // Screen share
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF334155),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.screen_share_rounded,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                // End Call
-                                GestureDetector(
-                                  onTap: _endCall,
-                                  child: Container(
-                                    width: 50,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFDC2626),
-                                      borderRadius: BorderRadius.circular(22),
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.call_end_rounded,
-                                        color: Colors.white,
-                                        size: 22,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // 3. Session Timer Card
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.04),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFEF3C7),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.timer_rounded,
-                                    color: Color(0xFFD97706),
-                                    size: 22,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              const Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Sisa waktu sesi',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.baseline,
-                                    textBaseline: TextBaseline.alphabetic,
-                                    children: [
-                                      Text(
-                                        '44:48',
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.darkSlate,
-                                        ),
-                                      ),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'menit',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.secondarySlate,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const Spacer(),
-                              const Row(
-                                children: [
-                                  Icon(
-                                    Icons.toll_rounded,
-                                    size: 16,
-                                    color: AppColors.accentAmberGold,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    '30 TC',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.darkSlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          // Progress Line
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: Container(
-                              height: 3,
-                              width: double.infinity,
-                              color: const Color(0xFFF59E0B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // 4. Catatan Sesi Section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Catatan sesi',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkSlate,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-
-                        // Chat / Notes List
-                        ..._notes.map((note) {
-                          final isMentor = note['sender'] == 'mentor';
-                          return Align(
-                            alignment: isMentor
-                                ? Alignment.centerLeft
-                                : Alignment.centerRight,
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              constraints: BoxConstraints(
-                                maxWidth:
-                                    MediaQuery.of(context).size.width * 0.75,
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isMentor
-                                    ? Colors.white
-                                    : AppColors.primaryNavy,
-                                borderRadius: BorderRadius.circular(18),
-                                boxShadow: isMentor
-                                    ? [
-                                        BoxShadow(
-                                          color: AppColors.darkSlate.withValues(
-                                            alpha: 0.04,
-                                          ),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 3),
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              child: Text(
-                                note['text'],
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isMentor
-                                      ? AppColors.darkSlate
-                                      : Colors.white,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-
-                        const SizedBox(height: 8),
-
-                        // Input Note Box
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
-                                  ),
-                                ),
-                                child: TextField(
-                                  controller: _noteController,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                  decoration: const InputDecoration(
-                                    hintText:
-                                        'Tulis catatan atau pertanyaan...',
-                                    hintStyle: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                    border: InputBorder.none,
-                                  ),
-                                  onSubmitted: (_) => _sendNote(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: _sendNote,
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryNavy,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.send_rounded,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        backgroundColor: AppColors.canvasWhite,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.keyboard_arrow_left_rounded,
+            color: AppColors.darkSlate,
+            size: 28,
           ),
-
-          // Floating Capsule Bottom Navigation Bar
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.cardSurface,
-                borderRadius: BorderRadius.circular(36),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkSlate.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavIcon(
-                    icon: Icons.explore_rounded,
-                    onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.studentDashboard,
-                        (route) => false,
-                      );
-                    },
-                  ),
-                  _buildNavIcon(
-                    icon: Icons.assignment_rounded,
-                    onTap: () {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        AppRoutes.myProjects,
-                      );
-                    },
-                  ),
-                  _buildNavIcon(
-                    icon: Icons.account_balance_wallet_rounded,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.wallet);
-                    },
-                  ),
-                  _buildNavIcon(
-                    icon: Icons.person_outline_rounded,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.settings);
-                    },
-                  ),
-                ],
+        ),
+        title: Text(
+          'Bersama $mentorName',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: AppColors.darkSlate,
+            fontWeight: FontWeight.bold,
+            fontSize: 16.5,
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: Text(
+                _formatDuration(_elapsedSeconds),
+                style: const TextStyle(
+                  color: AppColors.primaryNavy,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
         ],
+      ),
+      body: SafeArea(
+        top: false,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(_error!),
+                    const SizedBox(height: 12),
+                    FilledButton(onPressed: _load, child: const Text('Coba lagi')),
+                  ],
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+                child: Column(
+                  children: [
+                    // Virtual Room Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: AppColors.darkSlate,
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            (cls['topic'] as String?) ?? 'Sesi Mentoring',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Status: ${_enrollment['status'] ?? '-'} · ${_enrollment['paid_tc'] ?? 0} TC',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton.filled(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: _isMicOn
+                                      ? Colors.white24
+                                      : const Color(0xFFDC2626),
+                                ),
+                                onPressed: () =>
+                                    setState(() => _isMicOn = !_isMicOn),
+                                icon: Icon(
+                                  _isMicOn
+                                      ? Icons.mic_rounded
+                                      : Icons.mic_off_rounded,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton.filled(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: _isVideoOn
+                                      ? Colors.white24
+                                      : const Color(0xFFDC2626),
+                                ),
+                                onPressed: () =>
+                                    setState(() => _isVideoOn = !_isVideoOn),
+                                icon: Icon(
+                                  _isVideoOn
+                                      ? Icons.videocam_rounded
+                                      : Icons.videocam_off_rounded,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryNavy,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: _openMeet,
+                                icon: const Icon(
+                                  Icons.video_call_rounded,
+                                  size: 18,
+                                ),
+                                label: const Text('Buka Meet'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: AppColors.borderSlate),
+                        ),
+                        child: _notes.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'Catatan & diskusi sesi akan tampil di sini.',
+                                  style: TextStyle(
+                                    color: AppColors.secondarySlate,
+                                  ),
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: _notes.length,
+                                itemBuilder: (_, i) {
+                                  final n = _notes[i];
+                                  final isMe =
+                                      (n['sender_id'] as num?)?.toInt() ==
+                                      _currentUserId;
+                                  final senderName =
+                                      (n['sender']?['name'] as String?) ??
+                                      (isMe ? 'Anda' : mentorName);
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Text(
+                                      '$senderName: ${n['message'] ?? n['attachment_url'] ?? ''}',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.darkSlate,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _noteController,
+                            onSubmitted: (_) => _sendNote(),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white,
+                              hintText: 'Tulis catatan sesi...',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filled(
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.primaryNavy,
+                          ),
+                          onPressed: _isSending ? null : _sendNote,
+                          icon: const Icon(
+                            Icons.send_rounded,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFFDC2626),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pushReplacementNamed(
+                          context,
+                          AppRoutes.selesaiBimbingan,
+                          arguments: MentoringEnrollmentArgs(
+                            enrollmentId: _resolvedEnrollmentId,
+                          ),
+                        ),
+                        child: const Text(
+                          'Selesai & Evaluasi Bimbingan',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }

@@ -1,23 +1,92 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-class VideoCallScreen extends StatelessWidget {
-  const VideoCallScreen({super.key});
+import 'package:flutter/material.dart';
+import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class VideoCallScreen extends StatefulWidget {
+  const VideoCallScreen({super.key, this.args});
+
+  final VideoCallArgs? args;
+
+  @override
+  State<VideoCallScreen> createState() => _VideoCallScreenState();
+}
+
+class _VideoCallScreenState extends State<VideoCallScreen> {
+  bool _isMicMuted = false;
+  bool _isVideoOff = false;
+  bool _isScreenSharing = false;
+  int _elapsedSeconds = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() => _elapsedSeconds++);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _formatDuration(int totalSeconds) {
+    final minutes = (totalSeconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (totalSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  Future<void> _openExternalMeet(String? link) async {
+    if (link == null || link.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tautan Meet eksternal belum tersedia untuk sesi ini.'),
+        ),
+      );
+      return;
+    }
+    final uri = Uri.tryParse(link.trim());
+    if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tidak dapat membuka tautan Meet.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final routeArgs = ModalRoute.of(context)?.settings.arguments;
+    final resolvedArgs =
+        widget.args ?? (routeArgs is VideoCallArgs ? routeArgs : null);
+    final participantName =
+        resolvedArgs?.participantName ?? 'Sesi Mentoring Aktif';
+    final avatarUrl = resolvedArgs?.avatarUrl;
+    final meetingLink = resolvedArgs?.meetingLink;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C),
+      backgroundColor: AppColors.darkSlate,
       body: Stack(
         children: [
-          // Simulated Video Background (Mentor's Camera)
           Positioned.fill(
-            child: Image.network(
-              'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80',
-              fit: BoxFit.cover,
-            ),
+            child: avatarUrl != null && avatarUrl.isNotEmpty
+                ? Image.network(
+                    avatarUrl,
+                    cacheWidth: 720,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _buildAvatarBackdrop(
+                      participantName,
+                    ),
+                  )
+                : _buildAvatarBackdrop(participantName),
           ),
-
-          // Dark Overlay for better text visibility
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -25,31 +94,28 @@ class VideoCallScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.6),
-                    Colors.transparent,
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.8),
+                    Colors.black.withValues(alpha: 0.65),
+                    Colors.black.withValues(alpha: 0.18),
+                    Colors.black.withValues(alpha: 0.85),
                   ],
-                  stops: const [0.0, 0.2, 0.7, 1.0],
                 ),
               ),
             ),
           ),
-
-          // Top Header (Meeting Info)
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(20),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
+                  InkWell(
                     onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(14),
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
                         Icons.keyboard_arrow_down_rounded,
@@ -57,49 +123,54 @@ class VideoCallScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
                         Text(
-                          'Mentoring Session',
+                          participantName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          '42:15',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                          _formatDuration(_elapsedSeconds),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12.5,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
+                      horizontal: 10,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      borderRadius: BorderRadius.circular(20),
+                      color: const Color(0xFFDC2626),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          Icons.fiber_manual_record,
+                          Icons.fiber_manual_record_rounded,
                           color: Colors.white,
-                          size: 12,
+                          size: 11,
                         ),
                         SizedBox(width: 4),
                         Text(
-                          'REC',
+                          'AKTIF',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -113,69 +184,117 @@ class VideoCallScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // My Video (Picture in Picture)
           Positioned(
-            right: 24,
-            bottom: 140,
+            right: 20,
+            bottom: 136,
             child: Container(
-              width: 100,
-              height: 150,
+              width: 96,
+              height: 132,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.white70, width: 1.5),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _isVideoOff
+                        ? Icons.videocam_off_rounded
+                        : Icons.person_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _isVideoOff ? 'Kamera Mati' : 'Anda',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=800&q=80',
-                  ),
-                  fit: BoxFit.cover,
-                ),
               ),
             ),
           ),
-
-          // Bottom Controls
+          if (meetingLink != null && meetingLink.trim().isNotEmpty)
+            Positioned(
+              left: 20,
+              bottom: 136,
+              child: InkWell(
+                onTap: () => _openExternalMeet(meetingLink),
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryNavy,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.open_in_new_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        'Buka Meet',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 40,
+            left: 20,
+            right: 20,
+            bottom: 36,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildControlButton(
-                  Icons.mic_off_rounded,
-                  Colors.white.withValues(alpha: 0.2),
+                _buildControl(
+                  icon: _isMicMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+                  active: !_isMicMuted,
+                  onTap: () => setState(() => _isMicMuted = !_isMicMuted),
                 ),
-                const SizedBox(width: 20),
-                _buildControlButton(
-                  Icons.videocam_rounded,
-                  Colors.white.withValues(alpha: 0.2),
+                _buildControl(
+                  icon: _isVideoOff
+                      ? Icons.videocam_off_rounded
+                      : Icons.videocam_rounded,
+                  active: !_isVideoOff,
+                  onTap: () => setState(() => _isVideoOff = !_isVideoOff),
                 ),
-                const SizedBox(width: 20),
-                _buildControlButton(
-                  Icons.screen_share_rounded,
-                  Colors.white.withValues(alpha: 0.2),
+                _buildControl(
+                  icon: Icons.screen_share_rounded,
+                  active: _isScreenSharing,
+                  onTap: () =>
+                      setState(() => _isScreenSharing = !_isScreenSharing),
                 ),
-                const SizedBox(width: 20),
-                GestureDetector(
+                InkWell(
                   onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(28),
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    width: 56,
+                    height: 56,
                     decoration: const BoxDecoration(
-                      color: Colors.red,
+                      color: Color(0xFFDC2626),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.call_end_rounded,
                       color: Colors.white,
-                      size: 28,
+                      size: 26,
                     ),
                   ),
                 ),
@@ -187,11 +306,44 @@ class VideoCallScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildControlButton(IconData icon, Color color) {
+  Widget _buildAvatarBackdrop(String name) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      child: Icon(icon, color: Colors.white, size: 24),
+      color: const Color(0xFF0F172A),
+      alignment: Alignment.center,
+      child: CircleAvatar(
+        radius: 52,
+        backgroundColor: AppColors.primaryNavy,
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : 'M',
+          style: const TextStyle(
+            fontSize: 38,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildControl({
+    required IconData icon,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(28),
+      child: Container(
+        width: 54,
+        height: 54,
+        decoration: BoxDecoration(
+          color: active
+              ? Colors.white.withValues(alpha: 0.24)
+              : Colors.white.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.white, size: 24),
+      ),
     );
   }
 }

@@ -28,11 +28,15 @@ final class MentoringPresenter
 
     public static function mentoringClass(MentoringClass $class, bool $includeMeetingLink = false): array
     {
+        $mentorProfile = $class->mentor?->mentorProfile;
+
         return [
             'id' => $class->id,
             'mentor_id' => $class->mentor_id,
             'mentor_name' => $class->mentor?->name,
-            'title_headline' => $class->mentor?->mentorProfile?->title_headline,
+            'mentor_avatar_url' => $mentorProfile?->avatar_url,
+            'title_headline' => $mentorProfile?->title_headline,
+            'rating' => (float) ($mentorProfile?->rating_average ?? 0),
             'topic' => $class->topic,
             'description' => $class->description,
             'scheduled_time' => $class->scheduled_time,
@@ -47,21 +51,36 @@ final class MentoringPresenter
 
     public static function enrollment(MentoringEnrollment $enrollment, bool $includeStudent = false): array
     {
+        $class = $enrollment->relationLoaded('mentoringClass') ? $enrollment->mentoringClass : null;
+        $mentor = $class?->relationLoaded('mentor') ? $class->mentor : null;
+        $mentorProfile = $mentor?->mentorProfile;
+
         $data = [
             'id' => $enrollment->id,
             'class_id' => $enrollment->class_id,
             'student_id' => $enrollment->student_id,
             'paid_tc' => $enrollment->paid_tc,
+            'topic_focus' => $enrollment->topic_focus,
+            'student_notes' => $enrollment->student_notes,
+            'materials_url' => $enrollment->materials_url,
             'status' => $enrollment->status,
             'has_endorsement' => $enrollment->has_endorsement,
             'endorsement_notes' => $enrollment->endorsement_notes,
             'assessment_score' => $enrollment->assessment_score,
             'mentor_feedback' => $enrollment->mentor_feedback,
+            'rubric_scores' => $enrollment->rubric_scores ?? [],
+            'evaluated_at' => $enrollment->evaluated_at?->toIso8601String(),
             'student_confirmed_at' => $enrollment->student_confirmed_at,
-            'class' => $enrollment->relationLoaded('mentoringClass') ? [
-                'id' => $enrollment->mentoringClass->id,
-                'topic' => $enrollment->mentoringClass->topic,
-                'scheduled_time' => $enrollment->mentoringClass->scheduled_time,
+            'class' => $class ? [
+                'id' => $class->id,
+                'mentor_id' => $class->mentor_id,
+                'mentor_name' => $mentor?->name,
+                'mentor_avatar_url' => $mentorProfile?->avatar_url,
+                'title_headline' => $mentorProfile?->title_headline,
+                'topic' => $class->topic,
+                'scheduled_time' => $class->scheduled_time,
+                'duration_minutes' => $class->duration_minutes,
+                'price_tc' => $class->price_tc,
             ] : null,
         ];
 
@@ -71,6 +90,17 @@ final class MentoringPresenter
                 'name' => $enrollment->student->name,
                 'email' => $enrollment->student->email,
             ];
+        }
+
+        if ($enrollment->relationLoaded('actionItems')) {
+            $data['action_items'] = $enrollment->actionItems->map(fn ($item) => [
+                'id' => $item->id,
+                'title' => $item->title,
+                'tag' => $item->tag,
+                'detail' => $item->detail,
+                'is_completed' => (bool) $item->is_completed,
+                'completed_at' => $item->completed_at?->toIso8601String(),
+            ])->values();
         }
 
         return $data;

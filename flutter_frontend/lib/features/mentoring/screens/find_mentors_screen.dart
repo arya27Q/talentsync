@@ -1,19 +1,44 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/mentoring/data/student_mentoring_api.dart';
+import 'package:flutter_frontend/features/wallet/data/wallet_api.dart';
 
 class FindMentorsScreen extends StatefulWidget {
-  const FindMentorsScreen({super.key});
+  const FindMentorsScreen({
+    super.key,
+    this.mentoringApi,
+    this.walletApi,
+  });
+
+  final StudentMentoringApi? mentoringApi;
+  final WalletApi? walletApi;
 
   @override
   State<FindMentorsScreen> createState() => _FindMentorsScreenState();
 }
 
 class _FindMentorsScreenState extends State<FindMentorsScreen> {
-  int _selectedCategoryIndex = 0;
-  final TextEditingController _searchController = TextEditingController();
+  late final StudentMentoringApi _api =
+      widget.mentoringApi ?? StudentMentoringApi.instance;
+  late final WalletApi _walletApi = widget.walletApi ?? WalletApi.instance;
 
-  final List<String> _categories = [
+  int _selectedCategoryIndex = 0;
+  String _sortKey = 'rating_desc';
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+
+  bool _isLoading = true;
+  String? _error;
+  int _balanceTc = 0;
+  List<Map<String, dynamic>> _mentors = const [];
+
+  final List<String> _categories = const [
     'Semua',
     'Mobile',
     'UI/UX Design',
@@ -22,58 +47,355 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  Widget _buildNavIcon({
-    required IconData icon,
-    required VoidCallback onTap,
-    bool isActive = false,
-  }) {
-    if (isActive) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.primaryNavy,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryNavy.withValues(alpha: 0.25),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final results = await Future.wait([
+        _api.mentors(
+          search: _searchController.text,
+          category: _categories[_selectedCategoryIndex],
+          sort: _sortKey,
+        ),
+        _walletApi.summary().catchError((_) => const <String, dynamic>{}),
+      ]);
+      if (!mounted) return;
+      final mentorRes = results[0];
+      final walletRes = results[1];
+      final rows = (mentorRes['data'] as List?) ?? const [];
+      setState(() {
+        _mentors = rows.whereType<Map<String, dynamic>>().toList();
+        _balanceTc = (walletRes['balance_tc'] as num?)?.toInt() ?? 0;
+        _isLoading = false;
+      });
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _error = 'Gagal memuat daftar mentor.';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return name.isNotEmpty ? name[0].toUpperCase() : 'M';
+  }
+
+  Widget _buildMentorCard(Map<String, dynamic> mentor) {
+    final mentorId = (mentor['id'] as num).toInt();
+    final name = (mentor['name'] as String?) ?? 'Mentor';
+    final headline =
+        (mentor['title_headline'] as String?) ?? 'Peer Mentor TalentSync';
+    final bio =
+        (mentor['focus_summary'] as String?) ??
+        (mentor['bio'] as String?) ??
+        '';
+    final avatarUrl = ApiClient.resolveMediaUrl(mentor['avatar_url'] as String?);
+    final rating = ((mentor['rating'] as num?)?.toDouble() ?? 0.0);
+    final reviewsCount = (mentor['reviews_count'] as num?)?.toInt() ?? 0;
+    final priceTc = (mentor['hourly_rate_tc'] as num?)?.toInt() ?? 30;
+    final tags = ((mentor['tags'] as List?) ?? const [])
+        .map((e) => '$e')
+        .toList();
+    final nearestClass = mentor['nearest_class'] as Map<String, dynamic>?;
+    final nearestClassId = (nearestClass?['id'] as num?)?.toInt();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.borderSlate),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.darkSlate.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.lightBlueSurface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: avatarUrl != null
+                    ? Image.network(
+                        avatarUrl,
+                        width: 52,
+                        height: 52,
+                        cacheWidth: 156,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Center(
+                          child: Text(
+                            _initials(name),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryNavy,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Center(
+                        child: Text(
+                          _initials(name),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryNavy,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.verified_rounded,
+                          size: 16,
+                          color: AppColors.primaryNavy,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      headline,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.star_rounded,
+                    size: 16,
+                    color: AppColors.accentAmberGold,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    rating > 0 ? rating.toStringAsFixed(1) : '4.9',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                  if (reviewsCount > 0)
+                    Text(
+                      ' ($reviewsCount)',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          if (tags.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: tags
+                  .map(
+                    (t) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        t,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryNavy,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ],
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.account_balance_wallet_rounded,
-              color: Colors.white,
-              size: 18,
-            ),
-            SizedBox(width: 8),
+          if (bio.isNotEmpty) ...[
+            const SizedBox(height: 10),
             Text(
-              'Wallet',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+              bio,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12.5,
+                color: AppColors.secondarySlate,
+                height: 1.4,
               ),
             ),
           ],
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        color: Colors.transparent,
-        child: Icon(icon, color: AppColors.secondarySlate, size: 24),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${nearestClass?['price_tc'] ?? priceTc} TC / ${nearestClass?['duration_minutes'] ?? 60} mnt',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFB45309),
+                  fontSize: 13.5,
+                ),
+              ),
+              if (nearestClass != null)
+                Flexible(
+                  child: Text(
+                    'Slot: ${nearestClass['topic']}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: Color(0xFF16A34A),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.borderSlate),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.mentorProfile,
+                    arguments: MentorDetailArgs(
+                      mentorId: mentorId,
+                      classId: nearestClassId,
+                    ),
+                  ),
+                  child: const Text(
+                    'Lihat Profil',
+                    style: TextStyle(
+                      color: AppColors.darkSlate,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primaryNavy,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onPressed: () {
+                    if (nearestClassId != null) {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.bookingSession,
+                        arguments: BookingSessionArgs(
+                          classId: nearestClassId,
+                          mentorId: mentorId,
+                          mentorName: name,
+                          headline: headline,
+                          topic: nearestClass?['topic'] as String?,
+                          priceTc:
+                              (nearestClass?['price_tc'] as num?)?.toInt() ??
+                              priceTc,
+                        ),
+                      );
+                    } else {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.mentorProfile,
+                        arguments: MentorDetailArgs(mentorId: mentorId),
+                      );
+                    }
+                  },
+                  child: const Text(
+                    'Sewa Mentor',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -82,914 +404,306 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
-      body: Stack(
-        children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 120),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Top App Bar: Back, Title & Subtitle, Book Icon
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 16.0,
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (Navigator.canPop(context)) {
-                              Navigator.pop(context);
-                            } else {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                AppRoutes.studentDashboard,
-                              );
-                            }
-                          },
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.05,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.keyboard_arrow_left_rounded,
-                                color: AppColors.darkSlate,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Cari Mentor Ahli',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.darkSlate,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Kurasi portofolio & bimbingan 1-on-1',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondarySlate,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.pushNamed(context, AppRoutes.myMentors);
-                          },
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardSurface,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.darkSlate.withValues(
-                                    alpha: 0.05,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.menu_book_rounded,
-                                color: AppColors.darkSlate,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 2. Saldo TimeCoin Aktif Card
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.04),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF3C7),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.toll_rounded,
-                                color: AppColors.accentAmberGold,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'SALDO TIMECOIN AKTIF',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.3,
-                                    color: AppColors.secondarySlate,
-                                  ),
-                                ),
-                                SizedBox(height: 3),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '150 TC',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Tersedia',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF10B981),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushNamed(context, AppRoutes.wallet);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: const Color(0xFFE2E8F0),
-                                ),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.add_circle_outline_rounded,
-                                    size: 16,
-                                    color: AppColors.primaryNavy,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Top Up',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primaryNavy,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // 3. Tips Lolos UMKM Banner Card
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F7FF),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFDBEAFE)),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.lightbulb_outline_rounded,
-                            color: AppColors.primaryNavy,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: RichText(
-                              text: const TextSpan(
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondarySlate,
-                                  height: 1.4,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text: 'Tips lolos UMKM: ',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.darkSlate,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'bimbingan 1-on-1 membuka verifikasi kurasi portofolio agar lamaranmu lebih dipercaya mitra.',
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 4. Search Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.02),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.darkSlate,
-                        ),
-                        decoration: const InputDecoration(
-                          hintText:
-                              'Cari mentor, keahlian, topik (Figma, Flutter...',
-                          hintStyle: TextStyle(
-                            color: AppColors.secondarySlate,
-                            fontSize: 13,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.search_rounded,
-                            color: AppColors.secondarySlate,
-                            size: 20,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 5. Category Chips Horizontal
-                  SizedBox(
-                    height: 38,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _categories.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(width: 8),
-                      itemBuilder: (context, index) {
-                        final isSelected = _selectedCategoryIndex == index;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedCategoryIndex = index;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.primaryNavy
-                                  : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Center(
-                              child: Text(
-                                _categories[index],
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.w600,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : AppColors.darkSlate,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 6. Filter & Status Row: Rating Tertinggi & Mentor Siap
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _load,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              AppRoutes.studentDashboard,
+                            );
+                          }
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.borderSlate),
                           ),
-                          child: const Row(
-                            children: [
-                              Text(
-                                'Rating tertinggi',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.darkSlate,
-                                ),
-                              ),
-                              SizedBox(width: 6),
-                              Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                size: 16,
-                                color: AppColors.secondarySlate,
-                              ),
-                            ],
+                          child: const Icon(
+                            Icons.keyboard_arrow_left_rounded,
+                            size: 26,
+                            color: AppColors.darkSlate,
                           ),
                         ),
-                        const Row(
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.verified_user_rounded,
-                              size: 16,
-                              color: AppColors.primaryNavy,
-                            ),
-                            SizedBox(width: 4),
                             Text(
-                              '3 mentor siap',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryNavy,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // 7. Section Header: Mentor terfavorit
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Mentor terfavorit',
+                              'Cari Peer Mentor',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.darkSlate,
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDCFCE7),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Text(
-                                '96% lolos kurasi',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF16A34A),
-                                ),
+                            Text(
+                              'Bimbingan 1-on-1 & Badge Rekomendasi',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.secondarySlate,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Terbukti meloloskan portofolio ke tender proyek UMKM',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.secondarySlate,
+                      ),
+                      IconButton(
+                        tooltip: 'Mentor Saya',
+                        onPressed: () =>
+                            Navigator.pushNamed(context, AppRoutes.myMentors),
+                        icon: const Icon(
+                          Icons.menu_book_rounded,
+                          color: AppColors.primaryNavy,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Wallet Banner
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryNavy,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.toll_rounded,
+                          color: AppColors.accentAmberGold,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Saldo Tersedia: $_balanceTc TC',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13.5,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, AppRoutes.wallet),
+                          child: const Text(
+                            'Top Up',
+                            style: TextStyle(
+                              color: AppColors.accentAmberGold,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
+                ),
 
-                  const SizedBox(height: 16),
+                const SizedBox(height: 14),
 
-                  // 8. Mentor Card 1: Dimas Prasetyo
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardSurface,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.darkSlate.withValues(alpha: 0.05),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Top Profile Info
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Avatar with verified badge
-                              Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Container(
-                                      width: 52,
-                                      height: 52,
-                                      color: const Color(0xFFEFF6FF),
-                                      child: Image.network(
-                                        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (
-                                              context,
-                                              error,
-                                              stackTrace,
-                                            ) => const Center(
-                                              child: Text(
-                                                'DP',
-                                                style: TextStyle(
-                                                  color: AppColors.primaryNavy,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 18,
-                                                ),
-                                              ),
-                                            ),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    right: -2,
-                                    bottom: -2,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.verified_rounded,
-                                        size: 16,
-                                        color: AppColors.primaryNavy,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Dimas Prasetyo',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.darkSlate,
-                                          ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.star_rounded,
-                                              size: 16,
-                                              color: AppColors.accentAmberGold,
-                                            ),
-                                            const SizedBox(width: 3),
-                                            const Text(
-                                              '4.9',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.darkSlate,
-                                              ),
-                                            ),
-                                            Text(
-                                              ' (86)',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey.shade500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    const Text(
-                                      'Senior Flutter Engineer \u00B7 Fintech lokal',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    // Tag Chips
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFEFF6FF),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'Top Mentor',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFF1F5F9),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'Kompak & Detail',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.secondarySlate,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 14),
-
-                          // Focus Box: Fokus Kurasi & Output Sesi
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: const Color(0xFFE2E8F0),
-                              ),
-                            ),
-                            child: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.track_changes_rounded,
-                                      size: 15,
-                                      color: AppColors.primaryNavy,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Fokus kurasi & output sesi',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  'Audit arsitektur Flutter, code review proyek UMKM, dan simulasi wawancara teknis.',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.secondarySlate,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 14),
-
-                          // Price & Schedule Row
-                          Row(
-                            children: [
-                              const Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Investasi bimbingan',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    '30 TC / 60 mnt',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.darkSlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
-                                  ),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Icon(
-                                      Icons.calendar_today_rounded,
-                                      size: 13,
-                                      color: AppColors.primaryNavy,
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      'Jadwal terdekat: Besok, 19.00 WIB',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Action Buttons: Lihat Profil & Sewa Mentor
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      AppRoutes.mentorProfile,
-                                    );
-                                  },
-                                  child: Container(
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: const Color(0xFFE2E8F0),
-                                      ),
-                                    ),
-                                    child: const Center(
-                                      child: Text(
-                                        'Lihat Profil',
-                                        style: TextStyle(
-                                          color: AppColors.darkSlate,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      AppRoutes.bookingSession,
-                                    );
-                                  },
-                                  child: Container(
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryNavy,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: AppColors.primaryNavy
-                                              .withValues(alpha: 0.25),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          'Sewa Mentor',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        SizedBox(width: 4),
-                                        Icon(
-                                          Icons.arrow_forward_rounded,
-                                          color: Colors.white,
-                                          size: 15,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                // Search
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.borderSlate),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (_) {
+                        _debounce?.cancel();
+                        _debounce = Timer(
+                          const Duration(milliseconds: 350),
+                          _load,
+                        );
+                      },
+                      decoration: const InputDecoration(
+                        hintText: 'Cari nama mentor, keahlian, atau topik...',
+                        hintStyle: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 13.5,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: AppColors.secondarySlate,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 14,
+                        ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
+                ),
 
-          // Floating Capsule Bottom Navigation Bar
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 20,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.cardSurface,
-                borderRadius: BorderRadius.circular(36),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.darkSlate.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavIcon(
-                    icon: Icons.explore_rounded,
-                    onTap: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.studentDashboard,
-                        (route) => false,
+                const SizedBox(height: 12),
+
+                // Categories
+                SizedBox(
+                  height: 36,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    itemCount: _categories.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
+                    itemBuilder: (_, i) {
+                      final selected = _selectedCategoryIndex == i;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedCategoryIndex = i);
+                          _load();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? AppColors.primaryNavy
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: selected
+                                  ? AppColors.primaryNavy
+                                  : AppColors.borderSlate,
+                            ),
+                          ),
+                          child: Text(
+                            _categories[i],
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: selected
+                                  ? Colors.white
+                                  : AppColors.secondarySlate,
+                            ),
+                          ),
+                        ),
                       );
                     },
                   ),
-                  _buildNavIcon(
-                    icon: Icons.assignment_rounded,
-                    onTap: () {
-                      Navigator.pushReplacementNamed(
-                        context,
-                        AppRoutes.myProjects,
-                      );
-                    },
+                ),
+
+                const SizedBox(height: 14),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${_mentors.length} mentor siap · 96% lolos kurasi',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondarySlate,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      PopupMenuButton<String>(
+                        onSelected: (v) {
+                          setState(() => _sortKey = v);
+                          _load();
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(
+                            value: 'rating_desc',
+                            child: Text('Rating tertinggi'),
+                          ),
+                          PopupMenuItem(
+                            value: 'lowest_price',
+                            child: Text('Tarif terendah'),
+                          ),
+                        ],
+                        child: Text(
+                          _sortKey == 'lowest_price'
+                              ? 'Tarif terendah'
+                              : 'Rating tertinggi',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryNavy,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  _buildNavIcon(
-                    icon: Icons.account_balance_wallet_rounded,
-                    isActive: true,
-                    onTap: () {},
-                  ),
-                  _buildNavIcon(
-                    icon: Icons.person_outline_rounded,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.settings);
-                    },
-                  ),
-                ],
-              ),
+                ),
+
+                const SizedBox(height: 14),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _isLoading
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 48),
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      : _error != null
+                      ? Center(
+                          child: Column(
+                            children: [
+                              Text(_error!, textAlign: TextAlign.center),
+                              const SizedBox(height: 10),
+                              FilledButton(
+                                onPressed: _load,
+                                child: const Text('Coba lagi'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : _mentors.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Text(
+                              'Belum ada mentor yang sesuai pencarian.',
+                              style: TextStyle(color: AppColors.secondarySlate),
+                            ),
+                          ),
+                        )
+                      : Column(
+                          children: _mentors.map(_buildMentorCard).toList(),
+                        ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

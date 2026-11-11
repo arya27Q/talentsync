@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/features/dashboard/screens/dashboard_mahasiswa_screen.dart';
+import 'package:flutter_frontend/features/portfolio/screens/portfolio_dashboard_screen.dart';
 import 'package:flutter_frontend/features/project/screens/my_projects_screen.dart';
 import 'package:flutter_frontend/features/wallet/screens/wallet_dashboard_screen.dart';
-import 'package:flutter_frontend/features/portfolio/screens/portfolio_dashboard_screen.dart';
 
 class StudentMainLayout extends StatefulWidget {
   final int initialIndex;
@@ -15,19 +15,32 @@ class StudentMainLayout extends StatefulWidget {
 
 class _StudentMainLayoutState extends State<StudentMainLayout> {
   late int _currentIndex;
+  late final List<Widget?> _builtScreens;
+
+  Widget _buildTab(int index) {
+    return switch (index) {
+      0 => const DashboardMahasiswaScreen(),
+      1 => const MyProjectsScreen(),
+      2 => const WalletDashboardScreen(),
+      3 => const PortfolioDashboardScreen(),
+      _ => const SizedBox.shrink(),
+    };
+  }
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex;
+    _currentIndex = widget.initialIndex.clamp(0, 3);
+    _builtScreens = List<Widget?>.filled(4, null);
+    _builtScreens[_currentIndex] = _buildTab(_currentIndex);
   }
 
-  final List<Widget> _screens = [
-    const DashboardMahasiswaScreen(),
-    const MyProjectsScreen(),
-    const WalletDashboardScreen(),
-    const PortfolioDashboardScreen(),
-  ];
+  void _selectTab(int index) {
+    setState(() {
+      _currentIndex = index;
+      _builtScreens[index] ??= _buildTab(index);
+    });
+  }
 
   Widget _buildNavItem({
     required IconData icon,
@@ -39,11 +52,7 @@ class _StudentMainLayoutState extends State<StudentMainLayout> {
     return Expanded(
       flex: isActive ? 2 : 1,
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        onTap: () => _selectTab(index),
         behavior: HitTestBehavior.opaque,
         child: Container(
           padding: EdgeInsets.symmetric(
@@ -102,8 +111,13 @@ class _StudentMainLayoutState extends State<StudentMainLayout> {
       backgroundColor: AppColors.canvasWhite,
       body: Stack(
         children: [
-          // Current Screen
-          _screens[_currentIndex],
+          IndexedStack(
+            index: _currentIndex,
+            children: List<Widget>.generate(
+              _builtScreens.length,
+              (i) => _builtScreens[i] ?? const SizedBox.shrink(),
+            ),
+          ),
 
           // Floating Pill Bottom Navigation Bar
           Positioned(
