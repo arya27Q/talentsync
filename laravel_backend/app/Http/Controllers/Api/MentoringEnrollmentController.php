@@ -30,7 +30,6 @@ class MentoringEnrollmentController extends Controller
             $result = DB::transaction(function () use ($mentoringClass, $student) {
                 $class = MentoringClass::query()->lockForUpdate()->findOrFail($mentoringClass->id);
                 abort_unless($class->status === 'open' && $class->scheduled_time->isFuture(), 409, 'Kelas ini sudah tidak menerima pendaftaran.');
-                abort_unless(MentorProfile::where('user_id', $class->mentor_id)->where('verification_status', 'approved')->exists(), 409, 'Mentor belum terverifikasi.');
 
                 $studentWallet = TimeCoinWallet::where('user_id', $student->id)->lockForUpdate()->first();
                 abort_if(! $studentWallet, 422, 'Dompet TimeCoin belum tersedia.');

@@ -14,10 +14,6 @@ class MentorApi {
       (await _client.get('/mentoring/mentor/profile'))['data']
           as Map<String, dynamic>;
 
-  Future<Map<String, dynamic>> verificationStatus() async =>
-      (await _client.get('/mentoring/mentor/verification'))['data']
-          as Map<String, dynamic>;
-
   Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> body) async =>
       (await _client.put('/mentoring/mentor/profile', body: body))['data']
           as Map<String, dynamic>;

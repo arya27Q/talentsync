@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_frontend/core/network/api_client.dart';
 
 class AuthApi {
@@ -27,23 +29,26 @@ class AuthApi {
     required String titleHeadline,
     required String bio,
     required int hourlyRateTc,
-    required String verificationDocumentUrl,
+    required String cvFileName,
+    required Uint8List cvBytes,
     required String portfolioUrl,
   }) async {
-    final response = await _client.post(
+    final response = await _client.postMultipart(
       '/auth/register-mentor',
       authenticated: false,
-      body: {
+      fields: {
         'name': name.trim(),
         'email': email.trim(),
         'password': password,
         'password_confirmation': password,
         'title_headline': titleHeadline.trim(),
         'bio': bio.trim(),
-        'hourly_rate_tc': hourlyRateTc,
-        'verification_document_url': verificationDocumentUrl.trim(),
+        'hourly_rate_tc': '$hourlyRateTc',
         'portfolio_url': portfolioUrl.trim(),
       },
+      fileField: 'cv_file',
+      fileName: cvFileName,
+      fileBytes: cvBytes,
     );
     final data = response['data'] as Map<String, dynamic>;
     final user = data['user'] as Map<String, dynamic>;

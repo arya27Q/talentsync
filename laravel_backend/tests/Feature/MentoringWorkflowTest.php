@@ -10,6 +10,8 @@ use App\Models\TimeCoinTransaction;
 use App\Models\TimeCoinWallet;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class MentoringWorkflowTest extends TestCase
@@ -26,7 +28,7 @@ class MentoringWorkflowTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
                 'name', 'email', 'password', 'title_headline', 'bio',
-                'verification_document_url', 'portfolio_url',
+                'cv_file', 'portfolio_url',
             ]);
 
         $this->postJson('/api/auth/register', [])
@@ -191,27 +193,46 @@ class MentoringWorkflowTest extends TestCase
         $this->assertSame(0, $mentorWallet->fresh()->balance);
     }
 
-    public function test_mentor_registration_requires_admin_verification_and_premium_changes_only_after_admin_payment_confirmation(): void
+    public function test_mentor_registration_auto_verifies_on_cv_upload_and_premium_changes_only_after_admin_payment_confirmation(): void
     {
-        $registration = $this->postJson('/api/auth/register-mentor', [
+        Storage::fake('public');
+        $cvFile = UploadedFile::fake()->create('cv-mentor.pdf', 512, 'application/pdf');
+
+        $registration = $this->post('/api/auth/register-mentor', [
             'name' => 'Mentor Baru',
             'email' => 'mentor@example.test',
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'title_headline' => 'Flutter Mentor',
             'bio' => 'Membimbing pengembangan aplikasi Flutter.',
-            'verification_document_url' => 'https://example.test/credential.pdf',
+            'hourly_rate_tc' => 35,
+            'cv_file' => $cvFile,
             'portfolio_url' => 'https://github.com/mentor',
-        ])->assertCreated()->assertJsonPath('data.verification_status', 'pending');
+        ], ['Accept' => 'application/json'])->assertCreated()->assertJsonPath('data.verification_status', 'approved');
+
         $mentor = User::where('email', 'mentor@example.test')->firstOrFail();
+        $this->assertSame(35, $mentor->mentorProfile->hourly_rate_tc);
+        $this->assertSame('approved', $mentor->mentorProfile->verification_status);
+        $this->assertNotEmpty($registration->json('data.cv_url'));
+        Storage::disk('public')->assertExists('mentor-cvs/'.$cvFile->hashName());
+
         $this->actingAs($mentor, 'sanctum')
-            ->postJson('/api/mentoring/mentor/classes', [])
-            ->assertForbidden();
+            ->getJson('/api/mentoring/mentor/dashboard')
+            ->assertOk();
+
+        $this->actingAs($mentor, 'sanctum')
+            ->postJson('/api/mentoring/mentor/classes', [
+                'topic' => 'Arsitektur Flutter & State Management',
+                'description' => 'Review kode langsung dan praktik clean architecture.',
+                'scheduled_time' => now()->addDays(2)->toIso8601String(),
+                'duration_minutes' => 60,
+                'price_tc' => 35,
+                'meeting_link' => 'https://meet.google.com/new-mentor-class',
+                'capacity' => 5,
+            ])
+            ->assertCreated();
 
         $admin = $this->userWithRole('admin');
-        $this->actingAs($admin, 'sanctum')
-            ->patchJson("/api/admin/mentors/{$mentor->id}/verification", ['verification_status' => 'approved'])
-            ->assertOk();
         $this->actingAs($mentor->fresh(), 'sanctum')
             ->postJson('/api/mentoring/mentor/premium-subscriptions')
             ->assertCreated()
@@ -225,6 +246,37 @@ class MentoringWorkflowTest extends TestCase
             ->getJson('/api/wallet/summary')
             ->assertOk()
             ->assertJsonPath('data.cashout_fee_percent', 0);
+    }
+
+    public function test_mentor_registration_rejects_non_pdf_or_oversized_cv(): void
+    {
+        Storage::fake('public');
+
+        $this->post('/api/auth/register-mentor', [
+            'name' => 'Mentor Invalid',
+            'email' => 'mentor-invalid@example.test',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'title_headline' => 'Flutter Mentor',
+            'bio' => 'Membimbing pengembangan aplikasi Flutter.',
+            'cv_file' => UploadedFile::fake()->image('bukan-pdf.png'),
+            'portfolio_url' => 'https://github.com/mentor',
+        ], ['Accept' => 'application/json'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('cv_file');
+
+        $this->post('/api/auth/register-mentor', [
+            'name' => 'Mentor Oversize',
+            'email' => 'mentor-oversize@example.test',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'title_headline' => 'Flutter Mentor',
+            'bio' => 'Membimbing pengembangan aplikasi Flutter.',
+            'cv_file' => UploadedFile::fake()->create('cv-besar.pdf', 6000, 'application/pdf'),
+            'portfolio_url' => 'https://github.com/mentor',
+        ], ['Accept' => 'application/json'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('cv_file');
     }
 
     private function userWithRole(string $role): User

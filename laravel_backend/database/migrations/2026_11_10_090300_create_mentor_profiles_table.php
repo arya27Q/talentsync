@@ -15,7 +15,7 @@ return new class extends Migration
             $table->text('bio')->nullable();
             $table->unsignedInteger('hourly_rate_tc')->default(3);
             $table->boolean('is_premium')->default(false);
-            $table->string('verification_status', 20)->default('pending')->index();
+            $table->string('verification_status', 20)->default('approved')->index();
             $table->string('verification_document_url', 2048)->nullable();
             $table->string('portfolio_url', 2048)->nullable();
             $table->text('verification_rejection_reason')->nullable();

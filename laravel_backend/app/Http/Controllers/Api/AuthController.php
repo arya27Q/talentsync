@@ -11,9 +11,11 @@ use App\Models\UmkmProfile;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\File;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -87,38 +89,55 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'title_headline' => ['required', 'string', 'max:150'],
             'bio' => ['required', 'string', 'max:5000'],
-            'verification_document_url' => ['required', 'url', 'max:2048'],
+            'hourly_rate_tc' => ['sometimes', 'integer', 'min:1', 'max:100000'],
+            'cv_file' => ['required', File::types(['pdf'])->max(5 * 1024)],
             'portfolio_url' => ['required', 'url', 'max:2048'],
+        ], [
+            'cv_file.required' => 'CV dalam format PDF wajib diunggah.',
+            'cv_file.mimes' => 'Format CV harus berupa berkas PDF.',
+            'cv_file.max' => 'Ukuran berkas CV maksimal 5 MB.',
         ]);
-        $result = DB::transaction(function () use ($data) {
-            $mentorRole = Role::where('name', 'mentor')->firstOrFail();
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => $data['password'],
-                'role_id' => $mentorRole->id,
-            ]);
-            $profile = MentorProfile::create([
-                'user_id' => $user->id,
-                'title_headline' => $data['title_headline'],
-                'bio' => $data['bio'],
-                'verification_document_url' => $data['verification_document_url'],
-                'portfolio_url' => $data['portfolio_url'],
-                'verification_status' => 'pending',
-            ]);
-            $wallet = TimeCoinWallet::create(['user_id' => $user->id]);
 
-            return [$user, $profile, $wallet];
-        });
+        $cvPath = $request->file('cv_file')->store('mentor-cvs', 'public');
+        $cvUrl = Storage::disk('public')->url($cvPath);
+
+        try {
+            $result = DB::transaction(function () use ($data, $cvUrl) {
+                $mentorRole = Role::where('name', 'mentor')->firstOrFail();
+                $user = User::create([
+                    'name' => $data['name'],
+                    'email' => $data['email'],
+                    'password' => $data['password'],
+                    'role_id' => $mentorRole->id,
+                ]);
+                $profile = MentorProfile::create([
+                    'user_id' => $user->id,
+                    'title_headline' => $data['title_headline'],
+                    'bio' => $data['bio'],
+                    'hourly_rate_tc' => $data['hourly_rate_tc'] ?? 3,
+                    'verification_document_url' => $cvUrl,
+                    'portfolio_url' => $data['portfolio_url'],
+                    'verification_status' => 'approved',
+                    'verification_reviewed_at' => now(),
+                ]);
+                $wallet = TimeCoinWallet::create(['user_id' => $user->id]);
+
+                return [$user, $profile, $wallet];
+            });
+        } catch (\Throwable $exception) {
+            Storage::disk('public')->delete($cvPath);
+            throw $exception;
+        }
         [$user, $profile, $wallet] = $result;
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Pendaftaran mentor diterima dan menunggu verifikasi.',
+            'message' => 'Pendaftaran mentor berhasil dan akun sudah terverifikasi.',
             'data' => [
                 'token' => $user->createToken('flutter')->plainTextToken,
                 'user' => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'role' => 'mentor', 'balance_tc' => $wallet->balance],
                 'verification_status' => $profile->verification_status,
+                'cv_url' => $profile->verification_document_url,
             ],
         ], 201);
     }

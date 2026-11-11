@@ -108,10 +108,6 @@ class MentoringAssignmentController extends Controller
 
     private function authorizeParticipant(Request $request, MentoringEnrollment $enrollment): void
     {
-        if ($request->user()->hasRole('mentor')) {
-            abort_unless($request->user()->mentorProfile?->verification_status === 'approved', 403, 'Akun mentor belum terverifikasi.');
-        }
-
         abort_unless(
             $enrollment->student_id === $request->user()->id
                 || $enrollment->mentoringClass()->where('mentor_id', $request->user()->id)->exists(),

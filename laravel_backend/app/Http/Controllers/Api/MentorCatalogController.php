@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MentoringPresenter;
-use App\Models\MentorProfile;
 use App\Models\MentoringClass;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +15,6 @@ class MentorCatalogController extends Controller
     {
         $mentors = User::query()
             ->whereHas('roleRecord', fn ($query) => $query->where('name', 'mentor'))
-            ->whereHas('mentorProfile', fn ($query) => $query->where('verification_status', 'approved'))
             ->with('mentorProfile')
             ->when($request->filled('search'), fn ($query) => $query->where(function ($query) use ($request) {
                 $term = '%'.$request->string('search')->trim().'%';
@@ -56,7 +54,6 @@ class MentorCatalogController extends Controller
             ->where('status', 'open')
             ->where('scheduled_time', '>=', now())
             ->whereHas('mentor.roleRecord', fn ($query) => $query->where('name', 'mentor'))
-            ->whereHas('mentor.mentorProfile', fn ($query) => $query->where('verification_status', 'approved'))
             ->whereRaw('(select count(*) from mentoring_enrollments where mentoring_enrollments.class_id = mentoring_classes.id and mentoring_enrollments.status not in (?, ?)) < mentoring_classes.capacity', ['absent', 'declined'])
             ->when($request->filled('mentor_id'), fn ($query) => $query->where('mentor_id', $request->integer('mentor_id')))
             ->when($request->filled('topic'), fn ($query) => $query->where('topic', 'like', '%'.$request->string('topic')->trim().'%'))
@@ -72,8 +69,8 @@ class MentorCatalogController extends Controller
 
     public function showClass(MentoringClass $mentoringClass): JsonResponse
     {
-        abort_unless(MentorProfile::where('user_id', $mentoringClass->mentor_id)->where('verification_status', 'approved')->exists(), 404);
-        $mentoringClass->load('mentor:id,name');
+        $mentoringClass->load('mentor:id,name,role_id');
+        abort_unless($mentoringClass->mentor?->hasRole('mentor') ?? false, 404);
         $mentoringClass->loadCount(['enrollments as enrolled_count' => fn ($query) => $query->whereNotIn('status', ['absent', 'declined'])]);
 
         return response()->json(['status' => 'success', 'data' => MentoringPresenter::mentoringClass($mentoringClass)]);

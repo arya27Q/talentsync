@@ -41,10 +41,6 @@ class WalletController extends Controller
 
     public function requestCashOut(Request $request): JsonResponse
     {
-        if ($request->user()->hasRole('mentor')) {
-            abort_unless($request->user()->mentorProfile?->verification_status === 'approved', 403, 'Akun mentor belum terverifikasi.');
-        }
-
         $data = $request->validate([
             'amount_tc' => ['required', 'integer', 'min:1', 'max:10000000'],
             'bank_name' => ['required', 'string', 'max:100'],

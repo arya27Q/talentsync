@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -39,6 +39,29 @@ class ApiClient {
     bool authenticated = true,
   }) => _send('POST', path, body: body, authenticated: authenticated);
 
+  Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    Map<String, String>? fields,
+    required String fileField,
+    required String fileName,
+    required Uint8List fileBytes,
+    bool authenticated = true,
+  }) async {
+    final uri = _buildUri(path);
+    final request = http.MultipartRequest('POST', uri);
+    if (fields != null) {
+      request.fields.addAll(fields);
+    }
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        fileField,
+        fileBytes,
+        filename: fileName,
+      ),
+    );
+    return _executeRequest(request, authenticated: authenticated);
+  }
+
   Future<Map<String, dynamic>> put(
     String path, {
     Map<String, dynamic>? body,
@@ -75,6 +98,13 @@ class ApiClient {
     await _storage.delete(key: _userKey);
   }
 
+  Uri _buildUri(String path, {Map<String, String>? query}) {
+    final normalizedBase = _baseUrl.endsWith('/') ? _baseUrl : '$_baseUrl/';
+    final base = Uri.parse(normalizedBase);
+    final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+    return base.resolve(normalizedPath).replace(queryParameters: query);
+  }
+
   Future<Map<String, dynamic>> _send(
     String method,
     String path, {
@@ -82,14 +112,18 @@ class ApiClient {
     Map<String, dynamic>? body,
     bool authenticated = true,
   }) async {
-    final normalizedBase = _baseUrl.endsWith('/') ? _baseUrl : '$_baseUrl/';
-    final base = Uri.parse(normalizedBase);
-    final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
-    final uri = base.resolve(normalizedPath).replace(queryParameters: query);
-    final headers = <String, String>{
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    };
+    final uri = _buildUri(path, query: query);
+    final request = http.Request(method, uri)
+      ..headers['Content-Type'] = 'application/json';
+    if (body != null) request.body = jsonEncode(body);
+    return _executeRequest(request, authenticated: authenticated);
+  }
+
+  Future<Map<String, dynamic>> _executeRequest(
+    http.BaseRequest request, {
+    required bool authenticated,
+  }) async {
+    request.headers['Accept'] = 'application/json';
 
     if (authenticated) {
       final token = await _storage.read(key: _tokenKey);
@@ -98,11 +132,8 @@ class ApiClient {
           'Sesi login tidak ditemukan. Silakan masuk kembali.',
         );
       }
-      headers['Authorization'] = 'Bearer $token';
+      request.headers['Authorization'] = 'Bearer $token';
     }
-
-    final request = http.Request(method, uri)..headers.addAll(headers);
-    if (body != null) request.body = jsonEncode(body);
 
     try {
       final streamed = await _client

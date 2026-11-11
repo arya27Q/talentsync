@@ -1,26 +1,43 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 
+class PickedCvFile {
+  const PickedCvFile({required this.name, required this.bytes});
+
+  final String name;
+  final Uint8List bytes;
+}
+
 class MentorRegisterScreen extends StatefulWidget {
-  const MentorRegisterScreen({super.key});
+  const MentorRegisterScreen({
+    super.key,
+    this.onPickCv,
+    this.authApi,
+  });
+
+  final Future<PickedCvFile?> Function()? onPickCv;
+  final AuthApi? authApi;
 
   @override
   State<MentorRegisterScreen> createState() => _MentorRegisterScreenState();
 }
 
 class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
+  static const int _maxCvBytes = 5 * 1024 * 1024;
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _campusController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _portfolioUrlController = TextEditingController();
-  final TextEditingController _verificationUrlController =
-      TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _authApi = AuthApi();
+  late final AuthApi _authApi = widget.authApi ?? AuthApi();
 
   int _selectedStatusIndex = 0; // 0: Mahasiswa Tingkat Akhir, 1: Fresh Graduate, 2: Praktisi Muda, 3: Alumni
   final List<String> _statusOptions = [
@@ -51,9 +68,11 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
 
   bool _obscurePassword = true;
   bool _agreedToEthics = false;
-  final bool _isUploadingFile = false;
+  bool _isUploadingFile = false;
   bool _isSubmitting = false;
-  String? _uploadedFileName;
+  String? _cvFileName;
+  Uint8List? _cvBytes;
+  String? _cvErrorText;
 
   @override
   void dispose() {
@@ -62,57 +81,111 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _portfolioUrlController.dispose();
-    _verificationUrlController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _setVerificationDocumentUrl() async {
-    final controller = TextEditingController(
-      text: _verificationUrlController.text,
+  Future<PickedCvFile?> _defaultPickCv() async {
+    final picked = await FilePicker.pickFile(
+      dialogTitle: 'Pilih CV (Format PDF)',
+      type: FileType.custom,
+      allowedExtensions: const ['pdf'],
     );
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Tautan dokumen verifikasi'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.url,
-          decoration: const InputDecoration(
-            labelText: 'URL dokumen',
-            hintText: 'https://...',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Simpan tautan'),
-          ),
-        ],
-      ),
-    );
-    if (saved == true && mounted) {
-      final normalizedUrl = _normalizeWebUrl(controller.text);
-      if (normalizedUrl == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Masukkan tautan dokumen yang valid.')),
-        );
-      } else {
-        setState(() {
-          _verificationUrlController.text = normalizedUrl;
-          _uploadedFileName = normalizedUrl;
-        });
+    if (picked == null) return null;
+    final bytes = await picked.readAsBytes();
+    return PickedCvFile(name: picked.name, bytes: bytes);
+  }
+
+  bool _looksLikePdf(Uint8List bytes) {
+    if (bytes.length < 4) return false;
+    final limit = bytes.length < 1024 ? bytes.length - 3 : 1021;
+    for (var i = 0; i <= limit; i++) {
+      if (bytes[i] == 0x25 &&
+          bytes[i + 1] == 0x50 &&
+          bytes[i + 2] == 0x44 &&
+          bytes[i + 3] == 0x46) {
+        return true;
       }
     }
-    controller.dispose();
+    return false;
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) {
+      final kb = bytes / 1024;
+      return '${kb < 10 ? kb.toStringAsFixed(1) : kb.round()} KB';
+    }
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  Future<void> _pickCvPdf() async {
+    if (_isUploadingFile || _isSubmitting) return;
+    setState(() {
+      _isUploadingFile = true;
+      _cvErrorText = null;
+    });
+    try {
+      final picked = await (widget.onPickCv ?? _defaultPickCv)();
+      if (!mounted || picked == null) return;
+
+      final fileName = picked.name.trim();
+      final bytes = picked.bytes;
+
+      if (!fileName.toLowerCase().endsWith('.pdf')) {
+        setState(() {
+          _cvErrorText = 'Format berkas harus .pdf. Pilih ulang CV berformat PDF.';
+        });
+        return;
+      }
+      if (bytes.isEmpty) {
+        setState(() {
+          _cvErrorText = 'Berkas PDF kosong dan tidak dapat diunggah.';
+        });
+        return;
+      }
+      if (!_looksLikePdf(bytes)) {
+        setState(() {
+          _cvErrorText = 'Isi berkas tidak valid sebagai dokumen PDF.';
+        });
+        return;
+      }
+      if (bytes.length > _maxCvBytes) {
+        setState(() {
+          _cvErrorText =
+              'Ukuran CV (${_formatFileSize(bytes.length)}) melebihi batas maksimal 5 MB.';
+        });
+        return;
+      }
+
+      setState(() {
+        _cvFileName = fileName;
+        _cvBytes = bytes;
+        _cvErrorText = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _cvErrorText = 'Gagal membaca berkas CV. Coba pilih file PDF lain.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingFile = false);
+      }
+    }
+  }
+
+  void _removeCvPdf() {
+    if (_isSubmitting || _isUploadingFile) return;
+    setState(() {
+      _cvFileName = null;
+      _cvBytes = null;
+      _cvErrorText = null;
+    });
   }
 
   Future<void> _submitRegistration() async {
-    if (_isSubmitting) return;
+    if (_isSubmitting || _isUploadingFile) return;
     if (!_agreedToEthics) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -128,7 +201,6 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final portfolioText = _normalizeWebUrl(_portfolioUrlController.text);
-    final documentText = _normalizeWebUrl(_verificationUrlController.text);
     final missingFields = <String>[];
     if (name.isEmpty) missingFields.add('nama');
     if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
@@ -139,8 +211,11 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
     if (portfolioText == null) {
       missingFields.add('tautan portofolio yang valid');
     }
-    if (documentText == null) {
-      missingFields.add('tautan dokumen yang valid');
+    if (_cvFileName == null || _cvBytes == null) {
+      missingFields.add('upload CV (format PDF)');
+      setState(() {
+        _cvErrorText = 'CV dalam format PDF wajib diunggah.';
+      });
     }
     if (missingFields.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -150,11 +225,14 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
     }
 
     final validPortfolioUrl = portfolioText!;
-    final validDocumentUrl = documentText!;
+    final validCvFileName = _cvFileName!;
+    final validCvBytes = _cvBytes!;
     _portfolioUrlController.text = validPortfolioUrl;
-    _verificationUrlController.text = validDocumentUrl;
 
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+      _cvErrorText = null;
+    });
     try {
       final headline = 'Mentor ${_selectedSkills.first}';
       final bioParts = <String>['Keahlian: ${_selectedSkills.join(', ')}'];
@@ -171,7 +249,8 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
         hourlyRateTc: int.parse(
           _rateOptions[_selectedRateIndex]['tc']!.split(' ').first,
         ),
-        verificationDocumentUrl: validDocumentUrl,
+        cvFileName: validCvFileName,
+        cvBytes: validCvBytes,
         portfolioUrl: validPortfolioUrl,
       );
       if (!mounted) return;
@@ -199,6 +278,10 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
       );
     } on ApiException catch (error) {
       if (mounted) {
+        final cvErrors = error.errors?['cv_file'];
+        if (cvErrors is List && cvErrors.isNotEmpty) {
+          setState(() => _cvErrorText = '${cvErrors.first}');
+        }
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(error.message)));
       }
@@ -720,129 +803,223 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                       ),
                     ),
 
-                    // 8. Unggah Berkas Portofolio / KTM / Sertifikat
+                    // 8. Upload CV (Format PDF)
                     _buildFieldSection(
-                      label: 'Tautan dokumen verifikasi (PDF atau gambar)',
+                      label: 'Upload CV (Format PDF)',
                       caption:
-                          'Pastikan admin dapat membuka tautan dokumen ini.',
-                      child: GestureDetector(
-                        onTap: _setVerificationDocumentUrl,
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 18,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: _uploadedFileName != null
-                                  ? const Color(0xFF16A34A)
-                                  : const Color(0xFFCBD5E1),
-                              style: BorderStyle.solid,
+                          'Lampirkan CV terbaru dalam format .pdf (maks. 5 MB) untuk kelengkapan profil mentor.',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Semantics(
+                            button: true,
+                            label: _cvFileName != null
+                                ? 'CV terpilih $_cvFileName. Ketuk untuk mengganti file PDF.'
+                                : 'Unggah CV dalam format PDF maksimal 5 MB',
+                            child: Material(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: _isSubmitting ? null : _pickCvPdf,
+                                child: Container(
+                                  width: double.infinity,
+                                  constraints: const BoxConstraints(
+                                    minHeight: 72,
+                                  ),
+                                  padding: EdgeInsets.fromLTRB(
+                                    14,
+                                    14,
+                                    _cvFileName != null ? 6 : 14,
+                                    14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: _cvErrorText != null
+                                          ? const Color(0xFFB91C1C)
+                                          : _cvFileName != null
+                                          ? const Color(0xFF15803D)
+                                          : const Color(0xFF64748B),
+                                      width: _cvErrorText != null ? 1.5 : 1.2,
+                                    ),
+                                  ),
+                                  child: _isUploadingFile
+                                      ? const Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            SizedBox(
+                                              width: 18,
+                                              height: 18,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: AppColors.primaryNavy,
+                                              ),
+                                            ),
+                                            SizedBox(width: 12),
+                                            Flexible(
+                                              child: Text(
+                                                'Memproses berkas CV PDF...',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFF475569),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : _cvFileName != null && _cvBytes != null
+                                      ? Row(
+                                          children: [
+                                            Container(
+                                              width: 44,
+                                              height: 44,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFDCFCE7),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: const Icon(
+                                                Icons.picture_as_pdf_rounded,
+                                                color: Color(0xFF15803D),
+                                                size: 22,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    _cvFileName!,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 13.5,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          AppColors.darkSlate,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                  Text(
+                                                    '${_formatFileSize(_cvBytes!.length)} · PDF siap diunggah',
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 11.5,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Color(0xFF15803D),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            IconButton(
+                                              constraints: const BoxConstraints(
+                                                minWidth: 44,
+                                                minHeight: 44,
+                                              ),
+                                              tooltip: 'Hapus CV',
+                                              onPressed: _isSubmitting
+                                                  ? null
+                                                  : _removeCvPdf,
+                                              icon: const Icon(
+                                                Icons.close_rounded,
+                                                color: Color(0xFF475569),
+                                                size: 20,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      : Row(
+                                          children: [
+                                            Container(
+                                              width: 44,
+                                              height: 44,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFEFF6FF),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: const Icon(
+                                                Icons.upload_file_rounded,
+                                                color: AppColors.primaryNavy,
+                                                size: 22,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            const Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Pilih File CV (.pdf)',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          AppColors.primaryNavy,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 2),
+                                                  Text(
+                                                    'Unggah CV berformat PDF · Maks. 5 MB',
+                                                    style: TextStyle(
+                                                      fontSize: 11.5,
+                                                      color: Color(0xFF475569),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Icon(
+                                              Icons.chevron_right_rounded,
+                                              color: Color(0xFF475569),
+                                              size: 20,
+                                            ),
+                                          ],
+                                        ),
+                                ),
+                              ),
                             ),
                           ),
-                          child: _isUploadingFile
-                              ? const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: AppColors.primaryNavy,
-                                      ),
+                          if (_cvErrorText != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.error_outline_rounded,
+                                  color: Color(0xFFB91C1C),
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    _cvErrorText!,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFB91C1C),
                                     ),
-                                    SizedBox(width: 12),
-                                    Text(
-                                      'Mengunggah berkas portofolio...',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : _uploadedFileName != null
-                              ? Row(
-                                  children: [
-                                    Container(
-                                      width: 36,
-                                      height: 36,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFDCFCE7),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(
-                                        Icons.task_alt_rounded,
-                                        color: Color(0xFF16A34A),
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            _uploadedFileName!,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.darkSlate,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          const Text(
-                                            '2.4 MB · Terlampir',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF16A34A),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.refresh_rounded,
-                                      color: AppColors.secondarySlate,
-                                      size: 18,
-                                    ),
-                                  ],
-                                )
-                              : const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 8),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.upload_file_rounded,
-                                        color: AppColors.primaryNavy,
-                                        size: 22,
-                                      ),
-                                      SizedBox(width: 10),
-                                      Flexible(
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            'Masukkan URL dokumen verifikasi',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primaryNavy,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
                                   ),
                                 ),
-                        ),
+                              ],
+                            ),
+                          ],
+                        ],
                       ),
                     ),
 
