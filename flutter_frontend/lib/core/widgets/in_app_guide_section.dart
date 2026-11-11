@@ -90,6 +90,7 @@ class InAppGuideSection extends StatelessWidget {
                             article.imageUrl,
                             height: 180,
                             width: double.infinity,
+                            cacheWidth: 900,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 Container(
@@ -500,6 +501,7 @@ class InAppGuideSection extends StatelessWidget {
                     article.imageUrl,
                     height: 110,
                     width: double.infinity,
+                    cacheWidth: 600,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 110,

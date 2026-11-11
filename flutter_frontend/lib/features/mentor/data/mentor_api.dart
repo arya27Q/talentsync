@@ -1,10 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:flutter_frontend/core/network/api_client.dart';
 
 class MentorApi {
-  MentorApi._();
+  MentorApi({ApiClient? client}) : _client = client ?? ApiClient.instance;
 
-  static final MentorApi instance = MentorApi._();
-  final ApiClient _client = ApiClient.instance;
+  static final MentorApi instance = MentorApi();
+  final ApiClient _client;
 
   Future<Map<String, dynamic>> dashboard() async =>
       (await _client.get('/mentoring/mentor/dashboard'))['data']
@@ -14,9 +16,36 @@ class MentorApi {
       (await _client.get('/mentoring/mentor/profile'))['data']
           as Map<String, dynamic>;
 
-  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> body) async =>
-      (await _client.put('/mentoring/mentor/profile', body: body))['data']
+  Future<Map<String, dynamic>> updateProfile(
+    Map<String, dynamic> body, {
+    String? avatarFileName,
+    Uint8List? avatarBytes,
+  }) async {
+    if (avatarFileName != null && avatarBytes != null) {
+      final fields = <String, String>{'_method': 'PUT'};
+      for (final entry in body.entries) {
+        final value = entry.value;
+        if (value != null) {
+          fields[entry.key] = '$value';
+        }
+      }
+      return (await _client.postMultipart(
+            '/mentoring/mentor/profile',
+            fields: fields,
+            fileField: 'avatar_file',
+            fileName: avatarFileName,
+            fileBytes: avatarBytes,
+          ))['data']
           as Map<String, dynamic>;
+    }
+    return (await _client.put('/mentoring/mentor/profile', body: body))['data']
+        as Map<String, dynamic>;
+  }
+
+  Future<void> deleteAccount() async {
+    await _client.delete('/mentoring/mentor/account');
+    await _client.clearSession();
+  }
 
   Future<Map<String, dynamic>> walletSummary() async =>
       (await _client.get('/wallet/summary'))['data'] as Map<String, dynamic>;

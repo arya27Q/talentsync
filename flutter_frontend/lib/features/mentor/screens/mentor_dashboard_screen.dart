@@ -9,9 +9,11 @@ import 'package:flutter_frontend/features/mentor/models/mentor_booking.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_live_mentoring_screen.dart';
 
-class MentorDashboardScreen extends StatelessWidget {
+class MentorDashboardScreen extends StatefulWidget {
   const MentorDashboardScreen({
     super.key,
+    this.availableTc,
+    this.mentorApi,
     this.onOpenWallet,
     this.onOpenBookings,
     this.onOpenServices,
@@ -20,6 +22,8 @@ class MentorDashboardScreen extends StatelessWidget {
     this.onOpenLiveSession,
   });
 
+  final ValueNotifier<int>? availableTc;
+  final MentorApi? mentorApi;
   final VoidCallback? onOpenWallet;
   final VoidCallback? onOpenBookings;
   final VoidCallback? onOpenServices;
@@ -28,8 +32,35 @@ class MentorDashboardScreen extends StatelessWidget {
   final VoidCallback? onOpenLiveSession;
 
   @override
+  State<MentorDashboardScreen> createState() => _MentorDashboardScreenState();
+}
+
+class _MentorDashboardScreenState extends State<MentorDashboardScreen> {
+  late Future<Map<String, dynamic>> _dashboardFuture;
+
+  MentorApi get _mentorApi => widget.mentorApi ?? MentorApi.instance;
+  VoidCallback? get onOpenWallet => widget.onOpenWallet;
+  VoidCallback? get onOpenBookings => widget.onOpenBookings;
+  VoidCallback? get onOpenServices => widget.onOpenServices;
+  VoidCallback? get onOpenProfile => widget.onOpenProfile;
+  VoidCallback? get onOpenStudents => widget.onOpenStudents;
+  VoidCallback? get onOpenLiveSession => widget.onOpenLiveSession;
+
+  @override
+  void initState() {
+    super.initState();
+    _dashboardFuture = _loadDashboard();
+  }
+
+  void _reloadDashboard() {
+    setState(() {
+      _dashboardFuture = _loadDashboard();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) => FutureBuilder<Map<String, dynamic>>(
-    future: _loadDashboard(),
+    future: _dashboardFuture,
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const Center(child: CircularProgressIndicator());
@@ -48,7 +79,7 @@ class MentorDashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 FilledButton(
-                  onPressed: () => (context as Element).markNeedsBuild(),
+                  onPressed: _reloadDashboard,
                   child: const Text('Coba lagi'),
                 ),
               ],
@@ -62,18 +93,21 @@ class MentorDashboardScreen extends StatelessWidget {
 
   Future<Map<String, dynamic>> _loadDashboard() async {
     final result = await Future.wait([
-      MentorApi.instance.dashboard(),
-      MentorApi.instance.profile(),
-      MentorApi.instance.walletSummary(),
-      MentorApi.instance.enrollments(),
+      _mentorApi.dashboard(),
+      _mentorApi.walletSummary(),
+      _mentorApi.enrollments(),
       ApiClient.instance.readSessionUser(),
     ]);
+    final wallet = result[1] as Map<String, dynamic>;
+    final balanceTc = wallet['balance_tc'] as int? ?? 0;
+    if (mounted && widget.availableTc != null) {
+      widget.availableTc!.value = balanceTc;
+    }
     return {
       'dashboard': result[0] as Map<String, dynamic>,
-      'profile': result[1] as Map<String, dynamic>,
-      'wallet': result[2] as Map<String, dynamic>,
-      'enrollments': result[3] as List<Map<String, dynamic>>,
-      'user': result[4] as Map<String, dynamic>? ?? const <String, dynamic>{},
+      'wallet': wallet,
+      'enrollments': result[2] as List<Map<String, dynamic>>,
+      'user': result[3] as Map<String, dynamic>? ?? const <String, dynamic>{},
     };
   }
 
@@ -415,14 +449,17 @@ class MentorDashboardScreen extends StatelessWidget {
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Navigasi Kerja Mentor',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.darkSlate,
+                    Expanded(
+                      child: Text(
+                        'Navigasi Kerja Mentor',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.darkSlate,
+                        ),
                       ),
                     ),
+                    SizedBox(width: 8),
                     Text(
                       'Aksi Cepat',
                       style: TextStyle(
@@ -605,6 +642,7 @@ class MentorDashboardScreen extends StatelessWidget {
           children: [
             Image.network(
               'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80',
+              cacheWidth: 900,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
                 color: AppColors.primaryNavy,

@@ -16,6 +16,14 @@ class ApiClient {
   static const _storage = FlutterSecureStorage();
   static const _configuredBaseUrl = String.fromEnvironment('API_BASE_URL');
 
+  String? _cachedToken;
+  bool _hasLoadedToken = false;
+  Future<String?>? _tokenLoadFuture;
+  Map<String, dynamic>? _cachedUser;
+  bool _hasLoadedUser = false;
+  Future<Map<String, dynamic>?>? _userLoadFuture;
+  int _sessionEpoch = 0;
+
   static String get _baseUrl {
     if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
     if (kIsWeb) return 'http://127.0.0.1:8000/api';
@@ -23,6 +31,30 @@ class ApiClient {
       return 'http://10.0.2.2:8000/api';
     }
     return 'http://127.0.0.1:8000/api';
+  }
+
+  /// Resolves relative `/storage/...` or localhost backend URLs against the
+  /// active API host so media works on Android emulators and physical devices.
+  static String? resolveMediaUrl(String? rawUrl) {
+    final trimmed = rawUrl?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    final baseUri = Uri.parse(_baseUrl);
+    final parsed = Uri.tryParse(trimmed);
+    if (parsed == null) return trimmed;
+    if (!parsed.hasScheme) {
+      final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+      return baseUri.replace(path: path, query: null, fragment: null).toString();
+    }
+    if (parsed.host == 'localhost' || parsed.host == '127.0.0.1') {
+      return parsed
+          .replace(
+            scheme: baseUri.scheme,
+            host: baseUri.host,
+            port: baseUri.hasPort ? baseUri.port : null,
+          )
+          .toString();
+    }
+    return trimmed;
   }
 
   final http.Client _client = http.Client();
@@ -82,18 +114,94 @@ class ApiClient {
     required String token,
     required Map<String, dynamic> user,
   }) async {
+    _sessionEpoch++;
+    _cachedToken = token;
+    _hasLoadedToken = true;
+    _tokenLoadFuture = null;
+    _cachedUser = Map<String, dynamic>.from(user);
+    _hasLoadedUser = true;
+    _userLoadFuture = null;
     await _storage.write(key: _tokenKey, value: token);
-    await _storage.write(key: _userKey, value: jsonEncode(user));
+    await _storage.write(key: _userKey, value: jsonEncode(_cachedUser));
+  }
+
+  Future<String?> _readToken() async {
+    if (_hasLoadedToken) return _cachedToken;
+    final existing = _tokenLoadFuture;
+    if (existing != null) return existing;
+
+    final epoch = _sessionEpoch;
+    final future = () async {
+      try {
+        final token = await _storage.read(key: _tokenKey);
+        if (_sessionEpoch == epoch) {
+          _cachedToken = token;
+          _hasLoadedToken = true;
+        }
+        return _sessionEpoch == epoch ? token : _cachedToken;
+      } finally {
+        _tokenLoadFuture = null;
+      }
+    }();
+    _tokenLoadFuture = future;
+    return future;
   }
 
   Future<Map<String, dynamic>?> readSessionUser() async {
-    final value = await _storage.read(key: _userKey);
-    if (value == null) return null;
-    final decoded = jsonDecode(value);
-    return decoded is Map<String, dynamic> ? decoded : null;
+    if (_hasLoadedUser) {
+      return _cachedUser == null
+          ? null
+          : Map<String, dynamic>.from(_cachedUser!);
+    }
+    final existing = _userLoadFuture;
+    if (existing != null) return existing;
+
+    final epoch = _sessionEpoch;
+    final future = () async {
+      try {
+        final value = await _storage.read(key: _userKey);
+        if (_sessionEpoch != epoch) {
+          return _cachedUser == null
+              ? null
+              : Map<String, dynamic>.from(_cachedUser!);
+        }
+        if (value == null) {
+          _cachedUser = null;
+          _hasLoadedUser = true;
+          return null;
+        }
+        final decoded = jsonDecode(value);
+        _cachedUser = decoded is Map<String, dynamic> ? decoded : null;
+        _hasLoadedUser = true;
+        return _cachedUser == null
+            ? null
+            : Map<String, dynamic>.from(_cachedUser!);
+      } finally {
+        _userLoadFuture = null;
+      }
+    }();
+    _userLoadFuture = future;
+    return future;
+  }
+
+  Future<void> updateSessionUser(Map<String, dynamic> patch) async {
+    final existing = await readSessionUser() ?? <String, dynamic>{};
+    existing.addAll(patch);
+    _sessionEpoch++;
+    _cachedUser = Map<String, dynamic>.from(existing);
+    _hasLoadedUser = true;
+    _userLoadFuture = null;
+    await _storage.write(key: _userKey, value: jsonEncode(existing));
   }
 
   Future<void> clearSession() async {
+    _sessionEpoch++;
+    _cachedToken = null;
+    _hasLoadedToken = false;
+    _tokenLoadFuture = null;
+    _cachedUser = null;
+    _hasLoadedUser = false;
+    _userLoadFuture = null;
     await _storage.delete(key: _tokenKey);
     await _storage.delete(key: _userKey);
   }
@@ -126,7 +234,7 @@ class ApiClient {
     request.headers['Accept'] = 'application/json';
 
     if (authenticated) {
-      final token = await _storage.read(key: _tokenKey);
+      final token = await _readToken();
       if (token == null || token.isEmpty) {
         throw const ApiException(
           'Sesi login tidak ditemukan. Silakan masuk kembali.',

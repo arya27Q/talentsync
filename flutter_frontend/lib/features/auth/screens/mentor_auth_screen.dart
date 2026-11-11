@@ -91,27 +91,34 @@ class _MentorAuthScreenState extends State<MentorAuthScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.canvasWhite,
-    appBar: AppBar(
+  Widget build(BuildContext context) => PopScope(
+    canPop: Navigator.canPop(context),
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) {
+        AppRoutes.popOrRoleSelection(context);
+      }
+    },
+    child: Scaffold(
       backgroundColor: AppColors.canvasWhite,
-      elevation: 0,
-      title: const Text(
-        'Portal Mentor',
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          color: AppColors.darkSlate,
+      appBar: AppBar(
+        backgroundColor: AppColors.canvasWhite,
+        elevation: 0,
+        title: const Text(
+          'Portal Mentor',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: AppColors.darkSlate,
+          ),
+        ),
+        leading: IconButton(
+          tooltip: 'Kembali',
+          onPressed: () => AppRoutes.popOrRoleSelection(context),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.darkSlate,
+          ),
         ),
       ),
-      leading: IconButton(
-        tooltip: 'Kembali',
-        onPressed: () => Navigator.maybePop(context),
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: AppColors.darkSlate,
-        ),
-      ),
-    ),
     body: SafeArea(
       top: false,
       child: AbsorbPointer(
@@ -298,6 +305,7 @@ class _MentorAuthScreenState extends State<MentorAuthScreen> {
           ),
         ),
       ),
+    ),
     ),
   );
 

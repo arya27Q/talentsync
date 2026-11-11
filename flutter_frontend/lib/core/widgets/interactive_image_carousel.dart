@@ -127,6 +127,7 @@ class _InteractiveImageCarouselState extends State<InteractiveImageCarousel> {
                         // Background Photo
                         Image.network(
                           item.imageUrl,
+                          cacheWidth: 900,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               Container(

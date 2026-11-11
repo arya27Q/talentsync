@@ -57,28 +57,35 @@ class _MsmeAuthScreenState extends State<MsmeAuthScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.canvasWhite,
-    appBar: AppBar(
+  Widget build(BuildContext context) => PopScope(
+    canPop: Navigator.canPop(context),
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) {
+        AppRoutes.popOrRoleSelection(context);
+      }
+    },
+    child: Scaffold(
       backgroundColor: AppColors.canvasWhite,
-      elevation: 0,
-      title: const Text(
-        'Portal Mitra UMKM',
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          color: AppColors.darkSlate,
-          fontSize: 18,
+      appBar: AppBar(
+        backgroundColor: AppColors.canvasWhite,
+        elevation: 0,
+        title: const Text(
+          'Portal Mitra UMKM',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: AppColors.darkSlate,
+            fontSize: 18,
+          ),
+        ),
+        leading: IconButton(
+          tooltip: 'Kembali',
+          onPressed: () => AppRoutes.popOrRoleSelection(context),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.darkSlate,
+          ),
         ),
       ),
-      leading: IconButton(
-        tooltip: 'Kembali',
-        onPressed: () => Navigator.maybePop(context),
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: AppColors.darkSlate,
-        ),
-      ),
-    ),
     body: SafeArea(
       top: false,
       child: AbsorbPointer(
@@ -342,6 +349,7 @@ class _MsmeAuthScreenState extends State<MsmeAuthScreen> {
           ),
         ),
       ),
+    ),
     ),
   );
 

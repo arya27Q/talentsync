@@ -38,7 +38,14 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: Navigator.canPop(context),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          AppRoutes.popOrRoleSelection(context);
+        }
+      },
+      child: Scaffold(
       backgroundColor: AppColors.canvasWhite,
       body: SafeArea(
         child: AbsorbPointer(
@@ -55,9 +62,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
+                      onTap: () => AppRoutes.popOrRoleSelection(context),
                       child: Container(
                         width: 44,
                         height: 44,
@@ -430,6 +435,7 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

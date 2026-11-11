@@ -264,4 +264,14 @@ class AppRoutes {
     helpSupport: (context) => const HelpSupportScreen(),
     switchToMentor: (context) => const SwitchToMentorScreen(),
   };
+
+  /// Pops the current route if possible, otherwise resets to [roleSelection].
+  static void popOrRoleSelection(BuildContext context) {
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+      return;
+    }
+    navigator.pushNamedAndRemoveUntil(roleSelection, (route) => false);
+  }
 }

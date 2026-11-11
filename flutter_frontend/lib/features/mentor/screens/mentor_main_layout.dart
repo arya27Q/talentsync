@@ -25,45 +25,49 @@ class _MentorMainLayoutState extends State<MentorMainLayout> {
   final _availableTc = ValueNotifier<int>(0);
   final _mentorApi = MentorApi.instance;
   final _servicesKey = GlobalKey<MentorServicesScreenState>();
+  final List<Widget?> _builtPages = List<Widget?>.filled(6, null);
+  late final TextTheme _mentorTextTheme = Typography.material2021().black.apply(
+    bodyColor: AppColors.darkSlate,
+    displayColor: AppColors.darkSlate,
+  );
 
-  late final List<Widget> _pages = [
-    MentorDashboardScreen(
-      onOpenWallet: () => _selectTab(3),
-      onOpenBookings: () => _selectTab(1),
-      onOpenServices: _openServices,
-      onOpenProfile: () => _selectTab(4),
-      onOpenStudents: () => _selectTab(2),
-      onOpenLiveSession: _openLiveSession,
-    ),
-    MentorBookingsScreen(
-      onOpenServices: _openServices,
-      onSelectTab: _selectTab,
-    ),
-    MentorStudentsScreen(onSelectTab: _selectTab),
-    MentorWalletScreen(availableTc: _availableTc, onSelectTab: _selectTab),
-    MentorProfileScreen(availableTc: _availableTc, onSelectTab: _selectTab),
-    MentorServicesScreen(key: _servicesKey),
-  ];
+  Widget _buildPage(int index) {
+    return switch (index) {
+      0 => MentorDashboardScreen(
+          availableTc: _availableTc,
+          onOpenWallet: () => _selectTab(3),
+          onOpenBookings: () => _selectTab(1),
+          onOpenServices: _openServices,
+          onOpenProfile: () => _selectTab(4),
+          onOpenStudents: () => _selectTab(2),
+          onOpenLiveSession: _openLiveSession,
+        ),
+      1 => MentorBookingsScreen(
+          onOpenServices: _openServices,
+          onSelectTab: _selectTab,
+        ),
+      2 => MentorStudentsScreen(onSelectTab: _selectTab),
+      3 => MentorWalletScreen(availableTc: _availableTc, onSelectTab: _selectTab),
+      4 => MentorProfileScreen(availableTc: _availableTc, onSelectTab: _selectTab),
+      5 => MentorServicesScreen(key: _servicesKey),
+      _ => const SizedBox.shrink(),
+    };
+  }
+
+  Widget _pageFor(int index) => _builtPages[index] ??= _buildPage(index);
 
   @override
   void initState() {
     super.initState();
-    _refreshWalletBalance();
+    _builtPages[0] = _buildPage(0);
   }
 
-  Future<void> _refreshWalletBalance() async {
-    try {
-      final wallet = await _mentorApi.walletSummary();
-      if (mounted) _availableTc.value = wallet['balance_tc'] as int? ?? 0;
-    } on ApiException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.message)));
-      }
-    }
+  void _selectTab(int index) {
+    setState(() {
+      _index = index;
+      _pageFor(index);
+    });
   }
-
-  void _selectTab(int index) => setState(() => _index = index);
 
   @override
   void dispose() {
@@ -72,7 +76,10 @@ class _MentorMainLayoutState extends State<MentorMainLayout> {
   }
 
   void _openServices() {
-    setState(() => _index = 5);
+    setState(() {
+      _index = 5;
+      _pageFor(5);
+    });
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _servicesKey.currentState?.startCreating(),
     );
@@ -115,9 +122,10 @@ class _MentorMainLayoutState extends State<MentorMainLayout> {
         ),
       );
     } on ApiException catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(error.message)));
+      }
     }
   }
 
@@ -126,14 +134,17 @@ class _MentorMainLayoutState extends State<MentorMainLayout> {
     return Theme(
       data: Theme.of(context).copyWith(
         // Font bawaan Flutter Material Typography resmi (gaya ke-2 yang elegan & presisi)
-        textTheme: Typography.material2021().black.apply(
-          bodyColor: AppColors.darkSlate,
-          displayColor: AppColors.darkSlate,
-        ),
+        textTheme: _mentorTextTheme,
       ),
       child: Scaffold(
         backgroundColor: AppColors.canvasWhite,
-        body: IndexedStack(index: _index, children: _pages),
+        body: IndexedStack(
+          index: _index,
+          children: List<Widget>.generate(
+            _builtPages.length,
+            (i) => _builtPages[i] ?? const SizedBox.shrink(),
+          ),
+        ),
         bottomNavigationBar: MentorBottomNav(
           selectedIndex: _index,
           onSelected: _selectTab,
