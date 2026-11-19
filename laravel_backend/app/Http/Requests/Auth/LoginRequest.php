@@ -20,6 +20,15 @@ class LoginRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'identifier.required_without' => 'Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.',
+            'email.required_without' => 'Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.',
+            'password.required' => 'Kata sandi yang Anda masukkan salah. Harap periksa kembali.',
+        ];
+    }
+
     public function identifierValue(): string
     {
         return trim((string) ($this->input('identifier') ?: $this->input('email')));

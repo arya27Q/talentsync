@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
+import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 
 class MsmeAuthScreen extends StatefulWidget {
-  const MsmeAuthScreen({super.key});
+  const MsmeAuthScreen({super.key, this.authApi});
+
+  final AuthApi? authApi;
 
   @override
   State<MsmeAuthScreen> createState() => _MsmeAuthScreenState();
@@ -12,6 +17,7 @@ class MsmeAuthScreen extends StatefulWidget {
 class _MsmeAuthScreenState extends State<MsmeAuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  late final AuthApi _authApi = widget.authApi ?? AuthApi();
   bool _obscurePassword = true;
   bool _isLoading = false;
 
@@ -24,35 +30,125 @@ class _MsmeAuthScreenState extends State<MsmeAuthScreen> {
 
   Future<void> _signIn() async {
     if (_isLoading) return;
+    final identifier = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (identifier.isEmpty) {
+      AppStatusDialog.showError(
+        context,
+        title: 'Akun Belum Terdaftar',
+        message:
+            'Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.',
+        buttonText: 'Daftar Sekarang',
+        onConfirm: () => Navigator.pushNamed(context, AppRoutes.msmeRegister),
+      );
+      return;
+    }
+
+    if (password.isEmpty) {
+      AppStatusDialog.showError(
+        context,
+        title: 'Kata Sandi Salah',
+        message: 'Kata sandi yang Anda masukkan salah. Harap periksa kembali.',
+        buttonText: 'Coba Lagi',
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    await Future<void>.delayed(const Duration(milliseconds: 1100));
-    if (!mounted) return;
+    try {
+      final user = await _authApi.login(
+        identifier: identifier,
+        password: password,
+      );
+      if (!mounted) return;
+      if (user['role'] != 'msme') {
+        await _authApi.logout();
+        if (!mounted) return;
+        AppStatusDialog.showError(
+          context,
+          title: 'Akses Ditolak',
+          message:
+              'Akun ini bukan akun Mitra UMKM. Silakan gunakan portal masuk sesuai peran Anda (Mahasiswa atau Mentor).',
+          buttonText: 'Pilih Peran Lain',
+          onConfirm: () => AppRoutes.popOrRoleSelection(context),
+        );
+        return;
+      }
 
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRoutes.msmeDashboard,
-      (route) => false,
-    );
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Berhasil Masuk!',
+        message: 'Selamat datang kembali di Portal Mitra UMKM TalentSync.',
+        buttonText: 'Buka Dashboard',
+      );
+
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.msmeDashboard,
+        (route) => false,
+      );
+    } on ApiException catch (error) {
+      if (mounted) {
+        final isNotRegistered =
+            error.message.toLowerCase().contains('belum terdaftar') ||
+            (error.errors != null && error.errors!.containsKey('email'));
+        if (isNotRegistered) {
+          AppStatusDialog.showError(
+            context,
+            title: 'Akun Belum Terdaftar',
+            message:
+                'Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.',
+            buttonText: 'Daftar Sekarang',
+            onConfirm: () =>
+                Navigator.pushNamed(context, AppRoutes.msmeRegister),
+          );
+        } else {
+          final isPasswordWrong =
+              error.message.toLowerCase().contains('kata sandi') ||
+              error.message.toLowerCase().contains('password') ||
+              (error.errors != null && error.errors!.containsKey('password'));
+          AppStatusDialog.showError(
+            context,
+            title: isPasswordWrong ? 'Kata Sandi Salah' : 'Gagal Masuk',
+            message: isPasswordWrong
+                ? 'Kata sandi yang Anda masukkan salah. Harap periksa kembali.'
+                : error.message,
+            buttonText: 'Coba Lagi',
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        AppStatusDialog.showError(
+          context,
+          title: 'Kendala Koneksi',
+          message:
+              'Terjadi kendala saat memproses login. Pastikan server backend aktif dan koneksi internet stabil.',
+          buttonText: 'Coba Lagi',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _forgotPassword() {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset kata sandi'),
-        content: const Text(
-          'Masukkan alamat email bisnis terdaftar untuk menerima tautan pemulihan kata sandi.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Mengerti'),
-          ),
-        ],
-      ),
+    AppStatusDialog.show(
+      context,
+      type: AppStatusDialogType.info,
+      title: 'Pemulihan Kata Sandi',
+      message:
+          'Kirim permintaan pemulihan kata sandi ke administrator atau periksa email bisnis terdaftar Anda.',
+      primaryButtonText: 'Mengerti',
     );
   }
 

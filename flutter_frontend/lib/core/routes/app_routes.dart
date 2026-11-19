@@ -63,6 +63,7 @@ import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_barter_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_upgrade_pro_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_store_profile_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_edit_profile_screen.dart';
 
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
 import 'package:flutter_frontend/features/wallet/screens/history_screen.dart';
@@ -90,6 +91,7 @@ class AppRoutes {
   static const String msmeBarter = '/msme/barter';
   static const String msmeUpgradePro = '/msme/upgrade-pro';
   static const String msmeStoreProfile = '/msme/store-profile';
+  static const String msmeEditProfile = '/msme/profile/edit';
   static const String msmeOnboarding = '/msme/onboarding';
   static const String mentorOnboarding = '/mentor/onboarding';
   static const String mentorBookingDetail = '/mentor/booking-detail';
@@ -152,13 +154,39 @@ class AppRoutes {
     mentorDashboard: (context) => const MentorMainLayout(),
     msmeDashboard: (context) => const MsmeMainLayout(),
     msmeCreateTask: (context) => const MsmeCreateTaskWizardScreen(),
-    msmeReviewApplicants: (context) => const MsmeReviewApplicantsScreen(),
+    msmeReviewApplicants: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map<String, dynamic>) {
+        return MsmeReviewApplicantsScreen(
+          projectId: args['projectId'] as int?,
+          projectTitle: args['projectTitle'] as String?,
+        );
+      }
+      return const MsmeReviewApplicantsScreen();
+    },
     msmeApplicantProfile: (context) => const MsmeApplicantProfileScreen(),
     msmeReviewSubmission: (context) => const MsmeReviewSubmissionScreen(),
-    msmeChat: (context) => const MsmeChatScreen(),
+    msmeChat: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is ProjectRouteArgs) {
+        return MsmeChatScreen(projectId: args.projectId);
+      }
+      if (args is Map<String, dynamic>) {
+        return MsmeChatScreen(
+          projectId: (args['projectId'] as num?)?.toInt() ??
+              (args['project_id'] as num?)?.toInt(),
+          studentName: (args['studentName'] as String?) ?? 'Mahasiswa',
+        );
+      }
+      if (args is int) {
+        return MsmeChatScreen(projectId: args);
+      }
+      return const MsmeChatScreen();
+    },
     msmeBarter: (context) => const MsmeBarterScreen(),
     msmeUpgradePro: (context) => const MsmeUpgradeProScreen(),
     msmeStoreProfile: (context) => const MsmeStoreProfileScreen(),
+    msmeEditProfile: (context) => const MsmeEditProfileScreen(),
     msmeOnboarding: (context) => const MsmeOnboardingScreen(),
     mentorOnboarding: (context) => const MentorOnboardingScreen(),
     mentorBookingDetail: (context) {

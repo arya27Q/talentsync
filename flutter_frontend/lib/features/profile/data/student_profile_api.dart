@@ -65,6 +65,8 @@ class StudentProfileApi {
     String? titleHeadline,
     String? bio,
     int hourlyRateTc = 30,
+    String? externalCertTitle,
+    String? externalCertIssuer,
     String? externalCertFileName,
     Uint8List? externalCertBytes,
   }) async {
@@ -74,6 +76,10 @@ class StudentProfileApi {
         if (titleHeadline != null && titleHeadline.trim().isNotEmpty)
           'title_headline': titleHeadline.trim(),
         if (bio != null && bio.trim().isNotEmpty) 'bio': bio.trim(),
+        if (externalCertTitle != null && externalCertTitle.trim().isNotEmpty)
+          'external_certificate_title': externalCertTitle.trim(),
+        if (externalCertIssuer != null && externalCertIssuer.trim().isNotEmpty)
+          'external_certificate_issuer': externalCertIssuer.trim(),
       };
       for (var i = 0; i < selectedProofIds.length; i++) {
         fields['selected_proof_ids[$i]'] = '${selectedProofIds[i]}';
@@ -100,6 +106,10 @@ class StudentProfileApi {
               'title_headline': titleHeadline.trim(),
             if (bio != null && bio.trim().isNotEmpty) 'bio': bio.trim(),
             'hourly_rate_tc': hourlyRateTc,
+            if (externalCertTitle != null && externalCertTitle.trim().isNotEmpty)
+              'external_certificate_title': externalCertTitle.trim(),
+            if (externalCertIssuer != null && externalCertIssuer.trim().isNotEmpty)
+              'external_certificate_issuer': externalCertIssuer.trim(),
           },
         ))['data']
         as Map<String, dynamic>;

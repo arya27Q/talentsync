@@ -16,9 +16,14 @@ class MsmeMainLayout extends StatefulWidget {
 
 class _MsmeMainLayoutState extends State<MsmeMainLayout> {
   int _currentIndex = 0;
+  int _dashboardVersion = 0;
+  int _postingsVersion = 0;
 
   void _selectTab(int index) {
     setState(() {
+      if (index == 0 && _currentIndex != 0) {
+        _dashboardVersion++;
+      }
       _currentIndex = index;
     });
   }
@@ -30,7 +35,11 @@ class _MsmeMainLayoutState extends State<MsmeMainLayout> {
         builder: (context) => MsmeCreateTaskWizardScreen(
           onCompleted: () {
             Navigator.pop(context);
-            _selectTab(1); // Go to Postingan tab
+            setState(() {
+              _dashboardVersion++;
+              _postingsVersion++;
+              _currentIndex = 1; // Langsung arahkan ke Postingan tugas
+            });
           },
         ),
       ),
@@ -41,12 +50,16 @@ class _MsmeMainLayoutState extends State<MsmeMainLayout> {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       MsmeDashboardScreen(
+        key: ValueKey('dash_$_dashboardVersion'),
         onCreateProject: _openCreateTaskWizard,
         onOpenPostings: () => _selectTab(1),
         onOpenBarter: () => _selectTab(2),
         onOpenProfile: () => _selectTab(3),
       ),
-      MsmePostingsScreen(onCreatePosting: _openCreateTaskWizard),
+      MsmePostingsScreen(
+        key: ValueKey('post_$_postingsVersion'),
+        onCreatePosting: _openCreateTaskWizard,
+      ),
       const MsmeBarterScreen(),
       const MsmeStoreProfileScreen(),
     ];

@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\ProjectApplication;
 use App\Models\ProjectDeliverable;
 use App\Models\ProjectMilestone;
+use App\Models\ProjectTask;
 use App\Models\Review;
 use App\Services\ProjectWorkflowService;
 use Illuminate\Http\JsonResponse;
@@ -50,6 +51,13 @@ class StudentProjectController extends Controller
                 $currentMilestone = $milestones->first(fn ($m) => in_array($m->status, ['open', 'submitted', 'revision_requested'], true))
                     ?? $milestones->first();
 
+                $kanbanTasks = ProjectTask::where('project_id', $project->id)
+                    ->where('student_id', $student->id)
+                    ->get();
+                $kanbanTotal = $kanbanTasks->count();
+                $kanbanDone = $kanbanTasks->where('status', 'done')->count();
+                $kanbanPct = $kanbanTotal > 0 ? (int) round(($kanbanDone / $kanbanTotal) * 100) : 0;
+
                 $card = ProjectPresenter::projectCard($project);
                 $activeProjects[] = [
                     ...$card,
@@ -59,6 +67,10 @@ class StudentProjectController extends Controller
                     'released_tc' => $releasedTc,
                     'escrow_tc' => $escrowTc,
                     'next_milestone' => $currentMilestone?->title ?? 'Pengerjaan tugas aktif',
+                    'active_milestone_status' => $currentMilestone?->status ?? 'open',
+                    'kanban_done_count' => $kanbanDone,
+                    'kanban_total_count' => $kanbanTotal,
+                    'kanban_progress_percent' => $kanbanPct,
                     'is_urgent' => $card['days_left'] <= 5,
                 ];
             } elseif ($app->status === 'accepted' && $project->status === 'completed') {
@@ -97,7 +109,7 @@ class StudentProjectController extends Controller
         $this->workflow->assertAcceptedStudent($request->user(), $project);
         $project->load([
             'msme.umkmProfile',
-            'milestones.deliverables' => fn ($q) => $q->where('student_id', $request->user()->id),
+            'milestones.deliverables' => fn ($q) => $q->where('student_id', $request->user()->id)->latest('id'),
         ]);
 
         $milestones = $project->milestones;

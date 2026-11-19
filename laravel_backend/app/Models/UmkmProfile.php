@@ -8,8 +8,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class UmkmProfile extends Model
 {
     protected $fillable = [
-        'user_id', 'business_name', 'business_sector', 'logo_url', 'address', 'district', 'city',
-        'business_document_url', 'is_premium', 'is_verified', 'monthly_quota_tc',
+        'user_id',
+        'business_name',
+        'business_sector',
+        'logo_url',
+        'address',
+        'description',
+        'district',
+        'city',
+        'nib',
+        'business_document_url',
+        'is_premium',
+        'is_verified',
+        'monthly_quota_tc',
     ];
 
     protected function casts(): array

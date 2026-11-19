@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 
 class StudentAuthScreen extends StatefulWidget {
@@ -31,11 +32,25 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
     if (_isLoading) return;
     final identifier = _nimController.text.trim();
     final password = _passwordController.text;
-    if (identifier.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Masukkan NIM atau email dan kata sandi akun.'),
-        ),
+    if (identifier.isEmpty) {
+      AppStatusDialog.showError(
+        context,
+        title: 'Akun Belum Terdaftar',
+        message:
+            'Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.',
+        buttonText: 'Daftar Sekarang',
+        onConfirm: () =>
+            Navigator.pushNamed(context, AppRoutes.studentRegister),
+      );
+      return;
+    }
+
+    if (password.isEmpty) {
+      AppStatusDialog.showError(
+        context,
+        title: 'Kata Sandi Salah',
+        message: 'Kata sandi yang Anda masukkan salah. Harap periksa kembali.',
+        buttonText: 'Coba Lagi',
       );
       return;
     }
@@ -52,10 +67,26 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
       if (!mounted) return;
       if (user['role'] != 'student') {
         await _authApi.logout();
-        throw const ApiException(
-          'Akun ini bukan akun mahasiswa. Gunakan portal masuk sesuai peran.',
+        if (!mounted) return;
+        AppStatusDialog.showError(
+          context,
+          title: 'Akses Ditolak',
+          message:
+              'Akun ini bukan akun Mahasiswa. Silakan gunakan portal masuk sesuai peran Anda (Mitra UMKM atau Mentor).',
+          buttonText: 'Pilih Peran Lain',
+          onConfirm: () => AppRoutes.popOrRoleSelection(context),
         );
+        return;
       }
+
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Berhasil Masuk!',
+        message: 'Selamat datang kembali di TalentSync Mahasiswa.',
+        buttonText: 'Buka Beranda',
+      );
+
+      if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.studentDashboard,
@@ -63,16 +94,42 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
       );
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        final isNotRegistered =
+            error.message.toLowerCase().contains('belum terdaftar') ||
+            (error.errors != null && error.errors!.containsKey('email'));
+        if (isNotRegistered) {
+          AppStatusDialog.showError(
+            context,
+            title: 'Akun Belum Terdaftar',
+            message:
+                'Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.',
+            buttonText: 'Daftar Sekarang',
+            onConfirm: () =>
+                Navigator.pushNamed(context, AppRoutes.studentRegister),
+          );
+        } else {
+          final isPasswordWrong =
+              error.message.toLowerCase().contains('kata sandi') ||
+              error.message.toLowerCase().contains('password') ||
+              (error.errors != null && error.errors!.containsKey('password'));
+          AppStatusDialog.showError(
+            context,
+            title: isPasswordWrong ? 'Kata Sandi Salah' : 'Gagal Masuk',
+            message: isPasswordWrong
+                ? 'Kata sandi yang Anda masukkan salah. Harap periksa kembali.'
+                : error.message,
+            buttonText: 'Coba Lagi',
+          );
+        }
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login gagal diproses. Periksa koneksi dan ulangi.'),
-          ),
+        AppStatusDialog.showError(
+          context,
+          title: 'Kendala Koneksi',
+          message:
+              'Login gagal diproses. Periksa koneksi internet Anda dan coba kembali.',
+          buttonText: 'Coba Lagi',
         );
       }
     } finally {
@@ -194,9 +251,9 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
 
                 const SizedBox(height: 28),
 
-                // Form Field 1: NIM / Nomor KTM
+                // Form Field 1: NIM / Email Mahasiswa
                 const Text(
-                  'Nomor Induk Mahasiswa (NIM) / Nomor KTM',
+                  'NIM / Email Mahasiswa',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -212,14 +269,14 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                   ),
                   child: TextField(
                     controller: _nimController,
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.emailAddress,
                     style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.darkSlate,
                       fontWeight: FontWeight.w600,
                     ),
                     decoration: const InputDecoration(
-                      hintText: 'Contoh: 24051214017',
+                      hintText: 'Contoh: 24051214017 atau nama@unesa.ac.id',
                       hintStyle: TextStyle(
                         color: Color(0xFF94A3B8),
                         fontSize: 14,
@@ -304,13 +361,13 @@ class _StudentAuthScreenState extends State<StudentAuthScreen> {
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Silakan hubungi administrator kampus / Pusat Bantuan untuk reset PIN/kata sandi.',
-                          ),
-                          backgroundColor: AppColors.darkSlate,
-                        ),
+                      AppStatusDialog.show(
+                        context,
+                        type: AppStatusDialogType.info,
+                        title: 'Lupa Kata Sandi',
+                        message:
+                            'Silakan hubungi administrator kampus Anda atau Pusat Bantuan TalentSync untuk melakukan reset kata sandi akun mahasiswa.',
+                        primaryButtonText: 'Mengerti',
                       );
                     },
                     child: const Text(

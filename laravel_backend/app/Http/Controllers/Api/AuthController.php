@@ -33,14 +33,22 @@ class AuthController extends Controller
         $data = $request->validated();
         $ktmPath = null;
         $avatarPath = null;
+        $logoPath = null;
+
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $publicDisk */
+        $publicDisk = Storage::disk('public');
 
         if ($request->hasFile('ktm_file')) {
             $ktmPath = $request->file('ktm_file')->store('student-ktms', 'public');
-            $data['ktm_document_url'] = Storage::disk('public')->url($ktmPath);
+            $data['ktm_document_url'] = $publicDisk->url($ktmPath);
         }
         if ($request->hasFile('avatar_file')) {
             $avatarPath = $request->file('avatar_file')->store('student-avatars', 'public');
-            $data['avatar_url'] = Storage::disk('public')->url($avatarPath);
+            $data['avatar_url'] = $publicDisk->url($avatarPath);
+        }
+        if ($request->hasFile('logo_file')) {
+            $logoPath = $request->file('logo_file')->store('umkm-logos', 'public');
+            $data['logo_url'] = $publicDisk->url($logoPath);
         }
 
         try {
@@ -75,6 +83,10 @@ class AuthController extends Controller
                         'business_name' => $data['business_name'],
                         'business_sector' => $data['business_sector'],
                         'address' => $data['address'],
+                        'city' => $data['city'] ?? 'Surabaya',
+                        'description' => $data['description'] ?? null,
+                        'nib' => $data['nib'] ?? null,
+                        'logo_url' => $data['logo_url'] ?? null,
                         'business_document_url' => $data['business_document_url'] ?? null,
                     ]);
                 }
@@ -91,6 +103,9 @@ class AuthController extends Controller
             }
             if ($avatarPath !== null) {
                 Storage::disk('public')->delete($avatarPath);
+            }
+            if ($logoPath !== null) {
+                Storage::disk('public')->delete($logoPath);
             }
             throw $exception;
         }
@@ -119,17 +134,29 @@ class AuthController extends Controller
             'hourly_rate_tc' => ['sometimes', 'integer', 'min:1', 'max:100000'],
             'cv_file' => ['required', File::types(['pdf'])->max(5 * 1024)],
             'portfolio_url' => ['required', 'url', 'max:2048'],
+            'avatar_file' => ['sometimes', File::image()->max(3 * 1024)],
+            'avatar_url' => ['nullable', 'string', 'max:2048'],
         ], [
+            'email.unique' => 'Akun sudah pernah terdaftar. Silakan langsung masuk melalui halaman login.',
             'cv_file.required' => 'CV dalam format PDF wajib diunggah.',
             'cv_file.mimes' => 'Format CV harus berupa berkas PDF.',
             'cv_file.max' => 'Ukuran berkas CV maksimal 5 MB.',
         ]);
 
         $cvPath = $request->file('cv_file')->store('mentor-cvs', 'public');
-        $cvUrl = Storage::disk('public')->url($cvPath);
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $publicDisk */
+        $publicDisk = Storage::disk('public');
+        $cvUrl = $publicDisk->url($cvPath);
+
+        $avatarPath = null;
+        $avatarUrl = $data['avatar_url'] ?? null;
+        if ($request->hasFile('avatar_file')) {
+            $avatarPath = $request->file('avatar_file')->store('mentor-avatars', 'public');
+            $avatarUrl = $publicDisk->url($avatarPath);
+        }
 
         try {
-            $result = DB::transaction(function () use ($data, $cvUrl) {
+            $result = DB::transaction(function () use ($data, $cvUrl, $avatarUrl) {
                 $mentorRole = Role::where('name', 'mentor')->firstOrFail();
                 $user = User::create([
                     'name' => $data['name'],
@@ -141,6 +168,7 @@ class AuthController extends Controller
                 $profile = MentorProfile::create([
                     'user_id' => $user->id,
                     'title_headline' => $data['title_headline'],
+                    'avatar_url' => $avatarUrl,
                     'bio' => $data['bio'],
                     'hourly_rate_tc' => $data['hourly_rate_tc'] ?? 3,
                     'verification_document_url' => $cvUrl,
@@ -158,6 +186,9 @@ class AuthController extends Controller
             });
         } catch (\Throwable $exception) {
             Storage::disk('public')->delete($cvPath);
+            if ($avatarPath) {
+                Storage::disk('public')->delete($avatarPath);
+            }
             throw $exception;
         }
         [$user, $profile, $wallet] = $result;
@@ -174,9 +205,11 @@ class AuthController extends Controller
                     'role' => 'mentor',
                     'roles' => ['mentor'],
                     'balance_tc' => (int) ($wallet->balance ?? 0),
+                    'avatar_url' => $profile->avatar_url,
                 ],
                 'verification_status' => $profile->verification_status,
                 'cv_url' => $profile->verification_document_url,
+                'avatar_url' => $profile->avatar_url,
             ],
         ], 201);
     }
@@ -188,11 +221,21 @@ class AuthController extends Controller
 
         $user = User::query()
             ->where('email', $identifier)
+            ->orWhere('email', 'like', $identifier . '@%')
+            ->orWhere('name', $identifier)
             ->orWhereHas('studentProfile', fn ($q) => $q->where('student_id_number', $identifier))
             ->first();
 
-        if (! $user || ! Hash::check($password, $user->password)) {
-            throw ValidationException::withMessages(['email' => ['Email/NIM atau kata sandi tidak valid.']]);
+        if (! $user) {
+            throw ValidationException::withMessages([
+                'email' => ['Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.'],
+            ]);
+        }
+
+        if (! Hash::check($password, $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['Kata sandi yang Anda masukkan salah. Harap periksa kembali.'],
+            ]);
         }
 
         $wallet = TimeCoinWallet::firstOrCreate(
@@ -214,7 +257,7 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user()->load(['roleRecord', 'roles', 'studentProfile', 'studentSkills', 'mentorProfile']);
+        $user = $request->user()->load(['roleRecord', 'roles', 'studentProfile', 'studentSkills', 'mentorProfile', 'umkmProfile']);
         $balance = TimeCoinWallet::where('user_id', $user->id)->value('balance') ?? 0;
 
         if ($user->hasRole('student')) {
@@ -301,6 +344,7 @@ class AuthController extends Controller
         $avatarUrl = match ($roleName) {
             'mentor' => $user->mentorProfile?->avatar_url ?? $user->studentProfile?->avatar_url,
             'student' => $user->studentProfile?->avatar_url,
+            'msme' => $user->umkmProfile?->logo_url,
             default => null,
         };
 
@@ -311,13 +355,20 @@ class AuthController extends Controller
             'role' => $roleName,
             'roles' => $roles,
             'balance_tc' => $balance,
-            'verification_status' => $user->hasRole('mentor') ? $user->mentorProfile?->verification_status : null,
+            'verification_status' => $user->hasRole('mentor') ? $user->mentorProfile?->verification_status : ($user->umkmProfile?->is_verified ? 'verified' : null),
             'avatar_url' => $avatarUrl,
             'university' => $user->studentProfile?->university,
             'major' => $user->studentProfile?->major,
             'student_id_number' => $user->studentProfile?->student_id_number,
             'completed_projects_count' => $user->studentProfile?->completed_projects_count ?? 0,
             'is_mentor_eligible' => (bool) ($user->studentProfile?->is_mentor_eligible ?? false),
+            'business_name' => $user->umkmProfile?->business_name,
+            'business_sector' => $user->umkmProfile?->business_sector,
+            'address' => $user->umkmProfile?->address,
+            'city' => $user->umkmProfile?->city ?? 'Surabaya',
+            'description' => $user->umkmProfile?->description,
+            'nib' => $user->umkmProfile?->nib,
+            'logo_url' => $avatarUrl,
         ];
     }
 }

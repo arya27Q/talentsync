@@ -955,7 +955,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
                         ),
                       ),
                       Text(
-                        'Syarat minimal 5 proyek selesai & reputasi baik',
+                        'Kualifikasi 3 Pilar: 20 Proyek, Mitra & Sertifikasi',
                         style: TextStyle(
                           fontSize: 12,
                           color: Color(0xFFDBEAFE),

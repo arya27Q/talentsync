@@ -38,6 +38,7 @@ class ApiClient {
   static String? resolveMediaUrl(String? rawUrl) {
     final trimmed = rawUrl?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
+    if (trimmed.startsWith('avatar:')) return trimmed;
     final baseUri = Uri.parse(_baseUrl);
     final parsed = Uri.tryParse(trimmed);
     if (parsed == null) return trimmed;
@@ -74,9 +75,10 @@ class ApiClient {
   Future<Map<String, dynamic>> postMultipart(
     String path, {
     Map<String, String>? fields,
-    required String fileField,
-    required String fileName,
-    required Uint8List fileBytes,
+    String? fileField,
+    String? fileName,
+    Uint8List? fileBytes,
+    List<http.MultipartFile>? extraFiles,
     bool authenticated = true,
   }) async {
     final uri = _buildUri(path);
@@ -84,13 +86,18 @@ class ApiClient {
     if (fields != null) {
       request.fields.addAll(fields);
     }
-    request.files.add(
-      http.MultipartFile.fromBytes(
-        fileField,
-        fileBytes,
-        filename: fileName,
-      ),
-    );
+    if (fileField != null && fileName != null && fileBytes != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          fileField,
+          fileBytes,
+          filename: fileName,
+        ),
+      );
+    }
+    if (extraFiles != null && extraFiles.isNotEmpty) {
+      request.files.addAll(extraFiles);
+    }
     return _executeRequest(request, authenticated: authenticated);
   }
 
@@ -127,6 +134,8 @@ class ApiClient {
     await _storage.write(key: _tokenKey, value: token);
     await _storage.write(key: _userKey, value: jsonEncode(_cachedUser));
   }
+
+  Future<String?> readSessionToken() => _readToken();
 
   Future<String?> _readToken() async {
     if (_hasLoadedToken) return _cachedToken;
@@ -259,12 +268,25 @@ class ApiClient {
           : <String, dynamic>{};
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        String message =
+            payload['message'] as String? ?? 'Permintaan gagal. Coba lagi.';
+        final errors = payload['errors'] is Map<String, dynamic>
+            ? payload['errors'] as Map<String, dynamic>
+            : null;
+
+        if (errors != null && errors.isNotEmpty) {
+          final first = errors.values.first;
+          if (first is List && first.isNotEmpty) {
+            message = first.first.toString();
+          } else if (first is String && first.isNotEmpty) {
+            message = first;
+          }
+        }
+
         throw ApiException(
-          payload['message'] as String? ?? 'Permintaan gagal. Coba lagi.',
+          message,
           statusCode: response.statusCode,
-          errors: payload['errors'] is Map<String, dynamic>
-              ? payload['errors'] as Map<String, dynamic>
-              : null,
+          errors: errors,
         );
       }
 

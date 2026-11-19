@@ -1,76 +1,149 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
 import 'package:flutter_frontend/core/widgets/in_app_guide_section.dart';
+import 'package:flutter_frontend/features/auth/widgets/msme_logo_modal.dart';
+import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
 
-class MsmeDashboardScreen extends StatelessWidget {
+class MsmeDashboardScreen extends StatefulWidget {
   const MsmeDashboardScreen({
     super.key,
     required this.onCreateProject,
     required this.onOpenPostings,
     required this.onOpenBarter,
     required this.onOpenProfile,
+    this.msmeApi,
   });
 
   final VoidCallback onCreateProject;
   final VoidCallback onOpenPostings;
   final VoidCallback onOpenBarter;
   final VoidCallback onOpenProfile;
+  final MsmeApi? msmeApi;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.canvasWhite,
-    body: SafeArea(
-      child: Stack(
-        children: [
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+  State<MsmeDashboardScreen> createState() => _MsmeDashboardScreenState();
+}
+
+class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
+  late final MsmeApi _msmeApi = widget.msmeApi ?? MsmeApi.instance;
+  Map<String, dynamic>? _sessionUser;
+  Map<String, dynamic>? _dashboardData;
+
+  @override
+  void initState() {
+    super.initState();
+    _initData();
+  }
+
+  Future<void> _initData() async {
+    final user = await ApiClient.instance.readSessionUser();
+    if (mounted) {
+      setState(() {
+        _sessionUser = user;
+      });
+    }
+    await _loadDashboard();
+  }
+
+  Future<void> _loadDashboard() async {
+    try {
+      final data = await _msmeApi.getDashboard();
+      if (mounted) {
+        setState(() {
+          _dashboardData = data;
+        });
+      }
+    } catch (_) {}
+  }
+
+  String get _timeGreeting {
+    final hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 11) return 'pagi';
+    if (hour >= 11 && hour < 15) return 'siang';
+    if (hour >= 15 && hour < 18) return 'sore';
+    return 'malam';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ownerName = (_dashboardData?['owner_name'] as String?) ??
+        (_sessionUser?['name'] as String?) ??
+        'Mitra UMKM';
+    final businessName = (_dashboardData?['business_name'] as String?) ??
+        (_sessionUser?['business_name'] as String?) ??
+        'Usaha Anda';
+    final logoUrl = (_dashboardData?['logo_url'] as String?) ??
+        (_dashboardData?['avatar_url'] as String?) ??
+        (_sessionUser?['logo_url'] as String?) ??
+        (_sessionUser?['avatar_url'] as String?);
+    final balanceTc = (_dashboardData?['balance_tc'] as num?)?.toInt() ??
+        (_sessionUser?['balance_tc'] as num?)?.toInt() ??
+        0;
+    final activeCount =
+        (_dashboardData?['active_projects_count'] as num?)?.toInt() ?? 0;
+    final applicantsCount =
+        (_dashboardData?['new_applicants_count'] as num?)?.toInt() ?? 0;
+    final completedCount =
+        (_dashboardData?['completed_projects_count'] as num?)?.toInt() ?? 0;
+    final slotsUsed =
+        (_dashboardData?['active_slots_used'] as num?)?.toInt() ??
+        (activeCount > 2 ? 2 : activeCount);
+    final slotsMax =
+        (_dashboardData?['active_slots_max'] as num?)?.toInt() ?? 2;
+
+    return Scaffold(
+      backgroundColor: AppColors.canvasWhite,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            RefreshIndicator(
+              onRefresh: _loadDashboard,
+              color: AppColors.primaryNavy,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 // Top Header Row
                 Row(
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppColors.borderSlate,
-                          width: 1.5,
-                        ),
-                        image: const DecorationImage(
-                          image: NetworkImage(
-                            'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=150&q=80',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
+                    InkWell(
+                      onTap: widget.onOpenProfile,
+                      borderRadius: BorderRadius.circular(16),
+                      child: MsmeLogoHelper.buildLogoWidget(
+                        logoUrl: logoUrl,
+                        size: 48,
+                        borderRadius: 16,
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Selamat pagi, Bu Rina',
-                            style: TextStyle(
+                            'Selamat $_timeGreeting, $ownerName',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
                               fontSize: 12.5,
                               color: AppColors.secondarySlate,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            'Kopi Tepi Kali',
-                            style: TextStyle(
+                            businessName,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
                               color: AppColors.darkSlate,
@@ -151,17 +224,17 @@ class MsmeDashboardScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Row(
+                      Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.toll_rounded,
                             color: Color(0xFFF59E0B),
                             size: 26,
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
-                            '520 TC',
-                            style: TextStyle(
+                            '$balanceTc TC',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -172,9 +245,9 @@ class MsmeDashboardScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Setara Rp520.000',
-                        style: TextStyle(
-                          color: const Color(0xFF93C5FD),
+                        'Setara Rp${balanceTc * 1000}',
+                        style: const TextStyle(
+                          color: Color(0xFF93C5FD),
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -205,7 +278,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                               label: 'Barter',
                               icon: Icons.swap_horiz_rounded,
                               isPrimary: false,
-                              onTap: onOpenBarter,
+                              onTap: widget.onOpenBarter,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -269,11 +342,11 @@ class MsmeDashboardScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Verified Partner',
                                   style: TextStyle(
                                     fontSize: 14.5,
@@ -281,10 +354,10 @@ class MsmeDashboardScreen extends StatelessWidget {
                                     color: AppColors.darkSlate,
                                   ),
                                 ),
-                                SizedBox(height: 2),
+                                const SizedBox(height: 2),
                                 Text(
-                                  'Slot proyek 2/2 \u00B7 admin top up 5%',
-                                  style: TextStyle(
+                                  'Slot proyek $slotsUsed/$slotsMax \u00B7 admin top up 5%',
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: AppColors.secondarySlate,
                                   ),
@@ -334,7 +407,9 @@ class MsmeDashboardScreen extends StatelessWidget {
                             child: Container(
                               height: 5,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF59E0B),
+                                color: slotsUsed >= 1
+                                    ? const Color(0xFFF59E0B)
+                                    : const Color(0xFFE2E8F0),
                                 borderRadius: BorderRadius.circular(3),
                               ),
                             ),
@@ -344,7 +419,9 @@ class MsmeDashboardScreen extends StatelessWidget {
                             child: Container(
                               height: 5,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF59E0B),
+                                color: slotsUsed >= 2
+                                    ? const Color(0xFFF59E0B)
+                                    : const Color(0xFFE2E8F0),
                                 borderRadius: BorderRadius.circular(3),
                               ),
                             ),
@@ -352,12 +429,16 @@ class MsmeDashboardScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Slot penuh. Tingkatkan kuota untuk mempublikasikan proyek baru ke mahasiswa.',
+                      Text(
+                        slotsUsed >= slotsMax
+                            ? 'Slot penuh. Tingkatkan kuota untuk mempublikasikan proyek baru ke mahasiswa.'
+                            : 'Tersedia ${slotsMax - slotsUsed} slot proyek aktif untuk mempublikasikan kebutuhan tokomu.',
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFFB45309),
+                          color: slotsUsed >= slotsMax
+                              ? const Color(0xFFB45309)
+                              : const Color(0xFF047857),
                         ),
                       ),
                     ],
@@ -424,30 +505,31 @@ class MsmeDashboardScreen extends StatelessWidget {
                       Expanded(
                         child: _buildMetricCard(
                           icon: Icons.assignment_rounded,
-                          count: '2',
+                          count: '$activeCount',
                           label: 'Proyek aktif',
                           buttonLabel: 'Kelola',
                           accentColor: AppColors.primaryNavy,
-                          onTap: onOpenPostings,
+                          onTap: widget.onOpenPostings,
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: _buildMetricCard(
                           icon: Icons.person_add_rounded,
-                          count: '2',
+                          count: '$applicantsCount',
                           label: 'Pelamar baru',
                           buttonLabel: 'Tinjau',
                           badgeLabel: 'Baru',
                           accentColor: const Color(0xFF0284C7),
-                          onTap: () {
-                            Navigator.push<void>(
+                          onTap: () async {
+                            await Navigator.push<void>(
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
                                     const MsmeReviewApplicantsScreen(),
                               ),
                             );
+                            _loadDashboard();
                           },
                         ),
                       ),
@@ -455,7 +537,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                       Expanded(
                         child: _buildMetricCard(
                           icon: Icons.rate_review_rounded,
-                          count: '1',
+                          count: '$completedCount',
                           label: 'Perlu ditinjau',
                           buttonLabel: 'Tinjau',
                           badgeLabel: 'Tugas',
@@ -535,70 +617,115 @@ class MsmeDashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // Action Card 1: Salsa Putri
-                _buildActionItem(
-                  context,
-                  avatarWidget: Container(
-                    width: 44,
-                    height: 44,
+                if (applicantsCount == 0 && completedCount == 0)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFC2410C),
-                      borderRadius: BorderRadius.circular(14),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.borderSlate),
                     ),
-                    child: const Center(
-                      child: Text(
-                        'SP',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-                  title: 'Salsa Putri mengajukan hasil',
-                  subtitle: 'Tahap 2: Menu board final \u00B7 45 TC',
-                  buttonLabel: 'Tinjau',
-                  onTap: () {
-                    Navigator.push<void>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const MsmeReviewSubmissionScreen(),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 12),
-
-                // Action Card 2: 2 Pelamar baru
-                _buildActionItem(
-                  context,
-                  avatarWidget: SizedBox(
-                    width: 58,
-                    height: 38,
-                    child: Stack(
+                    child: const Row(
                       children: [
-                        _buildMiniAvatar('RH', const Color(0xFF9A3412), 30),
-                        _buildMiniAvatar('DL', const Color(0xFF0D9488), 15),
-                        _buildMiniAvatar('AR', AppColors.primaryNavy, 0),
+                        Icon(
+                          Icons.task_alt_rounded,
+                          color: Color(0xFF10B981),
+                          size: 26,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Semua Tugas Terkelola',
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Belum ada pengajuan hasil atau pelamar baru yang perlu ditinjau.',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: AppColors.secondarySlate,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  title: '2 pelamar baru',
-                  subtitle: 'Aplikasi Menu & Pre-ord...',
-                  buttonLabel: 'Tinjau',
-                  onTap: () {
-                    Navigator.push<void>(
+                  )
+                else ...[
+                  if (completedCount > 0) ...[
+                    _buildActionItem(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const MsmeReviewApplicantsScreen(),
+                      avatarWidget: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFC2410C),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'SP',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
                       ),
-                    );
-                  },
-                ),
+                      title: 'Pengajuan hasil tugas mahasiswa',
+                      subtitle: '$completedCount pengajuan siap divalidasi',
+                      buttonLabel: 'Tinjau',
+                      onTap: () {
+                        Navigator.push<void>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const MsmeReviewSubmissionScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (applicantsCount > 0)
+                    _buildActionItem(
+                      context,
+                      avatarWidget: SizedBox(
+                        width: 58,
+                        height: 38,
+                        child: Stack(
+                          children: [
+                            _buildMiniAvatar('RH', const Color(0xFF9A3412), 30),
+                            _buildMiniAvatar('DL', const Color(0xFF0D9488), 15),
+                            _buildMiniAvatar('AR', AppColors.primaryNavy, 0),
+                          ],
+                        ),
+                      ),
+                      title: '$applicantsCount pelamar baru',
+                      subtitle: 'Pelamar mahasiswa menunggu konfirmasi',
+                      buttonLabel: 'Tinjau',
+                      onTap: () async {
+                        await Navigator.push<void>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const MsmeReviewApplicantsScreen(),
+                          ),
+                        );
+                        _loadDashboard();
+                      },
+                    ),
+                ],
 
                 const SizedBox(height: 24),
 
@@ -614,123 +741,183 @@ class MsmeDashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // Ongoing Project Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.borderSlate),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0F172A).withValues(alpha: 0.03),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE2E8F0),
-                              borderRadius: BorderRadius.circular(14),
-                              image: const DecorationImage(
-                                image: NetworkImage(
-                                  'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=150&q=80',
-                                ),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                if (activeCount == 0)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.borderSlate),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.assignment_outlined,
+                          color: AppColors.secondarySlate,
+                          size: 32,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Belum Ada Proyek Berjalan',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkSlate,
                           ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Desain Menu Board & Fee...',
-                                  style: TextStyle(
-                                    fontSize: 14.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.darkSlate,
-                                  ),
-                                ),
-                                SizedBox(height: 3),
-                                Text(
-                                  'Salsa Putri \u00B7 UNESA',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.secondarySlate,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Publikasikan proyek pertamamu untuk mulai berkolaborasi dengan mahasiswa.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondarySlate,
                           ),
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.primaryNavy,
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.borderSlate),
-                            ),
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              tooltip: 'Pesan',
-                              onPressed: () {
-                                Navigator.push<void>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const MsmeChatScreen(),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(
-                                Icons.chat_bubble_outline_rounded,
-                                color: AppColors.darkSlate,
-                                size: 18,
-                              ),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: const LinearProgressIndicator(
-                                value: 0.33,
-                                minHeight: 6,
-                                backgroundColor: Color(0xFFE2E8F0),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  AppColors.primaryNavy,
+                          onPressed: widget.onCreateProject,
+                          icon: const Icon(
+                            Icons.add_rounded,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            'Buat Proyek Baru',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.borderSlate),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE2E8F0),
+                                borderRadius: BorderRadius.circular(14),
+                                image: const DecorationImage(
+                                  image: NetworkImage(
+                                    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=150&q=80',
+                                  ),
+                                  fit: BoxFit.cover,
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 14),
-                          const Text(
-                            'Tahap 1/3',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.darkSlate,
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Desain Menu Board & Fee...',
+                                    style: TextStyle(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.darkSlate,
+                                    ),
+                                  ),
+                                  SizedBox(height: 3),
+                                  Text(
+                                    'Salsa Putri \u00B7 UNESA',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.borderSlate),
+                              ),
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                tooltip: 'Pesan',
+                                onPressed: () {
+                                  Navigator.push<void>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const MsmeChatScreen(),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(
+                                  Icons.chat_bubble_outline_rounded,
+                                  color: AppColors.darkSlate,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: const LinearProgressIndicator(
+                                  value: 0.33,
+                                  minHeight: 6,
+                                  backgroundColor: Color(0xFFE2E8F0),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.primaryNavy,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            const Text(
+                              'Tahap 1/3',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.darkSlate,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
                 const SizedBox(height: 24),
 
@@ -738,6 +925,7 @@ class MsmeDashboardScreen extends StatelessWidget {
                 _buildMsmeGuideSection(),
               ],
             ),
+          ),
           ),
 
           // Floating Action Button: "+ Buat Proyek Baru"
@@ -747,7 +935,7 @@ class MsmeDashboardScreen extends StatelessWidget {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: onCreateProject,
+                onTap: widget.onCreateProject,
                 borderRadius: BorderRadius.circular(24),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -788,6 +976,7 @@ class MsmeDashboardScreen extends StatelessWidget {
       ),
     ),
   );
+  }
 
   Widget _buildSaldoAction({
     required String label,

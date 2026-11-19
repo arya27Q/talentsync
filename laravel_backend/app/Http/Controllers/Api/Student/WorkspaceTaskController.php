@@ -19,23 +19,54 @@ class WorkspaceTaskController extends Controller
 
     public function index(Request $request, Project $project): JsonResponse
     {
-        $this->workflow->assertAcceptedStudent($request->user(), $project);
-        $project->load('msme.umkmProfile');
+        $user = $request->user();
+        $isMsmeOwner = $project->msme_id === $user->id && $user->hasRole('msme');
+
+        if (! $isMsmeOwner) {
+            $this->workflow->assertAcceptedStudent($user, $project);
+        }
+
+        $project->load(['msme.umkmProfile', 'milestones']);
+
+        $acceptedApp = $project->applications()
+            ->with('student.studentProfile')
+            ->where('status', 'accepted')
+            ->first();
+
+        $studentId = $isMsmeOwner
+            ? ($acceptedApp?->student_id ?? 0)
+            : $user->id;
 
         $tasks = ProjectTask::where('project_id', $project->id)
-            ->where('student_id', $request->user()->id)
+            ->when($studentId > 0, fn ($q) => $q->where('student_id', $studentId))
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
 
         $total = $tasks->count();
+        $todo = $tasks->where('status', 'todo')->count();
+        $inProgress = $tasks->where('status', 'in_progress')->count();
+        $review = $tasks->where('status', 'review')->count();
         $done = $tasks->where('status', 'done')->count();
+
+        $student = $acceptedApp?->student;
+        $studentProfile = $student?->studentProfile;
 
         return response()->json([
             'status' => 'success',
             'data' => [
                 'project' => ProjectPresenter::projectCard($project),
+                'is_read_only' => $isMsmeOwner,
+                'accepted_student' => $student ? [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'avatar_url' => $studentProfile?->avatar_url,
+                    'university' => $studentProfile?->university ?? 'Universitas Negeri Surabaya',
+                ] : null,
                 'stats' => [
+                    'todo_count' => $todo,
+                    'in_progress_count' => $inProgress,
+                    'review_count' => $review,
                     'done_count' => $done,
                     'total_count' => $total,
                     'progress_percent' => $total > 0 ? (int) round(($done / $total) * 100) : 0,
@@ -52,7 +83,7 @@ class WorkspaceTaskController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'min:2', 'max:200'],
             'tag' => ['sometimes', 'string', 'max:40'],
-            'status' => ['sometimes', Rule::in(['todo', 'in_progress', 'done'])],
+            'status' => ['sometimes', Rule::in(['todo', 'in_progress', 'review', 'done'])],
             'deadline_label' => ['nullable', 'string', 'max:40'],
             'due_date' => ['nullable', 'date'],
         ]);
@@ -86,7 +117,7 @@ class WorkspaceTaskController extends Controller
         $data = $request->validate([
             'title' => ['sometimes', 'required', 'string', 'min:2', 'max:200'],
             'tag' => ['sometimes', 'string', 'max:40'],
-            'status' => ['sometimes', Rule::in(['todo', 'in_progress', 'done'])],
+            'status' => ['sometimes', Rule::in(['todo', 'in_progress', 'review', 'done'])],
             'deadline_label' => ['sometimes', 'nullable', 'string', 'max:40'],
         ]);
 

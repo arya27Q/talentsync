@@ -24,7 +24,8 @@ class RegisterRequest extends FormRequest
             'student_id_number' => ['required_if:role,student', 'nullable', 'string', 'max:50', 'unique:student_profiles,student_id_number'],
             'ktm_document_url' => ['nullable', 'url', 'max:2048'],
             'ktm_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png', 'webp', 'pdf'])->max(5 * 1024)],
-            'avatar_file' => ['sometimes', File::image()->max(2 * 1024)],
+            'avatar_file' => ['sometimes', File::image()->max(3 * 1024)],
+            'avatar_url' => ['nullable', 'string', 'max:2048'],
             'cohort_year' => ['nullable', 'string', 'max:20'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'skills' => ['sometimes', 'array'],
@@ -32,17 +33,21 @@ class RegisterRequest extends FormRequest
             'business_name' => ['required_if:role,msme', 'nullable', 'string', 'max:150'],
             'business_sector' => ['required_if:role,msme', 'nullable', 'string', 'max:100'],
             'address' => ['required_if:role,msme', 'nullable', 'string', 'max:5000'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'nib' => ['nullable', 'string', 'max:50'],
             'business_document_url' => ['nullable', 'url', 'max:2048'],
+            'logo_file' => ['sometimes', File::image()->max(3 * 1024)],
+            'logo_url' => ['nullable', 'string', 'max:2048'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'student_id_number.unique' => 'NIM sudah terdaftar pada akun lain.',
-            'email.unique' => 'Alamat email sudah terdaftar.',
+            'student_id_number.unique' => 'Akun sudah pernah terdaftar. Silakan langsung masuk melalui halaman login.',
+            'email.unique' => 'Akun sudah pernah terdaftar. Silakan langsung masuk melalui halaman login.',
             'ktm_file.max' => 'Ukuran dokumen KTM maksimal 5 MB.',
         ];
     }
 }
-

@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 
 class PickedCvFile {
   const PickedCvFile({required this.name, required this.bytes});
@@ -73,6 +75,12 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
   String? _cvFileName;
   Uint8List? _cvBytes;
   String? _cvErrorText;
+  String? _pickedAvatarFileName;
+  Uint8List? _pickedAvatarBytes;
+  String? _selectedPresetAvatarId;
+
+  bool get _hasAvatar =>
+      _pickedAvatarBytes != null || _selectedPresetAvatarId != null;
 
   @override
   void dispose() {
@@ -184,6 +192,33 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
     });
   }
 
+  Future<void> _openAvatarModal() async {
+    final result = await UserAvatarPickerSheet.show(
+      context,
+      role: UserAvatarRole.mentor,
+      currentPresetId: _selectedPresetAvatarId,
+      hasExistingPhoto: _hasAvatar,
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        if (result.isCleared) {
+          _pickedAvatarBytes = null;
+          _pickedAvatarFileName = null;
+          _selectedPresetAvatarId = null;
+        } else if (result.pickedBytes != null) {
+          _pickedAvatarBytes = result.pickedBytes;
+          _pickedAvatarFileName = result.fileName;
+          _selectedPresetAvatarId = null;
+        } else if (result.presetAvatarId != null) {
+          _selectedPresetAvatarId = result.presetAvatarId;
+          _pickedAvatarBytes = null;
+          _pickedAvatarFileName = null;
+        }
+      });
+    }
+  }
+
   Future<void> _submitRegistration() async {
     if (_isSubmitting || _isUploadingFile) return;
     if (!_agreedToEthics) {
@@ -218,8 +253,11 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
       });
     }
     if (missingFields.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Periksa: ${missingFields.join(', ')}.')),
+      AppStatusDialog.showError(
+        context,
+        title: 'Data Belum Lengkap',
+        message: 'Harap periksa dan lengkapi: ${missingFields.join(', ')}.',
+        buttonText: 'Lengkapi Data',
       );
       return;
     }
@@ -252,29 +290,23 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
         cvFileName: validCvFileName,
         cvBytes: validCvBytes,
         portfolioUrl: validPortfolioUrl,
+        avatarFileName: _pickedAvatarFileName,
+        avatarBytes: _pickedAvatarBytes,
+        avatarUrl: _selectedPresetAvatarId,
       );
       if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Pendaftaran terkirim'),
-          content: const Text(
-            'Pendaftaran berhasil. Anda bisa masuk sekarang dan langsung menggunakan fitur mentor.',
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  AppRoutes.mentorAuth,
-                  (route) => false,
-                );
-              },
-              child: const Text('Kembali ke masuk'),
-            ),
-          ],
-        ),
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Pendaftaran Berhasil!',
+        message:
+            'Pendaftaran akun mentor telah berhasil. Silakan masuk menggunakan akun Anda untuk mulai membimbing mahasiswa.',
+        buttonText: 'Masuk Sekarang',
+      );
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.mentorAuth,
+        (route) => false,
       );
     } on ApiException catch (error) {
       if (mounted) {
@@ -282,17 +314,38 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
         if (cvErrors is List && cvErrors.isNotEmpty) {
           setState(() => _cvErrorText = '${cvErrors.first}');
         }
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.message)));
+        final isEmailTaken =
+            error.message.toLowerCase().contains('terdaftar') ||
+            (error.errors != null && error.errors!.containsKey('email'));
+        if (isEmailTaken) {
+          AppStatusDialog.showError(
+            context,
+            title: 'Akun Sudah Terdaftar',
+            message:
+                'Akun sudah pernah terdaftar dengan email ini. Silakan langsung masuk melalui halaman login.',
+            buttonText: 'Masuk Sekarang',
+            onConfirm: () => Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.mentorAuth,
+            ),
+          );
+        } else {
+          AppStatusDialog.showError(
+            context,
+            title: 'Pendaftaran Gagal',
+            message: error.message,
+            buttonText: 'Coba Lagi',
+          );
+        }
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Pendaftaran gagal diproses. Periksa koneksi dan ulangi.',
-            ),
-          ),
+        AppStatusDialog.showError(
+          context,
+          title: 'Kendala Koneksi',
+          message:
+              'Pendaftaran gagal diproses. Periksa koneksi internet Anda dan coba lagi.',
+          buttonText: 'Mengerti',
         );
       }
     } finally {
@@ -614,6 +667,128 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
+
+                    // 0. Foto Profil & Avatar Card
+                    InkWell(
+                      onTap: _openAvatarModal,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: _hasAvatar
+                                ? AppColors.primaryNavy
+                                : AppColors.borderSlate,
+                            width: _hasAvatar ? 1.6 : 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0F172A).withValues(
+                                alpha: _hasAvatar ? 0.06 : 0.03,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            UserAvatarHelper.buildAvatarWidget(
+                              avatarUrl: _selectedPresetAvatarId,
+                              avatarBytes: _pickedAvatarBytes,
+                              size: 58,
+                              borderRadius: 16,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _pickedAvatarFileName != null
+                                              ? _pickedAvatarFileName!
+                                              : (_selectedPresetAvatarId != null
+                                                  ? (UserAvatarHelper.getPreset(_selectedPresetAvatarId)?.title ??
+                                                      'Avatar Mentor Terpasang')
+                                                  : 'Foto Profil & Avatar'),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.darkSlate,
+                                          ),
+                                        ),
+                                      ),
+                                      if (_hasAvatar)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFECFDF5),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: const Color(0xFFA7F3D0),
+                                            ),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.check_circle_rounded,
+                                                size: 13,
+                                                color: Color(0xFF10B981),
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                'Terpasang',
+                                                style: TextStyle(
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Color(0xFF047857),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _hasAvatar
+                                        ? 'Ketuk untuk mengganti, sesuaikan crop, atau hapus'
+                                        : 'Pilih foto profesional & crop atau gunakan avatar tematik',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.secondarySlate,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              _hasAvatar
+                                  ? Icons.tune_rounded
+                                  : Icons.arrow_forward_ios_rounded,
+                              size: 16,
+                              color: _hasAvatar
+                                  ? AppColors.primaryNavy
+                                  : AppColors.secondarySlate,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
 
                     // 1. Nama Lengkap
                     _buildFieldSection(

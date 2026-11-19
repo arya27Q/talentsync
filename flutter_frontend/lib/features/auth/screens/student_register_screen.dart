@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
-import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 
 class StudentRegisterScreen extends StatefulWidget {
   const StudentRegisterScreen({super.key, this.authApi});
@@ -31,8 +32,14 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
 
   String? _ktmFileName;
   Uint8List? _ktmBytes;
+  String? _pickedAvatarFileName;
+  Uint8List? _pickedAvatarBytes;
+  String? _selectedPresetAvatarId;
   bool _obscurePassword = true;
   bool _isSubmitting = false;
+
+  bool get _hasAvatar =>
+      _pickedAvatarBytes != null || _selectedPresetAvatarId != null;
 
   @override
   void dispose() {
@@ -68,6 +75,33 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
     });
   }
 
+  Future<void> _openAvatarModal() async {
+    final result = await UserAvatarPickerSheet.show(
+      context,
+      role: UserAvatarRole.student,
+      currentPresetId: _selectedPresetAvatarId,
+      hasExistingPhoto: _hasAvatar,
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        if (result.isCleared) {
+          _pickedAvatarBytes = null;
+          _pickedAvatarFileName = null;
+          _selectedPresetAvatarId = null;
+        } else if (result.pickedBytes != null) {
+          _pickedAvatarBytes = result.pickedBytes;
+          _pickedAvatarFileName = result.fileName;
+          _selectedPresetAvatarId = null;
+        } else if (result.presetAvatarId != null) {
+          _selectedPresetAvatarId = result.presetAvatarId;
+          _pickedAvatarBytes = null;
+          _pickedAvatarFileName = null;
+        }
+      });
+    }
+  }
+
   Future<void> _submit() async {
     if (_isSubmitting) return;
     final name = _nameController.text.trim();
@@ -81,20 +115,32 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
         email.isEmpty ||
         univ.isEmpty ||
         major.isEmpty ||
-        nim.isEmpty ||
-        password.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Lengkapi seluruh kolom dan gunakan kata sandi minimal 8 karakter.',
-          ),
-        ),
+        nim.isEmpty) {
+      AppStatusDialog.showError(
+        context,
+        title: 'Data Belum Lengkap',
+        message: 'Harap lengkapi seluruh kolom data pendaftaran mahasiswa.',
+        buttonText: 'Lengkapi Data',
+      );
+      return;
+    }
+    if (password.length < 8) {
+      AppStatusDialog.showError(
+        context,
+        title: 'Kata Sandi Kurang Aman',
+        message:
+            'Kata sandi akun minimal harus terdiri dari 8 karakter demi keamanan akun Anda.',
+        buttonText: 'Perbaiki Kata Sandi',
       );
       return;
     }
     if (password != _confirmController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Konfirmasi kata sandi tidak cocok.')),
+      AppStatusDialog.showError(
+        context,
+        title: 'Kata Sandi Tidak Cocok',
+        message:
+            'Konfirmasi kata sandi tidak cocok dengan kata sandi yang Anda masukkan.',
+        buttonText: 'Periksa Kembali',
       );
       return;
     }
@@ -110,32 +156,59 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
         studentIdNumber: nim,
         ktmFileName: _ktmFileName,
         ktmBytes: _ktmBytes,
+        avatarFileName: _pickedAvatarFileName,
+        avatarBytes: _pickedAvatarBytes,
+        avatarUrl: _selectedPresetAvatarId,
       );
+      if (!mounted) return;
+
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Pendaftaran Berhasil!',
+        message:
+            'Akun mahasiswa "$name" telah aktif. Selamat datang di portal kolaborasi TalentSync!',
+        buttonText: 'Masuk ke Dashboard',
+      );
+
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(
         context,
-        AppRoutes.studentSetupProfileStep2,
+        AppRoutes.studentDashboard,
         (route) => false,
-        arguments: StudentSetupArgs(
-          university: univ,
-          major: major,
-          studentIdNumber: nim,
-          ktmFileName: _ktmFileName,
-          isAuthenticated: true,
-        ),
       );
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        final isTaken = error.message.toLowerCase().contains('terdaftar') ||
+            (error.errors != null &&
+                (error.errors!.containsKey('email') ||
+                    error.errors!.containsKey('student_id_number')));
+        if (isTaken) {
+          AppStatusDialog.showError(
+            context,
+            title: 'Akun Sudah Terdaftar',
+            message: error.message,
+            buttonText: 'Masuk Sekarang',
+            onConfirm: () => Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.studentAuth,
+            ),
+          );
+        } else {
+          AppStatusDialog.showError(
+            context,
+            title: 'Pendaftaran Gagal',
+            message: error.message,
+            buttonText: 'Coba Lagi',
+          );
+        }
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pendaftaran gagal diproses. Periksa koneksi Anda.'),
-          ),
+        AppStatusDialog.showError(
+          context,
+          title: 'Kendala Koneksi',
+          message: 'Pendaftaran gagal diproses. Periksa koneksi internet Anda.',
+          buttonText: 'Coba Lagi',
         );
       }
     } finally {
@@ -195,6 +268,129 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 22),
+
+                // Foto Profil / Avatar Card
+                InkWell(
+                  onTap: _openAvatarModal,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _hasAvatar
+                            ? AppColors.primaryNavy
+                            : AppColors.borderSlate,
+                        width: _hasAvatar ? 1.6 : 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0F172A).withValues(
+                            alpha: _hasAvatar ? 0.06 : 0.03,
+                          ),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        UserAvatarHelper.buildAvatarWidget(
+                          avatarUrl: _selectedPresetAvatarId,
+                          avatarBytes: _pickedAvatarBytes,
+                          size: 58,
+                          borderRadius: 16,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _pickedAvatarFileName != null
+                                          ? _pickedAvatarFileName!
+                                          : (_selectedPresetAvatarId != null
+                                              ? (UserAvatarHelper.getPreset(_selectedPresetAvatarId)?.title ??
+                                                  'Avatar Terpasang')
+                                              : 'Foto Profil & Avatar'),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
+                                      ),
+                                    ),
+                                  ),
+                                  if (_hasAvatar)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFECFDF5),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: const Color(0xFFA7F3D0),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle_rounded,
+                                            size: 13,
+                                            color: Color(0xFF10B981),
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Terpasang',
+                                            style: TextStyle(
+                                              fontSize: 10.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFF047857),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _hasAvatar
+                                    ? 'Ketuk untuk mengganti, sesuaikan crop, atau hapus'
+                                    : 'Pilih foto galeri & crop atau gunakan avatar tematik',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.secondarySlate,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          _hasAvatar
+                              ? Icons.tune_rounded
+                              : Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                          color: _hasAvatar
+                              ? AppColors.primaryNavy
+                              : AppColors.secondarySlate,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
                 _field('Nama Lengkap', _nameController, Icons.person_outline_rounded, 'Contoh: Arya Pratama'),
                 _field('Email Kampus / Pribadi', _emailController, Icons.mail_outline_rounded, 'arya@mhs.unesa.ac.id', keyboardType: TextInputType.emailAddress),
                 _field('Perguruan Tinggi', _universityController, Icons.account_balance_rounded, 'Universitas Negeri Surabaya'),

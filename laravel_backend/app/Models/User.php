@@ -113,6 +113,11 @@ class User extends Authenticatable
         return $this->hasMany(MentorBookmark::class, 'student_id');
     }
 
+    public function msmeProjects(): HasMany
+    {
+        return $this->hasMany(Project::class, 'msme_id');
+    }
+
     public function bankAccounts(): HasMany
     {
         return $this->hasMany(BankAccount::class);

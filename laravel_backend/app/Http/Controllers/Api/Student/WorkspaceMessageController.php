@@ -40,10 +40,27 @@ class WorkspaceMessageController extends Controller
             ->first(fn ($m) => in_array($m->status, ['open', 'submitted', 'revision_requested'], true))
             ?? $project->milestones->first();
 
+        $acceptedApp = $project->applications()
+            ->with('student.studentProfile')
+            ->where('status', 'accepted')
+            ->first()
+            ?? $project->applications()
+                ->with('student.studentProfile')
+                ->latest('applied_at')
+                ->first();
+        $student = $acceptedApp?->student;
+        $studentProfile = $student?->studentProfile;
+
         return response()->json([
             'status' => 'success',
             'data' => [
                 'project' => ProjectPresenter::projectCard($project),
+                'accepted_student' => $student ? [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'avatar_url' => $studentProfile?->avatar_url,
+                    'university' => $studentProfile?->university ?? 'Universitas Negeri Surabaya',
+                ] : null,
                 'active_milestone' => $activeMilestone ? ProjectPresenter::milestone($activeMilestone) : null,
                 'messages' => $messages->getCollection()->map(fn (ProjectMessage $m) => ProjectPresenter::message($m))->values(),
             ],
@@ -96,6 +113,22 @@ class WorkspaceMessageController extends Controller
                 '/msme/chat',
                 ['project_id' => $project->id],
             );
+        } else {
+            $acceptedApp = $project->applications()
+                ->where('status', 'accepted')
+                ->first()
+                ?? $project->applications()->latest('applied_at')->first();
+            if ($acceptedApp) {
+                $msmeName = $user->umkmProfile?->business_name ?? $user->name;
+                $this->notifications->send(
+                    $acceptedApp->student_id,
+                    'project_message',
+                    'Pesan Baru dari Mitra UMKM',
+                    "{$msmeName}: ".($data['message'] ?: ($attachmentName ?? 'Mengirim lampiran')),
+                    '/workspace/chat',
+                    ['project_id' => $project->id],
+                );
+            }
         }
 
         return response()->json([

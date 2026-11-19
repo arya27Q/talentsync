@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
-import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 
 class MentorAuthScreen extends StatefulWidget {
@@ -27,10 +28,26 @@ class _MentorAuthScreenState extends State<MentorAuthScreen> {
 
   Future<void> _signIn() async {
     if (_isLoading) return;
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan email dan kata sandi.')),
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty) {
+      AppStatusDialog.showError(
+        context,
+        title: 'Akun Belum Terdaftar',
+        message:
+            'Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.',
+        buttonText: 'Daftar Sekarang',
+        onConfirm: () =>
+            Navigator.pushNamed(context, AppRoutes.mentorRegister),
+      );
+      return;
+    }
+    if (password.isEmpty) {
+      AppStatusDialog.showError(
+        context,
+        title: 'Kata Sandi Salah',
+        message: 'Kata sandi yang Anda masukkan salah. Harap periksa kembali.',
+        buttonText: 'Coba Lagi',
       );
       return;
     }
@@ -39,16 +56,32 @@ class _MentorAuthScreenState extends State<MentorAuthScreen> {
     });
     try {
       final user = await _authApi.login(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: email,
+        password: password,
       );
       if (!mounted) return;
       if (user['role'] != 'mentor') {
         await _authApi.logout();
-        throw const ApiException(
-          'Akun ini bukan akun mentor. Gunakan halaman masuk sesuai peran.',
+        if (!mounted) return;
+        AppStatusDialog.showError(
+          context,
+          title: 'Akses Ditolak',
+          message:
+              'Akun ini bukan akun Mentor. Silakan gunakan portal masuk sesuai peran Anda (Mahasiswa atau Mitra UMKM).',
+          buttonText: 'Pilih Peran Lain',
+          onConfirm: () => AppRoutes.popOrRoleSelection(context),
         );
+        return;
       }
+
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Berhasil Masuk!',
+        message: 'Selamat datang kembali di Portal Mentor TalentSync.',
+        buttonText: 'Buka Dashboard',
+      );
+
+      if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.mentorDashboard,
@@ -56,15 +89,42 @@ class _MentorAuthScreenState extends State<MentorAuthScreen> {
       );
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.message)));
+        final isNotRegistered =
+            error.message.toLowerCase().contains('belum terdaftar') ||
+            (error.errors != null && error.errors!.containsKey('email'));
+        if (isNotRegistered) {
+          AppStatusDialog.showError(
+            context,
+            title: 'Akun Belum Terdaftar',
+            message:
+                'Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.',
+            buttonText: 'Daftar Sekarang',
+            onConfirm: () =>
+                Navigator.pushNamed(context, AppRoutes.mentorRegister),
+          );
+        } else {
+          final isPasswordWrong =
+              error.message.toLowerCase().contains('kata sandi') ||
+              error.message.toLowerCase().contains('password') ||
+              (error.errors != null && error.errors!.containsKey('password'));
+          AppStatusDialog.showError(
+            context,
+            title: isPasswordWrong ? 'Kata Sandi Salah' : 'Gagal Masuk',
+            message: isPasswordWrong
+                ? 'Kata sandi yang Anda masukkan salah. Harap periksa kembali.'
+                : error.message,
+            buttonText: 'Coba Lagi',
+          );
+        }
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login gagal diproses. Periksa koneksi dan ulangi.'),
-          ),
+        AppStatusDialog.showError(
+          context,
+          title: 'Kendala Koneksi',
+          message:
+              'Login gagal diproses. Periksa koneksi internet Anda dan coba kembali.',
+          buttonText: 'Mengerti',
         );
       }
     } finally {
@@ -73,20 +133,13 @@ class _MentorAuthScreenState extends State<MentorAuthScreen> {
   }
 
   void _forgotPassword() {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset kata sandi'),
-        content: const Text(
-          'Masukkan alamat email terdaftar melalui layanan bantuan TalentSync untuk menerima tautan reset.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Mengerti'),
-          ),
-        ],
-      ),
+    AppStatusDialog.show(
+      context,
+      type: AppStatusDialogType.info,
+      title: 'Reset Kata Sandi',
+      message:
+          'Masukkan alamat email terdaftar melalui layanan bantuan TalentSync untuk menerima tautan pemulihan kata sandi akun mentor.',
+      primaryButtonText: 'Mengerti',
     );
   }
 

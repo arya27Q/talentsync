@@ -284,7 +284,28 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
         final pct = ((proj['progress_percent'] as num?)?.toInt() ?? 0);
         final releasedTc = (proj['released_tc'] as num?)?.toInt() ?? 0;
         final escrowTc = (proj['escrow_tc'] as num?)?.toInt() ?? 0;
+        final kanbanDone = (proj['kanban_done_count'] as num?)?.toInt() ?? 0;
+        final kanbanTotal = (proj['kanban_total_count'] as num?)?.toInt() ?? 0;
+        final activeMsStatus =
+            (proj['active_milestone_status'] as String?) ?? 'open';
         final isUrgent = proj['is_urgent'] == true;
+        final statusChip = switch (activeMsStatus) {
+          'submitted' => (
+            'Menunggu Review',
+            const Color(0xFFDBEAFE),
+            AppColors.primaryNavy,
+          ),
+          'revision_requested' => (
+            'Perlu Revisi',
+            const Color(0xFFFEE2E2),
+            const Color(0xFFB91C1C),
+          ),
+          _ => (
+            'Sedang Dikerjakan',
+            const Color(0xFFECFDF5),
+            const Color(0xFF15803D),
+          ),
+        };
 
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -367,6 +388,51 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                 ],
               ),
               const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusChip.$2,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      statusChip.$1,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: statusChip.$3,
+                      ),
+                    ),
+                  ),
+                  if (kanbanTotal > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Kanban $kanbanDone/$kanbanTotal selesai',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
               Text(
                 'Berikutnya: ${proj['next_milestone'] ?? '-'} · ${proj['days_left'] ?? 0} hari',
                 style: TextStyle(
@@ -382,11 +448,14 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                 children: [
                   IconButton(
                     tooltip: 'Chat UMKM',
-                    onPressed: () => Navigator.pushNamed(
-                      context,
-                      AppRoutes.workspaceChat,
-                      arguments: ProjectRouteArgs(projectId: projectId),
-                    ),
+                    onPressed: () async {
+                      await Navigator.pushNamed(
+                        context,
+                        AppRoutes.workspaceChat,
+                        arguments: ProjectRouteArgs(projectId: projectId),
+                      );
+                      _reload();
+                    },
                     icon: const Icon(
                       Icons.chat_bubble_outline_rounded,
                       color: AppColors.primaryNavy,
@@ -394,11 +463,14 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                   ),
                   IconButton(
                     tooltip: 'Kanban Workspace',
-                    onPressed: () => Navigator.pushNamed(
-                      context,
-                      AppRoutes.workspaceKanban,
-                      arguments: ProjectRouteArgs(projectId: projectId),
-                    ),
+                    onPressed: () async {
+                      await Navigator.pushNamed(
+                        context,
+                        AppRoutes.workspaceKanban,
+                        arguments: ProjectRouteArgs(projectId: projectId),
+                      );
+                      _reload();
+                    },
                     icon: const Icon(
                       Icons.view_kanban_rounded,
                       color: AppColors.primaryNavy,
@@ -413,12 +485,18 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.submission,
-                        arguments: ProjectRouteArgs(projectId: projectId),
+                      onPressed: () async {
+                        await Navigator.pushNamed(
+                          context,
+                          AppRoutes.submission,
+                          arguments: ProjectRouteArgs(projectId: projectId),
+                        );
+                        _reload();
+                      },
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Status & Milestone'),
                       ),
-                      child: const Text('Status & Milestone'),
                     ),
                   ),
                 ],

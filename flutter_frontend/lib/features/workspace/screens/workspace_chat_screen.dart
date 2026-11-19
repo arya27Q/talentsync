@@ -7,6 +7,7 @@ import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
 import 'package:flutter_frontend/features/project/data/project_api.dart';
 import 'package:flutter_frontend/features/workspace/data/workspace_api.dart';
+import 'package:flutter_frontend/features/workspace/widgets/meeting_link_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class WorkspaceChatScreen extends StatefulWidget {
@@ -42,9 +43,9 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
   List<Map<String, dynamic>> _messages = const [];
 
   final List<String> _quickChips = const [
-    'Halo Bu, saya kirim preview terbarunya',
+    'Halo, saya kirim pratinjau terbarunya',
     'Tahap milestone sudah siap ditinjau',
-    'Ada catatan revisi untuk bagian ini?',
+    'Apakah ada catatan revisi untuk bagian ini?',
   ];
 
   @override
@@ -58,6 +59,15 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  String _formatTime(String? iso) {
+    if (iso == null || iso.isEmpty) return '';
+    final dt = DateTime.tryParse(iso)?.toLocal();
+    if (dt == null) return '';
+    final h = dt.hour.toString().padLeft(2, '0');
+    final m = dt.minute.toString().padLeft(2, '0');
+    return '$h:$m';
   }
 
   Future<void> _load() async {
@@ -74,14 +84,16 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
         final mine = await _projectApi.myProjects();
         final active = (mine['active_projects'] as List?) ?? const [];
         if (active.isNotEmpty) {
-          targetId = ((active.first as Map<String, dynamic>)['id'] as num).toInt();
+          targetId = ((active.first as Map<String, dynamic>)['id'] as num)
+              .toInt();
         } else {
           final explore = await _projectApi.explore();
           final open = (explore['data'] as List?) ?? const [];
           if (open.isEmpty) {
             throw const ApiException('Belum ada proyek untuk ruang obrolan.');
           }
-          targetId = ((open.first as Map<String, dynamic>)['id'] as num).toInt();
+          targetId = ((open.first as Map<String, dynamic>)['id'] as num)
+              .toInt();
         }
       }
 
@@ -146,9 +158,8 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
       _scrollToBottom();
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) setState(() => _isSending = false);
@@ -190,13 +201,22 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
       _scrollToBottom();
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
+  }
+
+  Future<void> _sendMeetingLink(String partnerName) async {
+    if (_resolvedProjectId == null || _isSending) return;
+    final result = await MeetingLinkHelper.showSendSheet(
+      context,
+      partnerName: partnerName,
+    );
+    if (result == null || !mounted) return;
+    await _sendMessage(result.toChatMessage());
   }
 
   @override
@@ -232,6 +252,8 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
             ),
             const Text(
               'Mitra UMKM · Obrolan Proyek',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Color(0xFF16A34A),
                 fontSize: 11.5,
@@ -240,6 +262,40 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Kirim Link Google Meet / Zoom',
+            onPressed: _resolvedProjectId == null
+                ? null
+                : () => _sendMeetingLink(partnerName),
+            icon: const Icon(
+              Icons.videocam_rounded,
+              color: AppColors.primaryNavy,
+            ),
+          ),
+          IconButton(
+            tooltip: 'Papan Kanban',
+            onPressed: _resolvedProjectId == null
+                ? null
+                : () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.workspaceKanban,
+                    arguments: ProjectRouteArgs(projectId: _resolvedProjectId),
+                  ),
+            icon: const Icon(
+              Icons.view_kanban_rounded,
+              color: AppColors.primaryNavy,
+            ),
+          ),
+          IconButton(
+            tooltip: 'Muat ulang pesan',
+            onPressed: _isLoading ? null : _load,
+            icon: const Icon(
+              Icons.refresh_rounded,
+              color: AppColors.secondarySlate,
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         top: false,
@@ -247,13 +303,19 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
             ? const Center(child: CircularProgressIndicator())
             : _error != null
             ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(_error!),
-                    const SizedBox(height: 12),
-                    FilledButton(onPressed: _load, child: const Text('Coba lagi')),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_error!, textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      FilledButton(
+                        onPressed: _load,
+                        child: const Text('Coba lagi'),
+                      ),
+                    ],
+                  ),
                 ),
               )
             : Column(
@@ -308,6 +370,7 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
                       onRefresh: _load,
                       child: _messages.isEmpty
                           ? ListView(
+                              padding: const EdgeInsets.all(24),
                               children: const [
                                 SizedBox(height: 60),
                                 Center(
@@ -336,6 +399,21 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
                                 final attachmentName =
                                     (msg['attachment_name'] as String?) ??
                                     'Lampiran berkas';
+                                final timeLabel = _formatTime(
+                                  msg['created_at'] as String?,
+                                );
+                                final parsedMeeting = MeetingLinkHelper.parse(
+                                  msg['message'] as String?,
+                                );
+                                if (parsedMeeting != null &&
+                                    attachmentUrl == null) {
+                                  return MeetingLinkHelper.buildMeetingCard(
+                                    context,
+                                    meeting: parsedMeeting,
+                                    isMe: isMe,
+                                    timeLabel: timeLabel,
+                                  );
+                                }
 
                                 return Align(
                                   alignment: isMe
@@ -362,8 +440,9 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
                                             ),
                                     ),
                                     child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: isMe
+                                          ? CrossAxisAlignment.end
+                                          : CrossAxisAlignment.start,
                                       children: [
                                         if ((msg['message'] as String?) != null)
                                           Text(
@@ -421,6 +500,18 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
                                               ],
                                             ),
                                           ),
+                                        if (timeLabel.isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            timeLabel,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: isMe
+                                                  ? Colors.white70
+                                                  : AppColors.secondarySlate,
+                                            ),
+                                          ),
+                                        ],
                                       ],
                                     ),
                                   ),

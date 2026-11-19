@@ -29,9 +29,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
+            $firstError = collect($exception->errors())->flatten()->first() ?? 'Validasi formulir gagal.';
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validasi formulir gagal.',
+                'message' => $firstError,
                 'errors' => $exception->errors(),
             ], 422);
         });

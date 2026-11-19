@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 
 class MsmeCreateTaskWizardScreen extends StatefulWidget {
-  const MsmeCreateTaskWizardScreen({super.key, this.onCompleted});
+  const MsmeCreateTaskWizardScreen({
+    super.key,
+    this.onCompleted,
+    this.msmeApi,
+  });
 
   final VoidCallback? onCompleted;
+  final MsmeApi? msmeApi;
 
   @override
   State<MsmeCreateTaskWizardScreen> createState() =>
@@ -13,7 +20,9 @@ class MsmeCreateTaskWizardScreen extends StatefulWidget {
 
 class _MsmeCreateTaskWizardScreenState
     extends State<MsmeCreateTaskWizardScreen> {
+  late final MsmeApi _msmeApi = widget.msmeApi ?? MsmeApi.instance;
   int _selectedTemplateIndex = 1; // Default to Setup Media Sosial (Populer)
+  bool _isSubmitting = false;
   String? _customProjectTitle;
   String? _customProjectCategory;
   String? _customProjectPrice;
@@ -351,25 +360,94 @@ class _MsmeCreateTaskWizardScreenState
     ),
   ];
 
-  void _onNext() {
+  Future<void> _onNext() async {
+    if (_isSubmitting) return;
     final selected = _templates[_selectedTemplateIndex];
     final String chosenTitle = selected.isCustom && _customProjectTitle != null
         ? _customProjectTitle!
         : selected.title;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Proyek "$chosenTitle" dipilih. Melanjutkan ke detail tugas...',
+    final String category = selected.isCustom
+        ? (_customProjectCategory ?? 'Kebutuhan Kustom')
+        : switch (_selectedTemplateIndex) {
+            0 => 'Desain & Kreatif',
+            1 => 'Pemasaran Digital',
+            2 => 'Fotografi',
+            3 => 'Web & Teknologi',
+            4 => 'Mobile App',
+            5 => 'Data & Administrasi',
+            _ => 'Kebutuhan Kustom',
+          };
+
+    final int rewardTc = selected.isCustom
+        ? (int.tryParse(_customProjectPrice ?? '100') ?? 100)
+        : switch (_selectedTemplateIndex) {
+            0 => 100,
+            1 => 90,
+            2 => 65,
+            3 => 200,
+            4 => 350,
+            5 => 120,
+            _ => 100,
+          };
+
+    final String description = selected.isCustom &&
+            _customProjectDesc != null &&
+            _customProjectDesc!.trim().isNotEmpty
+        ? _customProjectDesc!.trim()
+        : 'Pengerjaan ${selected.title}: ${selected.subtitle} untuk memperkuat operasional dan branding mitra usaha.';
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      await _msmeApi.createProject(
+        title: chosenTitle,
+        category: category,
+        rewardTc: rewardTc,
+        description: description,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Proyek "$chosenTitle" ($rewardTc TC) berhasil dipublikasikan!',
+          ),
+          backgroundColor: AppColors.primaryNavy,
+          behavior: SnackBarBehavior.floating,
         ),
-        backgroundColor: AppColors.primaryNavy,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    if (widget.onCompleted != null) {
-      widget.onCompleted!();
-    } else {
-      Navigator.maybePop(context);
+      );
+      if (widget.onCompleted != null) {
+        widget.onCompleted!();
+      } else {
+        Navigator.maybePop(context);
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Proyek "$chosenTitle" dipilih. Melanjutkan ke daftar tugas...',
+            ),
+            backgroundColor: AppColors.primaryNavy,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        if (widget.onCompleted != null) {
+          widget.onCompleted!();
+        } else {
+          Navigator.maybePop(context);
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
@@ -825,28 +903,53 @@ class _MsmeCreateTaskWizardScreenState
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: _onNext,
+                  onTap: _isSubmitting ? null : _onNext,
                   borderRadius: BorderRadius.circular(16),
-                  child: const Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Lanjut',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                  child: Center(
+                    child: _isSubmitting
+                        ? const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.4,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'Mempublikasikan Proyek...',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Lanjut',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Icon(
+                                Icons.arrow_forward_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ],
                           ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ),

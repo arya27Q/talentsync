@@ -3,11 +3,14 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/project/data/project_api.dart';
 import 'package:flutter_frontend/features/workspace/data/workspace_api.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SubmissionScreen extends StatefulWidget {
   const SubmissionScreen({
@@ -70,7 +73,8 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
         if (active.isEmpty) {
           throw const ApiException('Belum ada proyek aktif untuk pengumpulan.');
         }
-        targetId = ((active.first as Map<String, dynamic>)['id'] as num).toInt();
+        targetId = ((active.first as Map<String, dynamic>)['id'] as num)
+            .toInt();
       }
       final res = await _api.milestones(targetId);
       if (!mounted) return;
@@ -108,6 +112,25 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
     return null;
   }
 
+  bool get _hasSubmittedMilestone =>
+      _milestones.any((m) => m['status'] == 'submitted');
+
+  bool get _allMilestonesApproved =>
+      _milestones.isNotEmpty &&
+      _milestones.every((m) => m['status'] == 'approved');
+
+  Future<void> _openExternalUrl(String rawUrl) async {
+    final resolved = ApiClient.resolveMediaUrl(rawUrl) ?? rawUrl.trim();
+    final uri = Uri.tryParse(resolved);
+    if (uri == null ||
+        !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tidak dapat membuka tautan berkas.')),
+      );
+    }
+  }
+
   Future<void> _pickFile() async {
     final file = await FilePicker.pickFile(
       dialogTitle: 'Pilih Berkas Deliverable',
@@ -118,8 +141,10 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
     final bytes = await file.readAsBytes();
     if (bytes.lengthInBytes > 10 * 1024 * 1024) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ukuran berkas deliverable maksimal 10 MB.')),
+        await AppStatusDialog.showError(
+          context,
+          title: 'Berkas Terlalu Besar',
+          message: 'Ukuran berkas deliverable maksimal 10 MB.',
         );
       }
       return;
@@ -133,10 +158,10 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
   Future<void> _submitDeliverable() async {
     final target = _targetMilestone;
     if (target == null || _isSubmitting) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tidak ada tahap aktif yang dapat dikirim saat ini.'),
-        ),
+      await AppStatusDialog.showWarning(
+        context,
+        title: 'Belum Ada Tahap Aktif',
+        message: 'Tidak ada tahap aktif yang dapat dikirim saat ini.',
       );
       return;
     }
@@ -148,20 +173,27 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
       _ => 'link',
     };
     if (format == 'file' && _pickedFileBytes == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih berkas deliverable terlebih dahulu.')),
+      await AppStatusDialog.showError(
+        context,
+        title: 'Berkas Belum Dipilih',
+        message:
+            'Pilih berkas deliverable (ZIP, PDF, atau gambar) terlebih dahulu.',
       );
       return;
     }
     if (format == 'link' && _urlController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Masukkan tautan hasil pekerjaan.')),
+      await AppStatusDialog.showError(
+        context,
+        title: 'Tautan Masih Kosong',
+        message: 'Masukkan tautan hasil pekerjaan (Google Drive, Figma, atau GitHub).',
       );
       return;
     }
     if (format == 'note' && _notesController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tuliskan catatan hasil pengerjaan.')),
+      await AppStatusDialog.showError(
+        context,
+        title: 'Catatan Masih Kosong',
+        message: 'Tuliskan ringkasan hasil pengerjaan Anda untuk mitra UMKM.',
       );
       return;
     }
@@ -190,54 +222,30 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
       await _load();
       if (!mounted) return;
 
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
-          ),
-          title: const Text(
-            'Hasil Pengerjaan Terkirim',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: const Text(
-            'Hasil tahap proyek Anda sudah tercatat dan menunggu persetujuan mitra UMKM untuk pencairan Smart Escrow.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.workspaceKanban,
-                  arguments: ProjectRouteArgs(projectId: _resolvedProjectId),
-                );
-              },
-              child: const Text('Ke Workspace'),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primaryNavy,
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.projectCompleted,
-                  arguments: ProjectRouteArgs(projectId: _resolvedProjectId),
-                );
-              },
-              child: const Text('Lihat Status Akhir'),
-            ),
-          ],
-        ),
+      await AppStatusDialog.show(
+        context,
+        type: AppStatusDialogType.success,
+        title: 'Hasil Pengerjaan Terkirim',
+        message:
+            'Hasil tahap "${target['title'] ?? 'Milestone'}" sudah tercatat di sistem dan menunggu tinjauan mitra UMKM.',
+        primaryButtonText: 'Tetap di Sini',
+        secondaryButtonText: 'Buka Kanban',
+        onSecondaryPressed: () {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.workspaceKanban,
+            arguments: ProjectRouteArgs(projectId: _resolvedProjectId),
+          );
+        },
+        barrierDismissible: false,
       );
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
+        await AppStatusDialog.showError(
           context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+          title: 'Gagal Mengirim Hasil',
+          message: e.message,
+        );
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -300,9 +308,8 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                 if (ctx.mounted) Navigator.pop(ctx, true);
               } on ApiException catch (e) {
                 if (ctx.mounted) {
-                  ScaffoldMessenger.of(
-                    ctx,
-                  ).showSnackBar(SnackBar(content: Text(e.message)));
+                  ScaffoldMessenger.of(ctx)
+                      .showSnackBar(SnackBar(content: Text(e.message)));
                 }
               }
             },
@@ -364,12 +371,244 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
     );
     descCtrl.dispose();
     if (sent == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Laporan resolusi escrow dikirim ke tim TalentSync.'),
-        ),
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Laporan Terkirim',
+        message: 'Laporan resolusi escrow telah dikirim ke tim TalentSync.',
+        buttonText: 'Mengerti',
       );
     }
+  }
+
+  Widget _buildMilestoneCard(Map<String, dynamic> m) {
+    final st = (m['status'] as String?) ?? 'locked';
+    final latest = m['latest_deliverable'] as Map<String, dynamic>?;
+    final deliverableUrl = latest?['deliverable_url'] as String?;
+    final fileName = latest?['file_name'] as String?;
+    final fileSize = latest?['file_size_label'] as String?;
+    final notes = latest?['submission_notes'] as String?;
+    final revisionNotes = latest?['revision_notes'] as String?;
+    final recommendMentor = latest?['recommend_mentor_consultation'] == true;
+
+    final badge = switch (st) {
+      'approved' => (
+        'Selesai',
+        const Color(0xFFDCFCE7),
+        const Color(0xFF15803D),
+      ),
+      'submitted' => (
+        'Menunggu Review',
+        const Color(0xFFDBEAFE),
+        AppColors.primaryNavy,
+      ),
+      'open' => (
+        'Siap Diisi',
+        const Color(0xFFFEF3C7),
+        const Color(0xFFB45309),
+      ),
+      'revision_requested' => (
+        'Perlu Revisi',
+        const Color(0xFFFEE2E2),
+        const Color(0xFFB91C1C),
+      ),
+      _ => ('Terkunci', const Color(0xFFF1F5F9), AppColors.secondarySlate),
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: st == 'revision_requested'
+              ? const Color(0xFFFECACA)
+              : AppColors.borderSlate,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: AppColors.lightBlueSurface,
+                child: Text(
+                  '${m['step_order']}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryNavy,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (m['title'] as String?) ?? '',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13.5,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    Text(
+                      '${m['reward_tc'] ?? 0} TC',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: badge.$2,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  badge.$1,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: badge.$3,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (latest != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.canvasWhite,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.borderSlate),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (deliverableUrl != null && deliverableUrl.isNotEmpty)
+                    InkWell(
+                      onTap: () => _openExternalUrl(deliverableUrl),
+                      child: Row(
+                        children: [
+                          Icon(
+                            fileName != null
+                                ? Icons.attach_file_rounded
+                                : Icons.link_rounded,
+                            size: 15,
+                            color: AppColors.primaryNavy,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              fileName != null
+                                  ? '$fileName${fileSize != null ? ' ($fileSize)' : ''}'
+                                  : deliverableUrl,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryNavy,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (notes != null && notes.trim().isNotEmpty) ...[
+                    if (deliverableUrl != null && deliverableUrl.isNotEmpty)
+                      const SizedBox(height: 6),
+                    Text(
+                      notes,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.secondarySlate,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+          if (revisionNotes != null && revisionNotes.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFECACA)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(
+                        Icons.rate_review_rounded,
+                        size: 14,
+                        color: Color(0xFFB91C1C),
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        'Catatan Revisi Mitra UMKM',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFB91C1C),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    revisionNotes,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF7F1D1D),
+                      height: 1.35,
+                    ),
+                  ),
+                  if (recommendMentor) ...[
+                    const SizedBox(height: 6),
+                    InkWell(
+                      onTap: () =>
+                          Navigator.pushNamed(context, AppRoutes.findMentors),
+                      child: const Text(
+                        'Mitra menyarankan konsultasi Peer Mentor ->',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryNavy,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   @override
@@ -387,20 +626,26 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
             ? const Center(child: CircularProgressIndicator())
             : _error != null
             ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(_error!, textAlign: TextAlign.center),
-                    const SizedBox(height: 12),
-                    FilledButton(onPressed: _load, child: const Text('Coba lagi')),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_error!, textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      FilledButton(
+                        onPressed: _load,
+                        child: const Text('Coba lagi'),
+                      ),
+                    ],
+                  ),
                 ),
               )
             : RefreshIndicator(
                 onRefresh: _load,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 36),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 36),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -415,7 +660,9 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppColors.borderSlate),
+                                border: Border.all(
+                                  color: AppColors.borderSlate,
+                                ),
                               ),
                               child: const Icon(
                                 Icons.keyboard_arrow_left_rounded,
@@ -431,6 +678,8 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                               children: [
                                 const Text(
                                   'Status & Pengumpulan Hasil',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 16.5,
                                     fontWeight: FontWeight.bold,
@@ -487,13 +736,16 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            LinearProgressIndicator(
-                              value: (pct / 100).clamp(0.0, 1.0),
-                              backgroundColor: Colors.white24,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                AppColors.accentAmberGold,
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: LinearProgressIndicator(
+                                value: (pct / 100).clamp(0.0, 1.0),
+                                backgroundColor: Colors.white24,
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  AppColors.accentAmberGold,
+                                ),
+                                minHeight: 7,
                               ),
-                              minHeight: 7,
                             ),
                           ],
                         ),
@@ -520,82 +772,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                           ),
                         ],
                       ),
-                      ..._milestones.map((m) {
-                        final st = (m['status'] as String?) ?? 'locked';
-                        final badge = switch (st) {
-                          'approved' => ('Selesai', const Color(0xFFDCFCE7), const Color(0xFF15803D)),
-                          'submitted' => ('Menunggu Review', const Color(0xFFDBEAFE), AppColors.primaryNavy),
-                          'open' => ('Siap Diisi', const Color(0xFFFEF3C7), const Color(0xFFB45309)),
-                          'revision_requested' => ('Perlu Revisi', const Color(0xFFFEE2E2), const Color(0xFFB91C1C)),
-                          _ => ('Terkunci', const Color(0xFFF1F5F9), AppColors.secondarySlate),
-                        };
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.borderSlate),
-                          ),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 14,
-                                backgroundColor: AppColors.lightBlueSurface,
-                                child: Text(
-                                  '${m['step_order']}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primaryNavy,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      (m['title'] as String?) ?? '',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13.5,
-                                        color: AppColors.darkSlate,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${m['reward_tc'] ?? 0} TC',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.secondarySlate,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: badge.$2,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  badge.$1,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: badge.$3,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
+                      ..._milestones.map(_buildMilestoneCard),
 
                       if (target != null) ...[
                         const SizedBox(height: 18),
@@ -621,10 +798,11 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                         if (_selectedFormatIndex == 0)
                           TextField(
                             controller: _urlController,
+                            keyboardType: TextInputType.url,
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: Colors.white,
-                              hintText: 'https://github.com/... atau Google Drive',
+                              hintText: 'https://github.com/... atau Google Drive / Figma',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
@@ -633,13 +811,16 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                         if (_selectedFormatIndex == 1)
                           InkWell(
                             onTap: _pickFile,
+                            borderRadius: BorderRadius.circular(14),
                             child: Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppColors.borderSlate),
+                                border: Border.all(
+                                  color: AppColors.borderSlate,
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -650,8 +831,7 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      _pickedFileName ??
-                                          'Pilih berkas ZIP/PDF/Gambar (Maks 10 MB)',
+                                      _pickedFileName ?? 'Pilih berkas ZIP/PDF/Gambar (Maks 10 MB)',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -680,8 +860,13 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                           child: FilledButton(
                             style: FilledButton.styleFrom(
                               backgroundColor: AppColors.primaryNavy,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
-                            onPressed: _isSubmitting ? null : _submitDeliverable,
+                            onPressed: _isSubmitting
+                                ? null
+                                : _submitDeliverable,
                             child: Text(
                               _isSubmitting
                                   ? 'Mengirim Hasil...'
@@ -691,6 +876,145 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                          ),
+                        ),
+                      ] else if (_hasSubmittedMilestone) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: const Color(0xFFBFDBFE)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(
+                                    Icons.hourglass_top_rounded,
+                                    color: AppColors.primaryNavy,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Menunggu Tinjauan Mitra UMKM',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.darkSlate,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Hasil tahap Anda telah diterima sistem. Mitra UMKM akan memeriksa berkas dan mencairkan TimeCoin escrow atau memberikan catatan revisi.',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: AppColors.secondarySlate,
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 44,
+                                child: FilledButton.icon(
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: AppColors.primaryNavy,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed: () => Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.workspaceChat,
+                                    arguments: ProjectRouteArgs(
+                                      projectId: _resolvedProjectId,
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.chat_bubble_outline_rounded,
+                                    size: 16,
+                                  ),
+                                  label: const Text(
+                                    'Konfirmasi via Obrolan UMKM',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ] else if (_allMilestonesApproved) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: const Color(0xFFA7F3D0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(
+                                    Icons.task_alt_rounded,
+                                    color: Color(0xFF15803D),
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Seluruh Tahap Disetujui',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF14532D),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 44,
+                                child: FilledButton(
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: const Color(0xFF15803D),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed: () => Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.projectCompleted,
+                                    arguments: ProjectRouteArgs(
+                                      projectId: _resolvedProjectId,
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Lihat Ringkasan & Ulasan Proyek',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -731,7 +1055,10 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                       context,
                                       AppRoutes.findMentors,
                                     ),
-                                    child: const Text('Review Mentor'),
+                                    child: const FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text('Review Mentor'),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -744,7 +1071,10 @@ class _SubmissionScreenState extends State<SubmissionScreen> {
                                         projectId: _resolvedProjectId,
                                       ),
                                     ),
-                                    child: const Text('Obrolan UMKM'),
+                                    child: const FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text('Obrolan UMKM'),
+                                    ),
                                   ),
                                 ),
                               ],

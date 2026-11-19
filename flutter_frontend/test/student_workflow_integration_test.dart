@@ -167,14 +167,21 @@ class _FakeProfileApi extends StudentProfileApi {
     return {
       'is_eligible': eligible,
       'already_mentor': false,
-      'completed_projects_count': eligible ? 5 : 2,
-      'min_projects_required': 5,
+      'ktm_verified': true,
+      'completed_projects_count': eligible ? 20 : 5,
+      'min_projects_required': 20,
       'rating_average': eligible ? 4.9 : 4.5,
+      'min_rating_required': 4.8,
+      'partner_endorsements_count': eligible ? 3 : 1,
+      'min_partner_endorsements': 3,
+      'external_certs_count': eligible ? 1 : 0,
+      'min_external_certs': 1,
       'checks': [
         {
+          'pillar': 1,
           'key': 'completed_projects',
-          'label': 'Selesaikan minimal 5 proyek UMKM nyata',
-          'detail': eligible ? '5/5 selesai' : '2/5 selesai',
+          'label': 'Selesaikan minimal 20 proyek UMKM nyata',
+          'detail': eligible ? '20/20 selesai' : '5/20 selesai',
           'passed': eligible,
         },
       ],
@@ -192,6 +199,8 @@ class _FakeProfileApi extends StudentProfileApi {
     String? titleHeadline,
     String? bio,
     int hourlyRateTc = 30,
+    String? externalCertTitle,
+    String? externalCertIssuer,
     String? externalCertFileName,
     Uint8List? externalCertBytes,
   }) async {
@@ -282,9 +291,11 @@ void main() {
         key: UniqueKey(),
         home: StudentAuthScreen(authApi: nonStudentApi),
         routes: {
+          AppRoutes.roleSelection: (_) => const Scaffold(),
           AppRoutes.studentDashboard: (_) => const Scaffold(
             body: Center(child: Text('DASHBOARD_MAHASISWA')),
           ),
+          AppRoutes.studentRegister: (_) => const Scaffold(),
         },
       ),
     );
@@ -293,28 +304,30 @@ void main() {
     final signInBtn = find.text('Masuk Sekarang');
     await tester.ensureVisible(signInBtn);
     await tester.tap(signInBtn);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
     expect(
-      find.text('Masukkan NIM atau email dan kata sandi akun.'),
+      find.text('Akun belum terdaftar. Silakan lakukan pendaftaran terlebih dahulu.'),
       findsOneWidget,
     );
-    ScaffoldMessenger.of(tester.element(signInBtn)).clearSnackBars();
+    await tester.tap(find.text('Daftar Sekarang'));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField).at(0), '24051214017');
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.ensureVisible(signInBtn);
     await tester.tap(signInBtn);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
 
     expect(nonStudentApi.lastIdentifier, '24051214017');
     expect(nonStudentApi.loggedOut, isTrue);
     expect(
-      find.text('Akun ini bukan akun mahasiswa. Gunakan portal masuk sesuai peran.'),
+      find.text('Akun ini bukan akun Mahasiswa. Silakan gunakan portal masuk sesuai peran Anda (Mitra UMKM atau Mentor).'),
       findsOneWidget,
     );
+    await tester.tap(find.text('Pilih Peran Lain'));
+    await tester.pumpAndSettle();
 
     final studentApi = _FakeAuthApi();
     await tester.pumpWidget(
@@ -322,6 +335,7 @@ void main() {
         key: UniqueKey(),
         home: StudentAuthScreen(authApi: studentApi),
         routes: {
+          AppRoutes.roleSelection: (_) => const Scaffold(),
           AppRoutes.studentDashboard: (_) => const Scaffold(
             body: Center(child: Text('DASHBOARD_MAHASISWA')),
           ),
@@ -334,6 +348,10 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.ensureVisible(find.text('Masuk Sekarang'));
     await tester.tap(find.text('Masuk Sekarang'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Berhasil Masuk!'), findsOneWidget);
+    await tester.tap(find.text('Buka Beranda'));
     await tester.pumpAndSettle();
 
     expect(find.text('DASHBOARD_MAHASISWA'), findsOneWidget);
@@ -431,7 +449,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Lengkapi Syarat Minimal 5 Proyek'), findsOneWidget);
+    expect(find.text('Penuhi Kualifikasi 3 Pilar Peer Mentor'), findsOneWidget);
     expect(find.text('Aktifkan Mode Peer Mentor'), findsNothing);
 
     final eligibleProfileApi = _FakeProfileApi(eligible: true);
@@ -448,16 +466,19 @@ void main() {
     await tester.pumpAndSettle();
 
     final activateBtn = find.text('Aktifkan Mode Peer Mentor');
+    final scrollable = find.byType(Scrollable).first;
     await tester.scrollUntilVisible(
       activateBtn,
-      200,
-      scrollable: find.byType(Scrollable).first,
+      300,
+      scrollable: scrollable,
     );
+    await tester.drag(scrollable, const Offset(0, -250));
+    await tester.pumpAndSettle();
     await tester.tap(activateBtn);
     await tester.pumpAndSettle();
 
     expect(eligibleProfileApi.switched, isTrue);
-    expect(find.text('Mode Mentor Aktif!'), findsOneWidget);
+    expect(find.text('Mode Peer Mentor Aktif!'), findsOneWidget);
   });
 
   testWidgets('Wallet HistoryScreen and TransferScreen wire WalletApi actions', (

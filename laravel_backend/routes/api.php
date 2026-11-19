@@ -13,6 +13,10 @@ use App\Http\Controllers\Api\MentoringEnrollmentController;
 use App\Http\Controllers\Api\MentoringMessageController;
 use App\Http\Controllers\Api\MentorPremiumSubscriptionController;
 use App\Http\Controllers\Api\MentorProfileController;
+use App\Http\Controllers\Api\Msme\MsmeApplicantController;
+use App\Http\Controllers\Api\Msme\MsmeDashboardController;
+use App\Http\Controllers\Api\Msme\MsmeProfileController;
+use App\Http\Controllers\Api\Msme\MsmeProjectController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Student\PortfolioController;
 use App\Http\Controllers\Api\Student\ProjectController;
@@ -77,7 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('role:student');
 
     Route::get('/projects/{project}/tasks', [WorkspaceTaskController::class, 'index'])
-        ->middleware('role:student');
+        ->middleware('role:student|msme');
     Route::post('/projects/{project}/tasks', [WorkspaceTaskController::class, 'store'])
         ->middleware('role:student');
     Route::patch('/tasks/{task}', [WorkspaceTaskController::class, 'update'])
@@ -176,4 +180,20 @@ Route::middleware('auth:sanctum')->prefix('wallet')->group(function () {
         ->middleware('role:student|mentor');
     Route::patch('/cash-outs/{cashOutRequest}', [WalletController::class, 'resolveCashOut'])
         ->middleware('role:admin');
+});
+
+Route::middleware(['auth:sanctum', 'role:msme'])->prefix('msme')->group(function () {
+    Route::get('/dashboard', [MsmeDashboardController::class, 'index']);
+    Route::get('/profile', [MsmeProfileController::class, 'show']);
+    Route::match(['put', 'post'], '/profile', [MsmeProfileController::class, 'update']);
+    Route::get('/projects', [MsmeProjectController::class, 'index']);
+    Route::post('/projects', [MsmeProjectController::class, 'store']);
+    Route::get('/projects/{project}', [MsmeProjectController::class, 'show']);
+    Route::match(['put', 'patch'], '/projects/{project}', [MsmeProjectController::class, 'update']);
+    Route::delete('/projects/{project}', [MsmeProjectController::class, 'destroy']);
+    Route::get('/applicants', [MsmeApplicantController::class, 'index']);
+    Route::get('/projects/{project}/applicants', [MsmeApplicantController::class, 'index']);
+    Route::get('/applicants/{application}', [MsmeApplicantController::class, 'show']);
+    Route::post('/applications/{application}/accept', [MsmeApplicantController::class, 'accept']);
+    Route::post('/applications/{application}/reject-to-mentor', [MsmeApplicantController::class, 'rejectToMentor']);
 });

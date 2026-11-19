@@ -202,10 +202,22 @@ class StudentAccountService
         ?UploadedFile $externalCertFile = null,
     ): array {
         $eligibility = $this->eligibilityService->mentorSwitchEligibility($student);
+        $hasUploadedCert = $externalCertFile !== null || ! empty($data['external_certificate_title']);
+        $p3Passed = ($eligibility['external_certs_count'] >= 1) || $hasUploadedCert;
+
+        $p1Passed = ($eligibility['completed_projects_count'] >= $eligibility['min_projects_required'])
+            && ($eligibility['rating_average'] >= ($eligibility['min_rating_required'] ?? 4.8))
+            && empty($eligibility['has_open_dispute']);
+
+        $p2Passed = ($eligibility['partner_endorsements_count'] >= ($eligibility['min_partner_endorsements'] ?? 3));
+        $ktmPassed = ! empty($eligibility['ktm_verified']);
+
+        $canSwitch = ($ktmPassed && $p1Passed && $p2Passed && $p3Passed) || $eligibility['already_mentor'];
+
         abort_unless(
-            $eligibility['is_eligible'] || $eligibility['already_mentor'],
+            $canSwitch,
             403,
-            'Anda belum memenuhi syarat minimal 5 proyek UMKM selesai dan reputasi baik untuk beralih ke Mode Mentor.',
+            'Anda belum memenuhi 3 Pilar Kualifikasi Peer Mentor (minimal 20 proyek UMKM selesai, rating >= 4.8, 3 pengakuan mitra luar, dan sertifikasi industri/eksternal) untuk beralih ke Mode Mentor.',
         );
 
         $certPath = null;

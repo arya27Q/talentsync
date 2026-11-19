@@ -1358,25 +1358,25 @@ class _DashboardMahasiswaScreenState extends State<DashboardMahasiswaScreen> {
       ),
       InAppArticle(
         id: 'student_guide_switch_mentor',
-        title: 'Peluang Switch as a Mentor Setelah Selesaikan 5 Proyek',
+        title: 'Kualifikasi 3 Pilar untuk Beralih Menjadi Peer Mentor',
         subtitle:
-            'Tingkatkan peranmu menjadi Peer Mentor dan dapatkan penghasilan TimeCoin tambahan.',
-        category: 'Peluang',
+            'Jam terbang 20 proyek, 3 pengakuan mitra luar, dan sertifikasi industri.',
+        category: 'Karier & Mentor',
         readTime: '3 mnt baca',
         imageUrl:
             'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80',
-        icon: Icons.school_rounded,
+        icon: Icons.workspace_premium_rounded,
         accentColor: Color(0xFFD97706),
         keyPoints: [
-          'Syarat: Menyelesaikan minimal 5 proyek UMKM nyata dengan reputasi baik.',
-          'Fleksibilitas mengatur tarif sesi bimbingan TimeCoin sendiri.',
-          'Bantu adik tingkat atau mahasiswa baru menguasai keahlian praktis.',
-          'Tersedia opsi upgrade ke Akun Mentor Premium untuk 0% biaya admin cash-out.',
+          'Pilar 1: Tuntaskan minimal 20 proyek UMKM nyata dengan reputasi rating >= 4.8 & bebas sengketa escrow.',
+          'Pilar 2: Minimal 3 surat kepuasan / ulasan bintang tinggi dari mitra UMKM terverifikasi.',
+          'Pilar 3: Minimal 1 sertifikasi industri (BNSP/Google/Dicoding) atau surat rekomendasi dosen.',
+          'Hak Istimewa: Bimbing adik tingkat, terbitkan Rekomendasi Kerja, dan atur tarif TimeCoin mandiri.',
         ],
         fullContent:
-            'TalentSync dirancang sebagai ekosistem pertumbuhan talenta yang berkelanjutan. Ketika kamu telah membuktikan keahlianmu dengan menuntaskan 5 proyek UMKM nyata dan mendapatkan rating positif, kamu memenuhi kualifikasi untuk beralih peran menjadi Peer Mentor.\n\nMelalui menu Profil > Beralih Menjadi Mentor (Switch as a Mentor), daftarkan keahlian utamamu, unggah bukti portofolio terbaik, dan tentukan jadwal serta tarif bimbinganmu. Kamu bisa mengajar adik tingkat, memberikan review tugas, dan mencairkan imbalan TimeCoin yang kamu dapatkan.',
+            'TalentSync dirancang sebagai ekosistem pertumbuhan talenta yang terstandarisasi. Untuk menjaga mutu dan kredibilitas bimbingan bagi adik tingkat, calon Peer Mentor wajib membuktikan keahliannya melalui Standar Kualifikasi 3 Pilar:\n\n1. Pilar 1 (Jam Terbang Nyata): Menyelesaikan minimal 20 proyek UMKM nyata dengan rata-rata rating minimal 4.8 serta zero active dispute di escrow.\n2. Pilar 2 (Pengakuan Mitra Luar): Mengantongi minimal 3 ulasan bintang 5 atau surat kepuasan dari mitra UMKM terverifikasi sebagai bukti kepuasan kerja lapangan.\n3. Pilar 3 (Validasi Eksternal): Memiliki minimal 1 sertifikasi kompetensi industri (BNSP, Google Career Certificates, Dicoding, AWS) atau surat rekomendasi resmi dari dosen pembimbing.\n\nBuka menu Profil > Switch as a Peer Mentor untuk memeriksa progres 3 pilar Anda dan mengaktifkan peran mentor!',
         proTip:
-            'Menjadi Peer Mentor tidak hanya menambah saldo TimeCoin, tetapi juga memperkuat portofolio kepemimpinan (leadership & mentoring) saat kamu melamar kerja di industri nanti.',
+            'Menjadi Peer Mentor tidak hanya membuka aliran pendapatan TimeCoin tambahan, tetapi juga menjadi bukti kepemimpinan (leadership & mentoring) yang sangat dihargai oleh rekruter industri!',
       ),
     ];
 

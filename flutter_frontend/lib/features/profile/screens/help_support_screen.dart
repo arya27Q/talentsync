@@ -51,7 +51,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       'category': 'Akun',
       'q': 'Apa syarat mengaktifkan mode Peer Mentor?',
       'a':
-          'Mahasiswa wajib memiliki KTM terverifikasi, menyelesaikan minimal 5 proyek UMKM nyata dengan rating >= 4.0, dan bebas dari sengketa escrow aktif.',
+          'Mahasiswa wajib memenuhi Standar Kualifikasi 3 Pilar: (1) Jam terbang minimal 20 proyek UMKM nyata dengan rating >= 4.8 & bebas sengketa, (2) Minimal 3 surat kepuasan / ulasan bintang 5 mitra UMKM terverifikasi, dan (3) Minimal 1 sertifikasi industri (BNSP/Google) atau rekomendasi dosen terlampir.',
     },
   ];
 

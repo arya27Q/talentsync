@@ -63,7 +63,7 @@ class StudentEligibilityService
             $verifiedPortfolioCount,
         );
 
-        $minProjectsRequired = 5;
+        $minProjectsRequired = 20;
         $ratingAverage = (float) ($profile?->rating_average ?? 0);
         if ($ratingAverage <= 0 && $verifiedPortfolioCount > 0) {
             $ratingAverage = (float) Portfolio::where('student_id', $student->id)->avg('rating');
@@ -73,11 +73,40 @@ class StudentEligibilityService
             ->where('status', '!=', 'resolved')
             ->exists();
 
-        $ratingValid = $completedProjects === 0 ? false : $ratingAverage >= 4.0;
+        // Pilar 1: Jam Terbang Nyata (Minimal 20 proyek, rating >= 4.8, bebas sengketa)
+        $minRatingRequired = 4.8;
+        $ratingValid = $completedProjects === 0 ? false : $ratingAverage >= $minRatingRequired;
+        $pillar1Valid = ($completedProjects >= $minProjectsRequired) && $ratingValid && (! $hasOpenDispute);
+
+        // Pilar 2: Pengakuan Mitra Luar (Minimal 3 ulasan bintang tinggi / surat kepuasan mitra UMKM)
+        $reviewsCount = \App\Models\Review::where('reviewee_id', $student->id)
+            ->where('rating', '>=', 4.5)
+            ->count();
+        $verifiedClientsCount = Portfolio::where('student_id', $student->id)
+            ->where('is_verified', true)
+            ->whereNotNull('client_name')
+            ->distinct('client_name')
+            ->count();
+        $partnerEndorsements = max($reviewsCount, $verifiedClientsCount);
+        $minPartnerEndorsements = 3;
+        $pillar2Valid = $partnerEndorsements >= $minPartnerEndorsements;
+
+        // Pilar 3: Validasi Industri / Eksternal (Minimal 1 sertifikasi industri BNSP/Google atau rekomendasi eksternal)
+        $externalCertsCount = \App\Models\StudentCertificate::where('student_id', $student->id)
+            ->where(function ($q) {
+                $q->where('source_type', 'external')
+                    ->orWhere('source_type', 'mentoring_endorsement')
+                    ->orWhere('category_label', 'like', '%sertifikasi%')
+                    ->orWhereNotNull('file_url');
+            })
+            ->count();
+        $minExternalCerts = 1;
+        $pillar3Valid = $externalCertsCount >= $minExternalCerts;
+
         $isEligible = $ktmVerified
-            && $completedProjects >= $minProjectsRequired
-            && $ratingValid
-            && ! $hasOpenDispute;
+            && $pillar1Valid
+            && $pillar2Valid
+            && $pillar3Valid;
 
         if ($profile && ($profile->is_mentor_eligible !== $isEligible || $profile->completed_projects_count !== $completedProjects)) {
             $profile->update([
@@ -86,44 +115,107 @@ class StudentEligibilityService
             ]);
         }
 
+        $checks = [
+            [
+                'pillar' => 0,
+                'pillar_name' => 'Prasyarat Identitas Akademik',
+                'key' => 'ktm_verified',
+                'label' => 'KTM & Identitas Akademik Terverifikasi',
+                'detail' => $ktmVerified
+                    ? ($profile?->university.' · NIM '.$profile?->student_id_number)
+                    : 'Unggah dan verifikasi KTM terlebih dahulu.',
+                'passed' => $ktmVerified,
+            ],
+            [
+                'pillar' => 1,
+                'pillar_name' => 'Pilar 1: Jam Terbang Nyata',
+                'key' => 'completed_projects',
+                'label' => "Selesaikan minimal {$minProjectsRequired} proyek UMKM nyata",
+                'detail' => "{$completedProjects}/{$minProjectsRequired} proyek selesai terverifikasi.",
+                'passed' => $completedProjects >= $minProjectsRequired,
+            ],
+            [
+                'pillar' => 1,
+                'pillar_name' => 'Pilar 1: Jam Terbang Nyata',
+                'key' => 'rating',
+                'label' => "Reputasi rating UMKM minimal {$minRatingRequired}",
+                'detail' => $ratingAverage > 0
+                    ? 'Rating rata-rata '.number_format($ratingAverage, 2).' dari proyek selesai.'
+                    : 'Belum memiliki ulasan proyek selesai.',
+                'passed' => $ratingValid,
+            ],
+            [
+                'pillar' => 1,
+                'pillar_name' => 'Pilar 1: Jam Terbang Nyata',
+                'key' => 'no_dispute',
+                'label' => 'Bebas sengketa escrow aktif (Zero Dispute)',
+                'detail' => $hasOpenDispute
+                    ? 'Selesaikan laporan kendala escrow yang masih aktif.'
+                    : 'Tidak ada sengketa atau penalti aktif.',
+                'passed' => ! $hasOpenDispute,
+            ],
+            [
+                'pillar' => 2,
+                'pillar_name' => 'Pilar 2: Pengakuan Mitra Luar',
+                'key' => 'partner_endorsements',
+                'label' => "Minimal {$minPartnerEndorsements} Surat Kepuasan / Ulasan Mitra UMKM",
+                'detail' => $partnerEndorsements > 0
+                    ? "{$partnerEndorsements}/{$minPartnerEndorsements} mitra UMKM terverifikasi memberikan ulasan bintang tinggi."
+                    : "0/{$minPartnerEndorsements} mitra UMKM. Selesaikan proyek untuk memperoleh ulasan mitra.",
+                'passed' => $pillar2Valid,
+            ],
+            [
+                'pillar' => 3,
+                'pillar_name' => 'Pilar 3: Validasi Industri / Eksternal',
+                'key' => 'external_validation',
+                'label' => "Minimal {$minExternalCerts} Sertifikasi Industri atau Rekomendasi Eksternal",
+                'detail' => $externalCertsCount > 0
+                    ? "Tersedia {$externalCertsCount} sertifikasi industri / rekomendasi terdata."
+                    : 'Unggah berkas sertifikasi (BNSP/Google) atau rekomendasi dosen pada formulir di bawah.',
+                'passed' => $pillar3Valid,
+            ],
+        ];
+
         return [
             'is_eligible' => $isEligible,
             'already_mentor' => $student->hasAssignedRole('mentor'),
+            'ktm_verified' => $ktmVerified,
             'completed_projects_count' => $completedProjects,
             'min_projects_required' => $minProjectsRequired,
             'rating_average' => round($ratingAverage, 2),
-            'checks' => [
-                [
-                    'key' => 'ktm_verified',
-                    'label' => 'KTM & Identitas Akademik Terverifikasi',
-                    'detail' => $ktmVerified
-                        ? ($profile?->university.' · NIM '.$profile?->student_id_number)
-                        : 'Unggah dan verifikasi KTM terlebih dahulu.',
-                    'passed' => $ktmVerified,
+            'min_rating_required' => $minRatingRequired,
+            'partner_endorsements_count' => $partnerEndorsements,
+            'min_partner_endorsements' => $minPartnerEndorsements,
+            'external_certs_count' => $externalCertsCount,
+            'min_external_certs' => $minExternalCerts,
+            'has_open_dispute' => $hasOpenDispute,
+            'pillars_summary' => [
+                'pillar_1' => [
+                    'number' => 1,
+                    'title' => 'Jam Terbang Nyata',
+                    'subtitle' => "Minimal {$minProjectsRequired} Proyek UMKM & Rating {$minRatingRequired}",
+                    'passed' => $pillar1Valid,
+                    'progress' => min(1.0, $completedProjects / $minProjectsRequired),
+                    'metric' => "{$completedProjects}/{$minProjectsRequired} Proyek · ★ ".number_format($ratingAverage, 1),
                 ],
-                [
-                    'key' => 'completed_projects',
-                    'label' => "Selesaikan minimal {$minProjectsRequired} proyek UMKM nyata",
-                    'detail' => "{$completedProjects}/{$minProjectsRequired} proyek selesai terverifikasi.",
-                    'passed' => $completedProjects >= $minProjectsRequired,
+                'pillar_2' => [
+                    'number' => 2,
+                    'title' => 'Pengakuan Mitra Luar',
+                    'subtitle' => "Minimal {$minPartnerEndorsements} Ulasan / Surat Kepuasan Mitra UMKM",
+                    'passed' => $pillar2Valid,
+                    'progress' => min(1.0, $partnerEndorsements / $minPartnerEndorsements),
+                    'metric' => "{$partnerEndorsements}/{$minPartnerEndorsements} Mitra UMKM",
                 ],
-                [
-                    'key' => 'rating',
-                    'label' => 'Reputasi rating UMKM minimal 4.0',
-                    'detail' => $ratingAverage > 0
-                        ? 'Rating rata-rata '.number_format($ratingAverage, 1).' dari proyek selesai.'
-                        : 'Belum memiliki ulasan proyek selesai.',
-                    'passed' => $ratingValid,
-                ],
-                [
-                    'key' => 'no_dispute',
-                    'label' => 'Bebas sengketa escrow aktif',
-                    'detail' => $hasOpenDispute
-                        ? 'Selesaikan laporan kendala escrow yang masih aktif.'
-                        : 'Tidak ada sengketa atau penalti aktif.',
-                    'passed' => ! $hasOpenDispute,
+                'pillar_3' => [
+                    'number' => 3,
+                    'title' => 'Validasi Industri / Eksternal',
+                    'subtitle' => 'Sertifikasi BNSP/Google atau Rekomendasi Dosen',
+                    'passed' => $pillar3Valid,
+                    'progress' => $pillar3Valid ? 1.0 : 0.0,
+                    'metric' => $externalCertsCount > 0 ? "{$externalCertsCount} Berkas Terverifikasi" : 'Unggah Dokumen',
                 ],
             ],
+            'checks' => $checks,
         ];
     }
 }

@@ -7,6 +7,7 @@ import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 import 'package:flutter_frontend/features/profile/data/student_profile_api.dart';
 
@@ -233,6 +234,13 @@ class _StudentSetupProfileStep2ScreenState
       }
 
       if (!mounted) return;
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Profil Mahasiswa Aktif!',
+        message: 'Pengaturan profil Anda berhasil disimpan.',
+        buttonText: 'Buka Dashboard',
+      );
+      if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.studentDashboard,
@@ -240,16 +248,20 @@ class _StudentSetupProfileStep2ScreenState
       );
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
+        AppStatusDialog.showError(
           context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+          title: 'Gagal Menyimpan',
+          message: error.message,
+          buttonText: 'Coba Lagi',
+        );
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal menyimpan profil mahasiswa. Coba lagi.'),
-          ),
+        AppStatusDialog.showError(
+          context,
+          title: 'Kendala Koneksi',
+          message: 'Gagal menyimpan profil mahasiswa. Periksa koneksi Anda dan coba lagi.',
+          buttonText: 'Coba Lagi',
         );
       }
     } finally {

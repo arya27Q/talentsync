@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -17,17 +19,53 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer(const Duration(milliseconds: 2200), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.roleSelection);
-      }
-    });
+    _startSessionCheck();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  void _startSessionCheck() {
+    _timer = Timer(const Duration(milliseconds: 1800), () async {
+      if (!mounted) return;
+
+      final isTest = Platform.environment.containsKey('FLUTTER_TEST');
+      if (isTest) {
+        Navigator.pushReplacementNamed(context, AppRoutes.roleSelection);
+        return;
+      }
+
+      try {
+        final token = await ApiClient.instance
+            .readSessionToken()
+            .timeout(const Duration(milliseconds: 600));
+        final user = await ApiClient.instance
+            .readSessionUser()
+            .timeout(const Duration(milliseconds: 600));
+
+        if (token != null && token.isNotEmpty && user != null) {
+          final role = (user['role'] as String?)?.toLowerCase();
+          if (!mounted) return;
+          if (role == 'msme') {
+            Navigator.pushReplacementNamed(context, AppRoutes.msmeDashboard);
+            return;
+          } else if (role == 'mentor') {
+            Navigator.pushReplacementNamed(context, AppRoutes.mentorDashboard);
+            return;
+          } else if (role == 'student') {
+            Navigator.pushReplacementNamed(context, AppRoutes.studentDashboard);
+            return;
+          }
+        }
+      } catch (_) {}
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, AppRoutes.roleSelection);
+      }
+    });
   }
 
   @override

@@ -4,6 +4,8 @@ import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
+import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 import 'package:flutter_frontend/features/project/data/project_api.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
@@ -23,6 +25,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   bool _isBookmarkBusy = false;
   String? _error;
   Map<String, dynamic>? _project;
+  Map<String, dynamic>? _sessionUser;
 
   @override
   void initState() {
@@ -36,6 +39,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       _error = null;
     });
     try {
+      final user = await ApiClient.instance.readSessionUser();
       var targetId = widget.projectId;
       if (targetId == null) {
         final listRes = await _api.explore();
@@ -48,6 +52,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       final detail = await _api.detail(targetId);
       if (!mounted) return;
       setState(() {
+        _sessionUser = user;
         _project = detail;
         _isLoading = false;
       });
@@ -80,13 +85,591 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       });
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) setState(() => _isBookmarkBusy = false);
     }
+  }
+
+  Future<void> _showEditProjectModal(
+    BuildContext context,
+    Map<String, dynamic> p,
+  ) async {
+    final projectId = (p['id'] as num).toInt();
+    final titleController = TextEditingController(
+      text: p['title'] as String? ?? '',
+    );
+    final rewardController = TextEditingController(
+      text: '${p['reward_tc'] ?? 100}',
+    );
+    final durationController = TextEditingController(
+      text: p['duration_label'] as String? ?? '14 Hari',
+    );
+    final descController = TextEditingController(
+      text: p['description'] as String? ?? '',
+    );
+
+    final existingChecklist =
+        ((p['deliverables_checklist'] as List?) ?? const [])
+            .map((e) => '$e')
+            .toList();
+    final checklistController = TextEditingController(
+      text: existingChecklist.isNotEmpty ? existingChecklist.join('\n') : 'Hasil pekerjaan utama sesuai instruksi\nBerkas master file / aset asli\nTautan serah terima hasil pengerjaan',
+    );
+
+    String selectedCategory = (p['category'] as String?) ?? 'Desain';
+    String selectedWorkMode = (p['work_mode'] as String?) ?? 'Hybrid';
+
+    final categories = [
+      'Desain',
+      'Mobile',
+      'Web',
+      'Pemasaran',
+      'Penulisan',
+      'Kerajinan',
+      'Umum',
+    ];
+    final workModes = ['Hybrid', 'Remote', 'On-site'];
+
+    bool isSubmitting = false;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.lightBlueSurface,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.edit_note_rounded,
+                            color: AppColors.primaryNavy,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Edit Detail Tugas',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.darkSlate,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Perubahan akan disimpan permanen ke database',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.secondarySlate,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: AppColors.secondarySlate,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24, color: AppColors.borderSlate),
+                    const Text(
+                      'Judul Tugas',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        hintText: 'Contoh: Desain Logo & Feed Instagram',
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.borderSlate,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.borderSlate,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryNavy,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Kategori Keahlian',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: categories.map((cat) {
+                        final isSel = selectedCategory == cat;
+                        return ChoiceChip(
+                          label: Text(cat),
+                          selected: isSel,
+                          onSelected: (val) {
+                            if (val) {
+                              setModalState(() => selectedCategory = cat);
+                            }
+                          },
+                          selectedColor: AppColors.primaryNavy,
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          labelStyle: TextStyle(
+                            color: isSel ? Colors.white : AppColors.darkSlate,
+                            fontWeight: isSel
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            fontSize: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: isSel
+                                  ? AppColors.primaryNavy
+                                  : AppColors.borderSlate,
+                            ),
+                          ),
+                          showCheckmark: false,
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Mode Kerja',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: workModes.map((wm) {
+                        final isSel = selectedWorkMode == wm;
+                        return ChoiceChip(
+                          label: Text(wm),
+                          selected: isSel,
+                          onSelected: (val) {
+                            if (val) {
+                              setModalState(() => selectedWorkMode = wm);
+                            }
+                          },
+                          selectedColor: AppColors.primaryNavy,
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          labelStyle: TextStyle(
+                            color: isSel ? Colors.white : AppColors.darkSlate,
+                            fontWeight: isSel
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            fontSize: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: isSel
+                                  ? AppColors.primaryNavy
+                                  : AppColors.borderSlate,
+                            ),
+                          ),
+                          showCheckmark: false,
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Imbalan (TC)',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              TextFormField(
+                                controller: rewardController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  prefixIcon: const Icon(
+                                    Icons.toll_rounded,
+                                    color: Color(0xFFF59E0B),
+                                    size: 18,
+                                  ),
+                                  suffixText: 'TC',
+                                  filled: true,
+                                  fillColor: const Color(0xFFF8FAFC),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.borderSlate,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.borderSlate,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.primaryNavy,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Estimasi Waktu',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.darkSlate,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              TextFormField(
+                                controller: durationController,
+                                decoration: InputDecoration(
+                                  prefixIcon: const Icon(
+                                    Icons.schedule_rounded,
+                                    color: AppColors.secondarySlate,
+                                    size: 18,
+                                  ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF8FAFC),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.borderSlate,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.borderSlate,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.primaryNavy,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Deskripsi & Brief Tugas',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: descController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: 'Tuliskan rincian kebutuhan pekerjaan...',
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.all(12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.borderSlate,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.borderSlate,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryNavy,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Ceklis Target Deliverable (1 baris per poin)',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: checklistController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: 'Poin 1\nPoin 2\nPoin 3',
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.all(12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.borderSlate,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.borderSlate,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppColors.primaryNavy,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: isSubmitting
+                                ? null
+                                : () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              side: const BorderSide(
+                                color: AppColors.borderSlate,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Text(
+                              'Batal',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.secondarySlate,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primaryNavy,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: isSubmitting
+                                ? null
+                                : () async {
+                                    final title = titleController.text.trim();
+                                    if (title.isEmpty) {
+                                      ScaffoldMessenger.of(ctx).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Judul tugas tidak boleh kosong.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    final tc =
+                                        int.tryParse(
+                                          rewardController.text.trim(),
+                                        ) ??
+                                        100;
+                                    final lines = checklistController.text
+                                        .split('\n')
+                                        .map((l) => l.trim())
+                                        .where((l) => l.isNotEmpty)
+                                        .toList();
+
+                                    setModalState(() => isSubmitting = true);
+
+                                    try {
+                                      final payload = <String, dynamic>{
+                                        'title': title,
+                                        'category': selectedCategory,
+                                        'work_mode': selectedWorkMode,
+                                        'reward_tc': tc,
+                                        'duration_label': durationController
+                                            .text
+                                            .trim(),
+                                        'description':
+                                            descController.text
+                                                .trim()
+                                                .isNotEmpty
+                                            ? descController.text.trim()
+                                            : 'Kebutuhan pengerjaan $title untuk Mitra UMKM.',
+                                        'deliverables_checklist': lines,
+                                        'skills': [selectedCategory],
+                                      };
+
+                                      await MsmeApi.instance.updateProject(
+                                        projectId,
+                                        payload,
+                                      );
+                                      if (!ctx.mounted) return;
+                                      Navigator.pop(ctx);
+
+                                      if (!context.mounted) return;
+                                      await AppStatusDialog.showSuccess(
+                                        context,
+                                        title: 'Tugas Diperbarui!',
+                                        message: 'Perubahan spesifikasi tugas berhasil disimpan ke database.',
+                                      );
+                                      _loadDetail();
+                                    } catch (e) {
+                                      setModalState(() => isSubmitting = false);
+                                      if (!context.mounted) return;
+                                      await AppStatusDialog.showError(
+                                        context,
+                                        title: 'Gagal Menyimpan',
+                                        message: '$e',
+                                      );
+                                    }
+                                  },
+                            child: isSubmitting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Simpan ke Database',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -138,10 +721,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
   Widget _buildDetailBody(BuildContext context, Map<String, dynamic> p) {
     final projectId = (p['id'] as num).toInt();
     final msme = (p['msme'] as Map<String, dynamic>?) ?? const {};
-    final atmosphere =
-        (p['atmosphere'] as Map<String, dynamic>?) ?? const {};
-    final eligibility =
-        (p['eligibility'] as Map<String, dynamic>?) ?? const {};
+    final atmosphere = (p['atmosphere'] as Map<String, dynamic>?) ?? const {};
+    final eligibility = (p['eligibility'] as Map<String, dynamic>?) ?? const {};
     final milestones = ((p['milestones'] as List?) ?? const [])
         .whereType<Map<String, dynamic>>()
         .toList();
@@ -155,6 +736,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
     final isBookmarked = p['is_bookmarked'] == true;
     final hasApplied = p['has_applied'] == true;
     final canApply = eligibility['can_apply'] != false;
+    final isMsme = (_sessionUser?['role'] as String?)?.toLowerCase() == 'msme';
     final photoUrl = ApiClient.resolveMediaUrl(
       atmosphere['photo_url'] as String?,
     );
@@ -198,26 +780,48 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         ),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: _toggleBookmark,
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.borderSlate),
-                        ),
-                        child: Icon(
-                          isBookmarked
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_border_rounded,
-                          color: isBookmarked
-                              ? AppColors.primaryNavy
-                              : AppColors.darkSlate,
-                        ),
-                      ),
-                    ),
+                    isMsme
+                        ? GestureDetector(
+                            onTap: () => _showEditProjectModal(context, p),
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: AppColors.borderSlate,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.edit_rounded,
+                                size: 20,
+                                color: AppColors.primaryNavy,
+                              ),
+                            ),
+                          )
+                        : GestureDetector(
+                            onTap: _toggleBookmark,
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: AppColors.borderSlate,
+                                ),
+                              ),
+                              child: Icon(
+                                isBookmarked
+                                    ? Icons.bookmark_rounded
+                                    : Icons.bookmark_border_rounded,
+                                color: isBookmarked
+                                    ? AppColors.primaryNavy
+                                    : AppColors.darkSlate,
+                              ),
+                            ),
+                          ),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -321,7 +925,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 const SizedBox(height: 16),
 
                 // Eligibility Alert Banner
-                if (!canApply)
+                if (!canApply && !isMsme)
                   Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
@@ -353,8 +957,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          (eligibility['reason'] as String?) ??
-                              'Ikuti bimbingan mentor terlebih dahulu untuk mendapatkan Badge Rekomendasi Kerja.',
+                          (eligibility['reason'] as String?) ?? 'Ikuti bimbingan mentor terlebih dahulu untuk mendapatkan Badge Rekomendasi Kerja.',
                           style: const TextStyle(
                             fontSize: 12.5,
                             color: Color(0xFF78350F),
@@ -569,70 +1172,147 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             color: Colors.white,
             border: Border(top: BorderSide(color: AppColors.borderSlate)),
           ),
-          child: Row(
-            children: [
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primaryNavy),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: () => Navigator.pushNamed(
-                  context,
-                  AppRoutes.workspaceChat,
-                  arguments: ProjectRouteArgs(projectId: projectId),
-                ),
-                icon: const Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  size: 18,
-                  color: AppColors.primaryNavy,
-                ),
-                label: const Text(
-                  'Chat UMKM',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryNavy,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: hasApplied
-                        ? AppColors.secondarySlate
-                        : AppColors.primaryNavy,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  onPressed: hasApplied
-                      ? null
-                      : () => Navigator.pushNamed(
-                          context,
-                          AppRoutes.applyProject,
-                          arguments: ProjectRouteArgs(projectId: projectId),
+          child: isMsme
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                              color: AppColors.primaryNavy,
+                              width: 1.2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          onPressed: () => _showEditProjectModal(context, p),
+                          icon: const Icon(
+                            Icons.edit_rounded,
+                            size: 16,
+                            color: AppColors.primaryNavy,
+                          ),
+                          label: const Text(
+                            'Edit Tugas',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: AppColors.primaryNavy,
+                            ),
+                          ),
                         ),
-                  child: Text(
-                    hasApplied
-                        ? 'Lamaran Sudah Dikirim'
-                        : 'Lamar Proyek Ini',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.white,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 2,
+                      child: SizedBox(
+                        height: 48,
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.primaryNavy,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.msmeReviewApplicants,
+                              arguments: {
+                                'projectId': projectId,
+                                'projectTitle': p['title'],
+                              },
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.people_alt_rounded,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          label: Text(
+                            'Tinjau Pelamar (${p['applicants_count'] ?? 0})',
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.primaryNavy),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.workspaceChat,
+                        arguments: ProjectRouteArgs(projectId: projectId),
+                      ),
+                      icon: const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 18,
+                        color: AppColors.primaryNavy,
+                      ),
+                      label: const Text(
+                        'Chat UMKM',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryNavy,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: hasApplied
+                              ? AppColors.secondarySlate
+                              : AppColors.primaryNavy,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        onPressed: hasApplied
+                            ? null
+                            : () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.applyProject,
+                                arguments: ProjectRouteArgs(
+                                  projectId: projectId,
+                                ),
+                              ),
+                        child: Text(
+                          hasApplied
+                              ? 'Lamaran Sudah Dikirim'
+                              : 'Lamar Proyek Ini',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ),
       ],
     );
