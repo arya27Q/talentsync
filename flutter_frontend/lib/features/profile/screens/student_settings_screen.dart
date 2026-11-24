@@ -186,7 +186,8 @@ class _StudentSettingsScreenState extends State<StudentSettingsScreen> {
                           _menuTile(
                             icon: Icons.school_rounded,
                             title: 'Beralih Menjadi Peer Mentor',
-                            subtitle: 'Progres proyek selesai: $completed/5',
+                            subtitle:
+                                'Progres proyek selesai: $completed/20 (Standar 3 Pilar)',
                             onTap: () => Navigator.pushNamed(
                               context,
                               AppRoutes.switchToMentor,

@@ -55,16 +55,31 @@ class _StudentRegisterScreenState extends State<StudentRegisterScreen> {
 
   Future<void> _pickKtm() async {
     final picked = await FilePicker.pickFile(
-      dialogTitle: 'Pilih Berkas KTM',
+      dialogTitle: 'Pilih Berkas KTM (PNG, JPG, atau PDF)',
       type: FileType.custom,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+      allowedExtensions: const ['jpg', 'jpeg', 'png', 'pdf'],
     );
     if (picked == null) return;
+    final ext = picked.name.contains('.')
+        ? picked.name.split('.').last.toLowerCase()
+        : '';
+    if (!['jpg', 'jpeg', 'png', 'pdf'].contains(ext)) {
+      if (mounted) {
+        AppStatusDialog.showError(
+          context,
+          title: 'Format KTM Tidak Didukung',
+          message: 'Berkas KTM hanya mendukung format PNG, JPG, atau PDF.',
+        );
+      }
+      return;
+    }
     final bytes = await picked.readAsBytes();
     if (bytes.lengthInBytes > 5 * 1024 * 1024) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ukuran foto/berkas KTM maksimal 5 MB.')),
+        AppStatusDialog.showError(
+          context,
+          title: 'Ukuran Berkas Terlalu Besar',
+          message: 'Ukuran foto/berkas KTM maksimal 5 MB.',
         );
       }
       return;

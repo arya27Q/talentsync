@@ -53,7 +53,7 @@ flowchart TD
 
     %% 4. Pemanfaatan TC & Perputaran Nilai
     M -. "10a. Cash-Out TC ke Rupiah (0% Biaya Admin)" .-> S
-    M -- "10b. Sudah Selesaikan >= 5 Proyek: Switch as a Mentor" --> Men
+    M -- "10b. Lulus Standar 3 Pilar (>= 20 Proyek): Switch as a Mentor" --> Men
     Men -. "11. Cash-Out TC ke Rupiah (Freemium: 10% | Premium: 0%)" .-> S
     U -. "12. Upgrade Langganan Premium (Diskon Admin & Kuota Ekstra)" .-> S
 ```
@@ -89,8 +89,8 @@ flowchart TD
 ### 💼 Skenario 3: Pertumbuhan Mahasiswa Menjadi Mentor (*Switch as a Mentor*)
 1. **Akumulasi Portofolio Nyata:**  
    Mahasiswa mengerjakan tugas-tugas dari berbagai UMKM (misal kasir digital, branding kemasan, katalog online).
-2. **Syarat Kelulusan $\ge 5$ Proyek:**  
-   Setelah mahasiswa berhasil menyelesaikan minimal **5 proyek UMKM terverifikasi** dengan rating bintang yang baik, sistem secara otomatis mengaktifkan fitur toggle **Mode Mentor** pada profil mahasiswa ([`SwitchToMentorScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/profile/screens/switch_to_mentor_screen.dart)).
+2. **Syarat Kelulusan Standar 3 Pilar Peer Mentor:**  
+   Setelah mahasiswa memenuhi **Standar 3 Pilar** (KTM terverifikasi, **Pilar 1:** minimal **20 proyek UMKM selesai** dengan rating $\ge 4.8$ dan bebas sengketa escrow, **Pilar 2:** minimal **3 ulasan bintang tinggi / surat kepuasan mitra UMKM**, serta **Pilar 3:** minimal **1 sertifikasi industri** BNSP/Google/Dicoding/AWS atau surat rekomendasi dosen), sistem otomatis membuka fitur **Switch as a Peer Mentor** pada profil mahasiswa ([`SwitchToMentorScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/profile/screens/switch_to_mentor_screen.dart)). Akun yang sudah aktif memiliki akses peran ganda (*dual-role*) sehingga dapat beralih bolak-balik antara Portal Mahasiswa dan Portal Mentor kapan saja.
 3. **Mulai Membimbing Mahasiswa Junior:**  
    Mahasiswa naik level menjadi *Peer Mentor* (mahasiswa senior/praktisi muda), membuka kelas bimbingan bertarif TC, dan membantu membimbing adik tingkatnya agar siap bekerja pada proyek UMKM berikutnya.
 

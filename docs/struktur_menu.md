@@ -50,7 +50,7 @@ Mahasiswa yang belum memiliki portofolio proyek nyata wajib mengikuti bimbingan 
 ### C. Ruang Kolaborasi Kerja Mahasiswa
 * **Workspace Kanban ([`WorkspaceKanbanScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/workspace/screens/workspace_kanban_screen.dart)):** Kolom To Do, In Progress, Done; terintegrasi dengan banner bantuan **"Mengalami Kendala Teknis Proyek? Konsultasi dengan Mentor"**.
 * **Submission ([`SubmissionScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/workspace/screens/submission_screen.dart)):** Form serah terima deliverable dengan banner pra-pengumpulan **"Konsultasi Sebelum Mengumpulkan"** dan tombol obrolan UMKM.
-* **Fitur Switch as a Mentor ([`SwitchToMentorScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/profile/screens/switch_to_mentor_screen.dart)):** Terbuka setelah menyelesaikan $\ge 5$ proyek UMKM nyata.
+* **Fitur Switch as a Mentor ([`SwitchToMentorScreen`](file:///c:/laragon/www/talentsync/flutter_frontend/lib/features/profile/screens/switch_to_mentor_screen.dart)):** Terbuka setelah memenuhi **Standar 3 Pilar Peer Mentor** ($\ge 20$ proyek UMKM selesai, rating $\ge 4.8$ & bebas sengketa, $\ge 3$ ulasan mitra UMKM, dan $\ge 1$ sertifikasi industri/rekomendasi dosen). Akun dual-role dapat beralih bolak-balik ke Portal Mahasiswa dari Profil Mentor.
 
 ---
 

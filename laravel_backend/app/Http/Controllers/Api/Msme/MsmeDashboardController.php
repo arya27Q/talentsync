@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectPresenter;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Models\ProjectMilestone;
 use App\Models\TimeCoinWallet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,22 +29,65 @@ class MsmeDashboardController extends Controller
             ->where('status', 'pending')
             ->count();
 
+        $pendingSubmissionsQuery = ProjectMilestone::query()
+            ->with([
+                'project:id,title',
+                'deliverables' => fn ($q) => $q->with('student.studentProfile')->latest('id'),
+            ])
+            ->whereIn('project_id', $projectIds)
+            ->where('status', 'submitted');
+
+        $pendingSubmissionsCount = (clone $pendingSubmissionsQuery)->count();
+        $latestPendingMilestone = (clone $pendingSubmissionsQuery)->latest('updated_at')->first();
+        $latestDeliverable = $latestPendingMilestone?->deliverables?->first();
+        $latestStudent = $latestDeliverable?->student;
+        $pendingSubmissionPreview = $latestPendingMilestone ? [
+            'project_id' => $latestPendingMilestone->project_id,
+            'milestone_id' => $latestPendingMilestone->id,
+            'project_title' => $latestPendingMilestone->project?->title ?? 'Proyek UMKM',
+            'milestone_title' => $latestPendingMilestone->title,
+            'student_name' => $latestStudent?->name ?? 'Mahasiswa',
+            'student_avatar_url' => $latestStudent?->studentProfile?->avatar_url,
+        ] : null;
+
         $wallet = TimeCoinWallet::firstOrCreate(
             ['user_id' => $user->id],
             ['balance' => 0, 'locked_balance' => 0]
         );
 
-        $recentPostings = Project::with(['msme.umkmProfile', 'milestones'])
+        $recentPostings = Project::with([
+            'msme.umkmProfile',
+            'milestones',
+            'applications' => fn ($q) => $q->with('student.studentProfile'),
+        ])
             ->where('msme_id', $user->id)
             ->latest('id')
             ->take(5)
             ->get()
             ->map(function ($project) {
                 /** @var Project $project */
-                $applicantsCount = ProjectApplication::where('project_id', $project->id)->count();
+                $applicantsCount = $project->applications->count();
+                $acceptedApp = $project->applications->firstWhere('status', 'accepted');
+                $student = $acceptedApp?->student;
+                $studentProfile = $student?->studentProfile;
+                $milestones = $project->milestones;
+                $totalStages = max(1, $milestones->count());
+                $approvedCount = $milestones->where('status', 'approved')->count();
+                $hasPendingSubmission = $milestones->contains('status', 'submitted');
+
                 return [
                     ...ProjectPresenter::projectCard($project),
                     'applicants_count' => $applicantsCount,
+                    'current_stage' => min($totalStages, $approvedCount + 1),
+                    'total_stages' => $totalStages,
+                    'progress_percent' => (int) round(($approvedCount / $totalStages) * 100),
+                    'has_pending_submission' => $hasPendingSubmission,
+                    'accepted_student' => $student ? [
+                        'id' => $student->id,
+                        'name' => $student->name,
+                        'avatar_url' => $studentProfile?->avatar_url,
+                        'university' => $studentProfile?->university ?? 'Universitas Negeri Surabaya',
+                    ] : null,
                 ];
             });
 
@@ -62,6 +106,8 @@ class MsmeDashboardController extends Controller
                 'locked_balance_tc' => (int) $wallet->locked_balance,
                 'active_projects_count' => $activeProjectsCount,
                 'new_applicants_count' => $newApplicantsCount,
+                'pending_submissions_count' => $pendingSubmissionsCount,
+                'pending_submission_preview' => $pendingSubmissionPreview,
                 'completed_projects_count' => $completedProjectsCount,
                 'total_projects_count' => $totalProjectsCount,
                 'active_slots_used' => min(2, $activeProjectsCount),

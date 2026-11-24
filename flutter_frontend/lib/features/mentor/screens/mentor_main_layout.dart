@@ -24,6 +24,7 @@ class _MentorMainLayoutState extends State<MentorMainLayout> {
   int _index = 0;
   final _availableTc = ValueNotifier<int>(0);
   final _mentorApi = MentorApi.instance;
+  final _dashboardKey = GlobalKey<MentorDashboardScreenState>();
   final _servicesKey = GlobalKey<MentorServicesScreenState>();
   final List<Widget?> _builtPages = List<Widget?>.filled(6, null);
   late final TextTheme _mentorTextTheme = Typography.material2021().black.apply(
@@ -34,21 +35,29 @@ class _MentorMainLayoutState extends State<MentorMainLayout> {
   Widget _buildPage(int index) {
     return switch (index) {
       0 => MentorDashboardScreen(
-          availableTc: _availableTc,
-          onOpenWallet: () => _selectTab(3),
-          onOpenBookings: () => _selectTab(1),
-          onOpenServices: _openServices,
-          onOpenProfile: () => _selectTab(4),
-          onOpenStudents: () => _selectTab(2),
-          onOpenLiveSession: _openLiveSession,
-        ),
+        key: _dashboardKey,
+        availableTc: _availableTc,
+        onOpenWallet: () => _selectTab(3),
+        onOpenBookings: () => _selectTab(1),
+        onOpenServices: _openServices,
+        onOpenProfile: () => _selectTab(4),
+        onOpenStudents: () => _selectTab(2),
+        onOpenLiveSession: _openLiveSession,
+      ),
       1 => MentorBookingsScreen(
-          onOpenServices: _openServices,
-          onSelectTab: _selectTab,
-        ),
+        onOpenServices: _openServices,
+        onSelectTab: _selectTab,
+      ),
       2 => MentorStudentsScreen(onSelectTab: _selectTab),
-      3 => MentorWalletScreen(availableTc: _availableTc, onSelectTab: _selectTab),
-      4 => MentorProfileScreen(availableTc: _availableTc, onSelectTab: _selectTab),
+      3 => MentorWalletScreen(
+        availableTc: _availableTc,
+        onSelectTab: _selectTab,
+      ),
+      4 => MentorProfileScreen(
+        availableTc: _availableTc,
+        onSelectTab: _selectTab,
+        onProfileUpdated: () => _dashboardKey.currentState?.reload(),
+      ),
       5 => MentorServicesScreen(key: _servicesKey),
       _ => const SizedBox.shrink(),
     };

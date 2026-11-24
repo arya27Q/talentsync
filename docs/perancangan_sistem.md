@@ -81,7 +81,7 @@ Berikut adalah matriks IPO untuk 12 fitur utama aplikasi TalentSync:
 | 8 | **TimeCoin Ledger** | ID pengirim, ID penerima, jumlah TC, jenis transaksi | Validasi kecukupan saldo, eksekusi transaksi database ACID | Mutasi saldo dan riwayat transaksi kredit |
 | 9 | **Talent Recommendation** | Kebutuhan keahlian proyek, riwayat proyek mahasiswa | Algoritma pencocokan kesesuaian keahlian (*skill match*) | Daftar rekomendasi mahasiswa kompeten |
 | 10 | **Rating & Ulasan** | Nilai bintang (1-5), teks ulasan hasil kerja | Agregasi skor reputasi dan penautan ulasan ke profil | Skor rating rata-rata dan daftar testimoni |
-| 11 | **Switch as a Mentor** | Bukti kelulusan $\ge 5$ proyek, keahlian khusus | Verifikasi rekam jejak penyelesaian proyek mahasiswa | Pengaktifan modul mentor pada akun mahasiswa |
+| 11 | **Switch as a Mentor** | Bukti Standar 3 Pilar ($\ge 20$ proyek, rating $\ge 4.8$, $\ge 3$ pengakuan mitra UMKM, $\ge 1$ sertifikasi industri/dosen) | Verifikasi otomatis 3 pilar & pengaktifan akses dual-role | Pengaktifan modul Peer Mentor & tombol pindah peran bolak-balik |
 | 12 | **Activity Tracker** | Catatan progres pengerjaan harian, lampiran berkas | Pencatatan riwayat aktivitas pengerjaan proyek | Log aktivitas real-time bagi UMKM & mahasiswa |
 
 ---
@@ -224,7 +224,7 @@ sequenceDiagram
         Srv-->>MHS: Saldo TC Bertambah & Proyek Resmi Tercatat
     end
 
-    Note over MHS: Pemanfaatan TC: Bebas Cash-Out ke Rupiah (0% Admin) / Switch as a Mentor jika >= 5 Proyek
+    Note over MHS: Pemanfaatan TC: Bebas Cash-Out ke Rupiah (0% Admin) / Switch as a Mentor jika lulus Standar 3 Pilar (>= 20 Proyek)
 ```
 
 ---

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Msme;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Models\Review;
 use App\Models\TimeCoinWallet;
 use App\Models\UmkmProfile;
 use Illuminate\Http\JsonResponse;
@@ -36,7 +37,8 @@ class MsmeProfileController extends Controller
         $completedProjectsCount = Project::where('msme_id', $user->id)->where('status', 'completed')->count();
         $userProjectIds = Project::where('msme_id', $user->id)->pluck('id');
         $mentoredStudentsCount = ProjectApplication::whereIn('project_id', $userProjectIds)->where('status', 'accepted')->distinct('student_id')->count('student_id');
-        $rating = 0;
+        $avgRating = Review::where('reviewee_id', $user->id)->avg('rating');
+        $rating = $avgRating !== null ? round((float) $avgRating, 1) : 0;
 
         return response()->json([
             'status' => 'success',
@@ -78,7 +80,10 @@ class MsmeProfileController extends Controller
             'description' => ['nullable', 'string', 'max:5000'],
             'nib' => ['nullable', 'string', 'max:50'],
             'logo_url' => ['nullable', 'string', 'max:2048'],
-            'logo_file' => ['sometimes', File::image()->max(3 * 1024)],
+            'logo_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png'])->max(3 * 1024)],
+        ], [
+            'logo_file.mimes' => 'Format logo usaha hanya mendukung PNG atau JPG/JPEG.',
+            'logo_file.max' => 'Ukuran logo usaha maksimal 3 MB.',
         ]);
 
         if (isset($data['name']) && $data['name'] !== $user->name) {

@@ -3,11 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
-import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 import 'package:flutter_frontend/features/portfolio/data/portfolio_api.dart';
 
 class PortfolioDashboardScreen extends StatefulWidget {
@@ -15,10 +15,12 @@ class PortfolioDashboardScreen extends StatefulWidget {
     super.key,
     this.portfolioApi,
     this.authApi,
+    this.onProfileUpdated,
   });
 
   final PortfolioApi? portfolioApi;
   final AuthApi? authApi;
+  final VoidCallback? onProfileUpdated;
 
   @override
   State<PortfolioDashboardScreen> createState() =>
@@ -316,8 +318,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final profile =
-        (_data['profile'] as Map<String, dynamic>?) ?? const {};
+    final profile = (_data['profile'] as Map<String, dynamic>?) ?? const {};
     final radarMetrics = (_data['radar_metrics'] as List? ?? const [])
         .whereType<Map<String, dynamic>>()
         .toList();
@@ -333,7 +334,8 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
     final github =
         (profile['github_integration'] as Map<String, dynamic>?) ?? const {};
     final publicCvUrl =
-        (_data['public_cv_url'] as String?) ?? 'https://talentsync.id/cv/profil';
+        (_data['public_cv_url'] as String?) ??
+        'https://talentsync.id/cv/profil';
 
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
@@ -458,9 +460,8 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
         (profile['headline'] as String?) ?? 'Mahasiswa Talenta Digital';
     final university = (profile['university'] as String?) ?? 'Universitas';
     final major = (profile['major'] as String?) ?? 'Program Studi';
-    final avatarUrl = ApiClient.resolveMediaUrl(
-      profile['avatar_url'] as String?,
-    );
+    final rawAvatarUrl = profile['avatar_url'] as String?;
+    final initial = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : 'M';
     final ktmStatus =
         (profile['ktm_verification_status'] as String?) ?? 'approved';
     final hasEndorsement = profile['has_mentor_endorsement'] == true;
@@ -477,40 +478,48 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
         children: [
           Row(
             children: [
-              ClipRRect(
+              InkWell(
+                onTap: () async {
+                  final changed = await Navigator.pushNamed(
+                    context,
+                    AppRoutes.editProfile,
+                  );
+                  if (changed == true && mounted) {
+                    _load();
+                    widget.onProfileUpdated?.call();
+                  }
+                },
                 borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  color: AppColors.lightBlueSurface,
-                  child: avatarUrl != null && avatarUrl.isNotEmpty
-                      ? Image.network(
-                          avatarUrl,
-                          width: 56,
-                          height: 56,
-                          cacheWidth: 168,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Center(
-                            child: Text(
-                              name.isNotEmpty ? name[0].toUpperCase() : 'M',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryNavy,
-                              ),
-                            ),
-                          ),
-                        )
-                      : Center(
-                          child: Text(
-                            name.isNotEmpty ? name[0].toUpperCase() : 'M',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryNavy,
-                            ),
-                          ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    UserAvatarHelper.buildAvatarWidget(
+                      avatarUrl: rawAvatarUrl,
+                      size: 58,
+                      borderRadius: 16,
+                      initial: initial,
+                      fallbackBgColor: AppColors.lightBlueSurface,
+                      fallbackTextColor: AppColors.primaryNavy,
+                    ),
+                    Positioned(
+                      right: -3,
+                      bottom: -3,
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryNavy,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.8),
                         ),
+                        child: const Icon(
+                          Icons.camera_alt_rounded,
+                          size: 11,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 14),
@@ -553,8 +562,14 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
               IconButton(
                 tooltip: 'Edit Profil',
                 onPressed: () async {
-                  await Navigator.pushNamed(context, AppRoutes.editProfile);
-                  if (mounted) _load();
+                  final changed = await Navigator.pushNamed(
+                    context,
+                    AppRoutes.editProfile,
+                  );
+                  if (changed == true && mounted) {
+                    _load();
+                    widget.onProfileUpdated?.call();
+                  }
                 },
                 icon: const Icon(
                   Icons.edit_rounded,
@@ -614,7 +629,8 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
   }
 
   Widget _buildStatsRow(Map<String, dynamic> profile) {
-    final completed = (profile['completed_projects_count'] as num?)?.toInt() ?? 0;
+    final completed =
+        (profile['completed_projects_count'] as num?)?.toInt() ?? 0;
     final certs = (_data['certificates_count'] as num?)?.toInt() ?? 0;
     final sessions = (_data['mentoring_sessions_count'] as num?)?.toInt() ?? 0;
     final hours = _data['mentoring_hours'] ?? 0;
@@ -690,9 +706,7 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
           SizedBox(
             height: 220,
             width: double.infinity,
-            child: CustomPaint(
-              painter: _RadarChartPainter(metrics: metrics),
-            ),
+            child: CustomPaint(painter: _RadarChartPainter(metrics: metrics)),
           ),
         ],
       ),

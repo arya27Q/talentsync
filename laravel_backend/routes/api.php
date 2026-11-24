@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Msme\MsmeApplicantController;
 use App\Http\Controllers\Api\Msme\MsmeDashboardController;
 use App\Http\Controllers\Api\Msme\MsmeProfileController;
 use App\Http\Controllers\Api\Msme\MsmeProjectController;
+use App\Http\Controllers\Api\Msme\MsmeSubmissionController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Student\PortfolioController;
 use App\Http\Controllers\Api\Student\ProjectController;
@@ -196,4 +197,7 @@ Route::middleware(['auth:sanctum', 'role:msme'])->prefix('msme')->group(function
     Route::get('/applicants/{application}', [MsmeApplicantController::class, 'show']);
     Route::post('/applications/{application}/accept', [MsmeApplicantController::class, 'accept']);
     Route::post('/applications/{application}/reject-to-mentor', [MsmeApplicantController::class, 'rejectToMentor']);
+    Route::get('/submissions', [MsmeSubmissionController::class, 'index']);
+    Route::post('/milestones/{milestone}/revision', [MsmeSubmissionController::class, 'requestRevision']);
+    Route::post('/milestones/{milestone}/approve', [MsmeSubmissionController::class, 'approve']);
 });

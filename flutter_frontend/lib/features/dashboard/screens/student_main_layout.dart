@@ -16,13 +16,16 @@ class StudentMainLayout extends StatefulWidget {
 class _StudentMainLayoutState extends State<StudentMainLayout> {
   late int _currentIndex;
   late final List<Widget?> _builtScreens;
+  final _dashboardKey = GlobalKey<DashboardMahasiswaScreenState>();
 
   Widget _buildTab(int index) {
     return switch (index) {
-      0 => const DashboardMahasiswaScreen(),
+      0 => DashboardMahasiswaScreen(key: _dashboardKey),
       1 => const MyProjectsScreen(),
       2 => const WalletDashboardScreen(),
-      3 => const PortfolioDashboardScreen(),
+      3 => PortfolioDashboardScreen(
+          onProfileUpdated: () => _dashboardKey.currentState?.reload(),
+        ),
       _ => const SizedBox.shrink(),
     };
   }

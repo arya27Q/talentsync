@@ -4,6 +4,8 @@ import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/widgets/in_app_guide_section.dart';
+import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_booking.dart';
 import 'package:flutter_frontend/features/mentor/models/mentor_student.dart';
@@ -32,10 +34,10 @@ class MentorDashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenLiveSession;
 
   @override
-  State<MentorDashboardScreen> createState() => _MentorDashboardScreenState();
+  State<MentorDashboardScreen> createState() => MentorDashboardScreenState();
 }
 
-class _MentorDashboardScreenState extends State<MentorDashboardScreen> {
+class MentorDashboardScreenState extends State<MentorDashboardScreen> {
   late Future<Map<String, dynamic>> _dashboardFuture;
 
   MentorApi get _mentorApi => widget.mentorApi ?? MentorApi.instance;
@@ -52,10 +54,74 @@ class _MentorDashboardScreenState extends State<MentorDashboardScreen> {
     _dashboardFuture = _loadDashboard();
   }
 
+  void reload() => _reloadDashboard();
+
   void _reloadDashboard() {
     setState(() {
       _dashboardFuture = _loadDashboard();
     });
+  }
+
+  String _greetingText() {
+    final hour = DateTime.now().hour;
+    if (hour < 11) return 'Selamat pagi';
+    if (hour < 15) return 'Selamat siang';
+    if (hour < 18) return 'Selamat sore';
+    return 'Selamat malam';
+  }
+
+  void _confirmLogout(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
+            SizedBox(width: 10),
+            Text(
+              'Keluar dari Akun?',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Sesi akun mentor Anda akan berakhir dan Anda dapat masuk kembali kapan saja.',
+          style: TextStyle(
+            fontSize: 13,
+            height: 1.4,
+            color: AppColors.secondarySlate,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+            ),
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await AuthApi().logout();
+              if (!context.mounted) return;
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.roleSelection,
+                (route) => false,
+              );
+            },
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -127,7 +193,10 @@ class _MentorDashboardScreenState extends State<MentorDashboardScreen> {
               entry['has_endorsement'] != true,
         )
         .toList();
-    final mentorName = user['name'] as String? ?? 'Mentor';
+    final mentorName =
+        (dashboard['name'] as String?) ?? (user['name'] as String?) ?? 'Mentor';
+    final avatarUrl =
+        (dashboard['avatar_url'] as String?) ?? (user['avatar_url'] as String?);
     final initials = mentorName
         .trim()
         .split(RegExp(r'\s+'))
@@ -139,203 +208,299 @@ class _MentorDashboardScreenState extends State<MentorDashboardScreen> {
     final feePercent = wallet['cashout_fee_percent'] as int? ?? 10;
     return SafeArea(
       bottom: false,
-      child: ListView(
-        physics: const BouncingScrollPhysics(),
-        // Generous bottom padding (120) ensures content is never blocked by floating bottom navigation
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-        children: [
-          // Header Bar
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryNavy,
+      child: RefreshIndicator(
+        onRefresh: () async => _reloadDashboard(),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          // Generous bottom padding (120) ensures content is never blocked by floating bottom navigation
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+          children: [
+            // Header Bar
+            Row(
+              children: [
+                InkWell(
+                  onTap: onOpenProfile,
                   borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: Text(
-                    initials.isEmpty ? '?' : initials,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: UserAvatarHelper.buildAvatarWidget(
+                    avatarUrl: avatarUrl,
+                    size: 48,
+                    borderRadius: 16,
+                    initial: initials.isEmpty ? 'M' : initials,
+                    fallbackBgColor: AppColors.primaryNavy,
+                    fallbackTextColor: Colors.white,
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Selamat sore',
-                      style: TextStyle(
-                        color: AppColors.secondarySlate,
-                        fontSize: 13,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _greetingText(),
+                        style: const TextStyle(
+                          color: AppColors.secondarySlate,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      mentorName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: AppColors.darkSlate,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
+                      const SizedBox(height: 2),
+                      Text(
+                        mentorName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.darkSlate,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              _TopAction(
-                icon: Icons.chat_bubble_rounded,
-                label: 'Pesan',
-                onTap: () => Navigator.pushNamed(context, AppRoutes.inbox),
-              ),
-              const SizedBox(width: 8),
-              _TopAction(
-                icon: Icons.notifications_rounded,
-                label: 'Notifikasi',
-                badge: true,
-                onTap: () =>
-                    Navigator.pushNamed(context, AppRoutes.notifications),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Hero Navy Card: Total Pendapatan
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.primaryNavy,
-              borderRadius: BorderRadius.circular(26),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryNavy.withValues(alpha: 0.25),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
+                _TopAction(
+                  icon: Icons.notifications_rounded,
+                  label: 'Notifikasi',
+                  badge: true,
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.notifications),
+                ),
+                const SizedBox(width: 8),
+                _TopAction(
+                  icon: Icons.logout_rounded,
+                  label: 'Keluar',
+                  onTap: () => _confirmLogout(context),
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'Total pendapatan',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+            const SizedBox(height: 20),
+
+            // Hero Navy Card: Total Pendapatan
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.primaryNavy,
+                borderRadius: BorderRadius.circular(26),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryNavy.withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Total pendapatan',
+                          style: TextStyle(color: Colors.white70, fontSize: 13),
+                        ),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: .15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Admin cash-out $feePercent%',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: .15),
-                        borderRadius: BorderRadius.circular(12),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 26,
+                        height: 26,
+                        decoration: const BoxDecoration(
+                          color: AppColors.accentAmberGold,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.toll_rounded,
+                            color: Colors.white,
+                            size: 17,
+                          ),
+                        ),
                       ),
-                      child: Text(
-                        'Admin cash-out $feePercent%',
+                      const SizedBox(width: 8),
+                      Text(
+                        '$balanceTc TC',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Setara Rp${_formatRupiah(balanceTc * 1000)} \u00B7 Saldo tersedia',
+                    style: const TextStyle(
+                      color: Color(0xFF93C5FD),
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _WalletButton(
+                          label: 'Cash-out',
+                          icon: Icons.account_balance_wallet_rounded,
+                          onTap: () {
+                            if (onOpenWallet != null) {
+                              onOpenWallet!();
+                            } else {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.mentorCashOut,
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _WalletButton(
+                          label: 'Layanan Baru',
+                          icon: Icons.add_circle_rounded,
+                          quiet: true,
+                          onTap: onOpenServices,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Featured Upgrade Banner
+            GestureDetector(
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.mentorFeaturedUpgrade),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.borderSlate),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.darkSlate.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                child: Row(
                   children: [
                     Container(
-                      width: 26,
-                      height: 26,
-                      decoration: const BoxDecoration(
-                        color: AppColors.accentAmberGold,
-                        shape: BoxShape.circle,
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.toll_rounded,
-                          color: Colors.white,
-                          size: 17,
-                        ),
+                      child: const Icon(
+                        Icons.military_tech_rounded,
+                        color: Color(0xFFB45309),
+                        size: 24,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '$balanceTc TC',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hemat Rp63.000 saat cash-out',
+                            style: TextStyle(
+                              color: AppColors.darkSlate,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Featured Mentor bebas admin dan tampil teratas',
+                            style: TextStyle(
+                              color: AppColors.secondarySlate,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Setara Rp${_formatRupiah(balanceTc * 1000)} \u00B7 Saldo tersedia',
-                  style: const TextStyle(
-                    color: Color(0xFF93C5FD),
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _WalletButton(
-                        label: 'Cash-out',
-                        icon: Icons.account_balance_wallet_rounded,
-                        onTap: () {
-                          if (onOpenWallet != null) {
-                            onOpenWallet!();
-                          } else {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.mentorCashOut,
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _WalletButton(
-                        label: 'Layanan Baru',
-                        icon: Icons.add_circle_rounded,
-                        quiet: true,
-                        onTap: onOpenServices,
-                      ),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.secondarySlate,
+                      size: 20,
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
-          // Featured Upgrade Banner
-          GestureDetector(
-            onTap: () =>
-                Navigator.pushNamed(context, AppRoutes.mentorFeaturedUpgrade),
-            child: Container(
+            // 3 Metric Cards (Pajangan / Stat Display Seragam)
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: _MetricCard(
+                      icon: Icons.calendar_month_rounded,
+                      value: '${dashboard['new_bookings'] ?? 0}',
+                      label: 'Booking baru',
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: _MetricCard(
+                      icon: Icons.rate_review_rounded,
+                      value: '${dashboard['needs_review'] ?? 0}',
+                      label: 'Perlu dinilai',
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: _MetricCard(
+                      icon: Icons.thumb_up_alt_rounded,
+                      value: '${dashboard['endorsement_requests'] ?? 0}',
+                      label: 'Minta rekomendasi',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Navigasi & Menu Aksi Kerja Mentor
+            Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(22),
                 border: Border.all(color: AppColors.borderSlate),
                 boxShadow: [
                   BoxShadow(
@@ -345,278 +510,183 @@ class _MentorDashboardScreenState extends State<MentorDashboardScreen> {
                   ),
                 ],
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.military_tech_rounded,
-                      color: Color(0xFFB45309),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hemat Rp63.000 saat cash-out',
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Navigasi Kerja Mentor',
                           style: TextStyle(
-                            color: AppColors.darkSlate,
+                            fontSize: 15,
                             fontWeight: FontWeight.w800,
-                            fontSize: 13,
+                            color: AppColors.darkSlate,
                           ),
                         ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Featured Mentor bebas admin dan tampil teratas',
-                          style: TextStyle(
-                            color: AppColors.secondarySlate,
-                            fontSize: 11,
-                          ),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Aksi Cepat',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.secondarySlate,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const Icon(
-                    Icons.chevron_right_rounded,
-                    color: AppColors.secondarySlate,
-                    size: 20,
+                  const SizedBox(height: 14),
+                  _buildQuickNavButton(
+                    icon: Icons.calendar_month_rounded,
+                    title: 'Jadwal Booking & Evaluasi Sesi',
+                    subtitle:
+                        '${dashboard['new_bookings'] ?? 0} booking baru · ${dashboard['needs_review'] ?? 0} sesi perlu penilaian',
+                    buttonLabel: 'Buka Jadwal',
+                    onTap: onOpenBookings,
+                  ),
+                  const Divider(color: AppColors.borderSlate, height: 20),
+                  _buildQuickNavButton(
+                    icon: Icons.thumb_up_alt_rounded,
+                    title: 'Rekomendasi Kerja Mahasiswa',
+                    subtitle:
+                        '${dashboard['endorsement_requests'] ?? 0} murid memenuhi syarat endorse',
+                    buttonLabel: 'Kelola Endorse',
+                    onTap: onOpenStudents,
                   ),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-          // 3 Metric Cards (Pajangan / Stat Display Seragam)
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: _MetricCard(
-                    icon: Icons.calendar_month_rounded,
-                    value: '${dashboard['new_bookings'] ?? 0}',
-                    label: 'Booking baru',
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: _MetricCard(
-                    icon: Icons.rate_review_rounded,
-                    value: '${dashboard['needs_review'] ?? 0}',
-                    label: 'Perlu dinilai',
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: _MetricCard(
-                    icon: Icons.thumb_up_alt_rounded,
-                    value: '${dashboard['endorsement_requests'] ?? 0}',
-                    label: 'Minta rekomendasi',
-                  ),
-                ),
-              ],
+            // Visual Collaboration Showcase Banner
+            _buildVisualCollaborationBanner(context),
+
+            const SizedBox(height: 24),
+
+            // Section 1: Jadwal Hari Ini
+            const Text(
+              'Jadwal hari ini',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-          // Navigasi & Menu Aksi Kerja Mentor
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: AppColors.borderSlate),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.darkSlate.withValues(alpha: 0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Navigasi Kerja Mentor',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Aksi Cepat',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.secondarySlate,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                _buildQuickNavButton(
-                  icon: Icons.calendar_month_rounded,
-                  title: 'Jadwal Booking & Evaluasi Sesi',
-                  subtitle:
-                      '${dashboard['new_bookings'] ?? 0} booking baru · ${dashboard['needs_review'] ?? 0} sesi perlu penilaian',
-                  buttonLabel: 'Buka Jadwal',
-                  onTap: onOpenBookings,
-                ),
-                const Divider(color: AppColors.borderSlate, height: 20),
-                _buildQuickNavButton(
-                  icon: Icons.thumb_up_alt_rounded,
-                  title: 'Rekomendasi Kerja Mahasiswa',
-                  subtitle:
-                      '${dashboard['endorsement_requests'] ?? 0} murid memenuhi syarat endorse',
-                  buttonLabel: 'Kelola Endorse',
-                  onTap: onOpenStudents,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Visual Collaboration Showcase Banner
-          _buildVisualCollaborationBanner(context),
-
-          const SizedBox(height: 24),
-
-          // Section 1: Jadwal Hari Ini
-          const Text(
-            'Jadwal hari ini',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkSlate,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          if (scheduled.isEmpty)
-            const _DashboardEmptyState(
-              message: 'Belum ada sesi yang diterima dan dijadwalkan.',
-            )
-          else
-            ...scheduled.take(2).map((enrollment) {
-              final booking = MentorBooking.fromEnrollment(enrollment);
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildScheduleCard(
-                  context: context,
-                  dayLabel: booking.date,
-                  timeLabel: booking.time,
-                  topic: booking.topic,
-                  studentName: booking.student.name,
-                  student: booking.student,
-                  onJoin:
-                      booking.meetingUrl == null || booking.meetingUrl!.isEmpty
-                      ? () => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Tautan Meet belum tersedia.'),
+            if (scheduled.isEmpty)
+              const _DashboardEmptyState(
+                message: 'Belum ada sesi yang diterima dan dijadwalkan.',
+              )
+            else
+              ...scheduled.take(2).map((enrollment) {
+                final booking = MentorBooking.fromEnrollment(enrollment);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildScheduleCard(
+                    context: context,
+                    dayLabel: booking.date,
+                    timeLabel: booking.time,
+                    topic: booking.topic,
+                    studentName: booking.student.name,
+                    student: booking.student,
+                    onJoin:
+                        booking.meetingUrl == null ||
+                            booking.meetingUrl!.isEmpty
+                        ? () => ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Tautan Meet belum tersedia.'),
+                            ),
+                          )
+                        : () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.mentorLiveMentoring,
+                            arguments: MentorLiveMentoringArgs(
+                              student: booking.student,
+                              meetingUrl: booking.meetingUrl,
+                            ),
                           ),
-                        )
-                      : () => Navigator.pushNamed(
-                          context,
-                          AppRoutes.mentorLiveMentoring,
-                          arguments: MentorLiveMentoringArgs(
-                            student: booking.student,
-                            meetingUrl: booking.meetingUrl,
+                  ),
+                );
+              }),
+            const SizedBox(height: 24),
+
+            const Text(
+              'Murid menunggu endorsement',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkSlate,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            if (endorsementRequests.isEmpty)
+              const _DashboardEmptyState(
+                message:
+                    'Belum ada sesi bernilai 80+ yang menunggu endorsement.',
+              )
+            else
+              ...endorsementRequests.take(3).map((enrollment) {
+                final student = MentorStudent.fromEnrollment(enrollment);
+                final score = enrollment['assessment_score'] as int? ?? 0;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.borderSlate),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: AppColors.primaryNavy,
+                          child: Text(
+                            student.initials,
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ),
-                ),
-              );
-            }),
-          const SizedBox(height: 24),
-
-          const Text(
-            'Murid menunggu endorsement',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkSlate,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          if (endorsementRequests.isEmpty)
-            const _DashboardEmptyState(
-              message: 'Belum ada sesi bernilai 80+ yang menunggu endorsement.',
-            )
-          else
-            ...endorsementRequests.take(3).map((enrollment) {
-              final student = MentorStudent.fromEnrollment(enrollment);
-              final score = enrollment['assessment_score'] as int? ?? 0;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.borderSlate),
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: AppColors.primaryNavy,
-                        child: Text(
-                          student.initials,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              student.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.darkSlate,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                student.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.darkSlate,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '${student.focus} · Nilai $score/100',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.secondarySlate,
+                              Text(
+                                '${student.focus} · Nilai $score/100',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.secondarySlate,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: onOpenStudents,
-                        child: const Text('Tinjau'),
-                      ),
-                    ],
+                        TextButton(
+                          onPressed: onOpenStudents,
+                          child: const Text('Tinjau'),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }),
-          const SizedBox(height: 24),
+                );
+              }),
+            const SizedBox(height: 24),
 
-          // Section 3: Panduan & Wawasan Mentor TalentSync
-          _buildMentorGuideSection(),
-        ],
+            // Section 3: Panduan & Wawasan Mentor TalentSync
+            _buildMentorGuideSection(),
+          ],
+        ),
       ),
     );
   }

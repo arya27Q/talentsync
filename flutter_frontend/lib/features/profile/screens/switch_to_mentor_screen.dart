@@ -6,6 +6,7 @@ import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 import 'package:flutter_frontend/features/profile/data/student_profile_api.dart';
 
@@ -40,6 +41,7 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
   bool _isEligible = false;
   bool _alreadyMentor = false;
   bool _ktmVerified = false;
+  bool _hasOpenDispute = false;
   int _completedProjects = 0;
   int _minRequired = 20;
   double _ratingAverage = 0.0;
@@ -77,7 +79,8 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
 
   bool get _pillar1Passed =>
       _completedProjects >= _minRequired &&
-      _ratingAverage >= _minRatingRequired;
+      _ratingAverage >= _minRatingRequired &&
+      !_hasOpenDispute;
 
   bool get _pillar2Passed => _partnerEndorsements >= _minPartnerEndorsements;
 
@@ -132,6 +135,7 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
         _isEligible = data['is_eligible'] == true;
         _alreadyMentor = data['already_mentor'] == true;
         _ktmVerified = data['ktm_verified'] == true;
+        _hasOpenDispute = data['has_open_dispute'] == true;
         _completedProjects =
             (data['completed_projects_count'] as num?)?.toInt() ?? 0;
         _minRequired =
@@ -341,14 +345,18 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
 
   void _showSnack(String message, {bool isError = false}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError
-            ? const Color(0xFFB91C1C)
-            : AppColors.primaryNavy,
-        behavior: SnackBarBehavior.floating,
-      ),
+    if (isError) {
+      AppStatusDialog.showError(
+        context,
+        title: 'Tidak Dapat Melanjutkan',
+        message: message,
+      );
+      return;
+    }
+    AppStatusDialog.showSuccess(
+      context,
+      title: 'Berhasil',
+      message: message,
     );
   }
 
@@ -780,8 +788,10 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
           ),
           _buildCheckItem(
             label: 'Bebas Sengketa Escrow Aktif (Zero Dispute)',
-            detail: 'Tidak ada komplain atau sengketa pembayaran aktif.',
-            passed: true,
+            detail: _hasOpenDispute
+                ? 'Selesaikan laporan kendala escrow aktif terlebih dahulu.'
+                : 'Tidak ada komplain atau sengketa pembayaran aktif.',
+            passed: !_hasOpenDispute,
           ),
           const Divider(height: 20, color: AppColors.borderSlate),
           _buildPillarSectionHeader(

@@ -244,7 +244,9 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
     Navigator.push<void>(
       context,
       MaterialPageRoute(
-        builder: (context) => const MsmeReviewSubmissionScreen(),
+        builder: (context) => MsmeReviewSubmissionScreen(
+          projectId: _resolvedProjectId,
+        ),
       ),
     );
   }

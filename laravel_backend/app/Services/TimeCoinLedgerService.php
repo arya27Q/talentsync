@@ -68,6 +68,34 @@ class TimeCoinLedgerService
         $this->record($wallet, $studentId, $studentId, 'voucher_redeem', 'debit', 'balance', $amount, $reference);
     }
 
+    public function releaseProjectMilestoneReward(
+        TimeCoinWallet $msmeWallet,
+        TimeCoinWallet $studentWallet,
+        int $msmeId,
+        int $studentId,
+        int $amount,
+        Model $reference,
+    ): void {
+        if ($amount <= 0) {
+            return;
+        }
+
+        if ($msmeWallet->locked_balance >= $amount) {
+            $msmeWallet->decrement('locked_balance', $amount);
+            $this->record($msmeWallet, $msmeId, $studentId, 'project_reward', 'escrow_debit', 'locked_balance', $amount, $reference);
+        } elseif ($msmeWallet->balance >= $amount) {
+            $msmeWallet->decrement('balance', $amount);
+            $this->record($msmeWallet, $msmeId, $studentId, 'project_reward', 'debit', 'balance', $amount, $reference);
+        } elseif ($msmeWallet->locked_balance > 0) {
+            $deducted = (int) $msmeWallet->locked_balance;
+            $msmeWallet->decrement('locked_balance', $deducted);
+            $this->record($msmeWallet, $msmeId, $studentId, 'project_reward', 'escrow_debit', 'locked_balance', $deducted, $reference);
+        }
+
+        $studentWallet->increment('balance', $amount);
+        $this->record($studentWallet, $msmeId, $studentId, 'project_reward', 'credit', 'balance', $amount, $reference);
+    }
+
     private function assertEscrowBalance(TimeCoinWallet $wallet, int $amount): void
     {
         abort_if($wallet->locked_balance < $amount, 409, 'Saldo escrow tidak sesuai dengan booking.');

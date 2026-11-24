@@ -26,11 +26,22 @@ class UpdateStudentProfileRequest extends FormRequest
             'github_username' => ['sometimes', 'nullable', 'string', 'max:100'],
             'is_public_profile' => ['sometimes', 'boolean'],
             'is_open_for_projects' => ['sometimes', 'boolean'],
-            'avatar_file' => ['sometimes', File::image()->max(2 * 1024)],
+            'avatar_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png'])->max(3 * 1024)],
+            'avatar_url' => ['sometimes', 'nullable', 'string', 'max:2048'],
             'remove_avatar' => ['sometimes', 'boolean'],
-            'ktm_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png', 'webp', 'pdf'])->max(5 * 1024)],
+            'ktm_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png', 'pdf'])->max(5 * 1024)],
             'skills' => ['sometimes', 'array'],
             'skills.*' => ['required'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'avatar_file.mimes' => 'Format foto profil hanya mendukung PNG atau JPG/JPEG.',
+            'avatar_file.max' => 'Ukuran foto profil maksimal 3 MB.',
+            'ktm_file.mimes' => 'Format berkas KTM harus PNG, JPG, atau PDF.',
+            'ktm_file.max' => 'Ukuran berkas KTM maksimal 5 MB.',
         ];
     }
 }

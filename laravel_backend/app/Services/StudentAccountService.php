@@ -59,6 +59,11 @@ class StudentAccountService
             if ($old = $this->publicDiskPath($profile->avatar_url)) {
                 $filesToDelete[] = $old;
             }
+        } elseif (array_key_exists('avatar_url', $data)) {
+            $incomingAvatar = $data['avatar_url'];
+            if ($incomingAvatar !== $profile->avatar_url && ($old = $this->publicDiskPath($profile->avatar_url))) {
+                $filesToDelete[] = $old;
+            }
         }
 
         if ($ktmFile) {

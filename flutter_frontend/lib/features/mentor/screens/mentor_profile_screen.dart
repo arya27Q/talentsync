@@ -1,11 +1,12 @@
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
-import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_featured_upgrade_screen.dart';
 
@@ -21,6 +22,7 @@ class MentorProfileScreen extends StatefulWidget {
     super.key,
     required this.availableTc,
     this.onSelectTab,
+    this.onProfileUpdated,
     this.mentorApi,
     this.onPickAvatar,
     this.skipInitialLoad = false,
@@ -32,6 +34,7 @@ class MentorProfileScreen extends StatefulWidget {
 
   final ValueListenable<int> availableTc;
   final ValueChanged<int>? onSelectTab;
+  final VoidCallback? onProfileUpdated;
   final MentorApi? mentorApi;
   final Future<PickedAvatarFile?> Function()? onPickAvatar;
   final bool skipInitialLoad;
@@ -49,8 +52,15 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
   late String _headline = widget.initialHeadline ?? '';
   late String _bio = widget.initialBio ?? '';
   late String? _avatarUrl = widget.initialAvatarUrl;
+  int _teachingHours = 0;
+  double _ratingAverage = 0;
+  int _studentsCount = 0;
+  List<Map<String, dynamic>> _classes = const [];
+  List<Map<String, dynamic>> _reviews = const [];
   late bool _loading = !widget.skipInitialLoad;
   bool _isDeletingAccount = false;
+  bool _hasStudentRole = false;
+  bool _isSwitchingToStudent = false;
 
   MentorApi get _mentorApi => widget.mentorApi ?? MentorApi.instance;
 
@@ -81,6 +91,25 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
         _avatarUrl =
             (profile['avatar_url'] as String?) ??
             (user['avatar_url'] as String?);
+        _teachingHours = (profile['teaching_hours'] as num?)?.toInt() ?? 0;
+        _ratingAverage = (profile['rating_average'] as num?)?.toDouble() ?? 0;
+        _studentsCount = (profile['students_count'] as num?)?.toInt() ?? 0;
+        _classes = ((profile['classes'] as List?) ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+        _reviews = ((profile['reviews'] as List?) ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+        final profileRoles = ((profile['roles'] as List?) ?? const [])
+            .map((e) => e.toString())
+            .toList();
+        final userRoles = ((user['roles'] as List?) ?? const [])
+            .map((e) => e.toString())
+            .toList();
+        _hasStudentRole =
+            profile['has_student_role'] == true ||
+            profileRoles.contains('student') ||
+            userRoles.contains('student');
       });
     } on ApiException catch (error) {
       if (mounted) {
@@ -122,6 +151,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
           _avatarUrl = updated['avatar_url'] as String?;
         }
       });
+      widget.onProfileUpdated?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profil mentor berhasil diperbarui.')),
       );
@@ -137,13 +167,63 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
     ),
   );
 
+  Future<void> _switchToStudentMode() async {
+    if (_isSwitchingToStudent) return;
+    setState(() => _isSwitchingToStudent = true);
+    try {
+      await AuthApi().switchRole('student');
+      if (!mounted) return;
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Beralih ke Portal Mahasiswa',
+        message:
+            'Peran aktif Anda sekarang kembali ke Mode Mahasiswa. Anda dapat kembali ke Mode Mentor kapan saja.',
+        buttonText: 'Buka Portal Mahasiswa',
+      );
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.studentDashboard,
+        (route) => false,
+      );
+    } on ApiException catch (error) {
+      if (mounted) {
+        await AppStatusDialog.showError(
+          context,
+          title: 'Gagal Beralih Peran',
+          message: error.message,
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        await AppStatusDialog.showError(
+          context,
+          title: 'Gagal Beralih Peran',
+          message:
+              'Tidak dapat beralih ke Mode Mahasiswa saat ini. Silakan coba lagi.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSwitchingToStudent = false);
+    }
+  }
+
   void _confirmLogout() {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Keluar dari akun?'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Keluar dari akun?',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.darkSlate,
+          ),
+        ),
         content: const Text(
-          'Kamu akan dialihkan kembali ke halaman masuk mentor.',
+          'Sesi akun mentor Anda akan berakhir dan Anda dapat masuk kembali kapan saja.',
+          style: TextStyle(color: AppColors.secondarySlate),
         ),
         actions: [
           TextButton(
@@ -160,7 +240,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
               if (!mounted) return;
               Navigator.pushNamedAndRemoveUntil(
                 context,
-                AppRoutes.mentorAuth,
+                AppRoutes.roleSelection,
                 (route) => false,
               );
             },
@@ -257,486 +337,692 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    bottom: false,
-    child: ListView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
-      children: [
-        if (_loading) const LinearProgressIndicator(),
-        // Header matching screenshot
-        Row(
+  Widget build(BuildContext context) {
+    final isTopRated = _ratingAverage >= 4.8 && _studentsCount > 0;
+    final ratingDisplay = _ratingAverage > 0
+        ? _ratingAverage.toStringAsFixed(1)
+        : '0';
+
+    return SafeArea(
+      bottom: false,
+      child: RefreshIndicator(
+        onRefresh: _loadProfile,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
           children: [
-            const Expanded(
-              child: Text(
-                'My Profile',
-                style: TextStyle(
-                  color: AppColors.darkSlate,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
+            if (_loading) const LinearProgressIndicator(),
+            // Header
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Profil Mentor',
+                    style: TextStyle(
+                      color: AppColors.darkSlate,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Semantics(
-              button: true,
-              label: 'Edit profil',
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: _editProfile,
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
+                Semantics(
+                  button: true,
+                  label: 'Edit profil',
+                  child: InkWell(
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.borderSlate),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.darkSlate.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                    onTap: _editProfile,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.borderSlate),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.darkSlate.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.edit_rounded,
+                        color: AppColors.darkSlate,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Profile Main Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: AppColors.borderSlate.withValues(alpha: 0.8),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.darkSlate.withValues(alpha: 0.04),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Avatar Squircle (tap to change photo / avatar / profile)
+                  Semantics(
+                    button: true,
+                    label: 'Ubah foto profil',
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(24),
+                      onTap: _editProfile,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          _MentorAvatar(
+                            name: _name,
+                            avatarUrl: _avatarUrl,
+                            size: 82,
+                            radius: 24,
+                          ),
+                          Positioned(
+                            right: -4,
+                            bottom: -4,
+                            child: Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryNavy,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.camera_alt_rounded,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Name + Verified Badge
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          _name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.darkSlate,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.verified_rounded,
+                        color: AppColors.primaryNavy,
+                        size: 19,
                       ),
                     ],
                   ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.edit_rounded,
+                  const SizedBox(height: 3),
+                  Text(
+                    _headline.isNotEmpty ? _headline : 'Peer Mentor TalentSync',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.secondarySlate,
+                      fontSize: 13,
+                    ),
+                  ),
+                  if (_bio.trim().isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      _bio,
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF475569),
+                        fontSize: 12.5,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+
+                  // Status Pill Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isTopRated
+                          ? const Color(0xFFFFF7ED)
+                          : const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isTopRated
+                              ? Icons.star_rounded
+                              : Icons.verified_user_rounded,
+                          color: isTopRated
+                              ? const Color(0xFFC2410C)
+                              : AppColors.primaryNavy,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            isTopRated
+                                ? 'Top Rated Mentor'
+                                : 'Peer Mentor Terverifikasi',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: isTopRated
+                                  ? const Color(0xFFC2410C)
+                                  : AppColors.primaryNavy,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // 3 Real Database Metrics Box Row (0 | 0 | 0 for fresh mentor)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _ProfileMetric(
+                            value: '$_teachingHours',
+                            label: 'Jam mengajar',
+                          ),
+                        ),
+                        const _MetricDivider(),
+                        Expanded(
+                          child: _ProfileMetric(
+                            value: ratingDisplay,
+                            label: 'Rating',
+                          ),
+                        ),
+                        const _MetricDivider(),
+                        Expanded(
+                          child: _ProfileMetric(
+                            value: '$_studentsCount',
+                            label: 'Murid',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            if (_hasStudentRole) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFBFDBFE)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryNavy,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.swap_horiz_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Beralih ke Mode Mahasiswa',
+                            style: TextStyle(
+                              color: AppColors.darkSlate,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14.5,
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            'Akses ganda aktif. Kembali ke Portal Mahasiswa kapan saja.',
+                            style: TextStyle(
+                              color: AppColors.secondarySlate,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Semantics(
+                      button: true,
+                      label: 'Beralih ke Mode Mahasiswa',
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: _isSwitchingToStudent
+                            ? null
+                            : _switchToStudentMode,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryNavy,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: _isSwitchingToStudent
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Beralih',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
+
+            // Featured Mentor Promo Banner
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: AppColors.borderSlate.withValues(alpha: 0.8),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.darkSlate.withValues(alpha: 0.04),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7ED),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: Color(0xFFC2410C),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Jadi Featured Mentor',
+                          style: TextStyle(
+                            color: AppColors.darkSlate,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14.5,
+                          ),
+                        ),
+                        SizedBox(height: 3),
+                        Text(
+                          '0% admin cash-out dan tampil teratas',
+                          style: TextStyle(
+                            color: AppColors.secondarySlate,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Semantics(
+                    button: true,
+                    label: 'Upgrade ke Featured Mentor',
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: _openUpgrade,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryNavy,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Text(
+                          'Upgrade',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Section: Layanan mentoring (Real DB data)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Layanan mentoring',
+                  style: TextStyle(
                     color: AppColors.darkSlate,
-                    size: 22,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (widget.onSelectTab != null)
+                  TextButton(
+                    onPressed: () => widget.onSelectTab?.call(5),
+                    child: const Text('Kelola'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            if (_classes.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.borderSlate),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.school_rounded,
+                      color: AppColors.secondarySlate,
+                      size: 28,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Belum ada layanan mentoring aktif.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.darkSlate,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Buat kelas bimbingan pertama agar mahasiswa dapat memesan sesi denganmu.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.secondarySlate,
+                        fontSize: 12,
+                      ),
+                    ),
+                    if (widget.onSelectTab != null) ...[
+                      const SizedBox(height: 12),
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primaryNavy,
+                        ),
+                        onPressed: () => widget.onSelectTab?.call(5),
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: const Text('Buat Layanan'),
+                      ),
+                    ],
+                  ],
+                ),
+              )
+            else
+              ..._classes.map(
+                (cls) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _ProfileServiceCard(
+                    title: (cls['topic'] as String?) ?? 'Sesi Mentoring',
+                    duration:
+                        '${cls['duration_minutes'] ?? 60} menit · ${cls['enrolled_count'] ?? 0} pendaftar',
+                    price: '${cls['price_tc'] ?? 0} TC',
+                  ),
+                ),
+              ),
+            const SizedBox(height: 20),
+
+            // Section: Ulasan murid (Real DB data)
+            const Text(
+              'Ulasan murid',
+              style: TextStyle(
+                color: AppColors.darkSlate,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            if (_reviews.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.borderSlate),
+                ),
+                child: const Text(
+                  'Belum ada ulasan dari murid. Ulasan akan muncul otomatis setelah sesi bimbingan selesai.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.secondarySlate,
+                    fontSize: 12.5,
+                    height: 1.4,
+                  ),
+                ),
+              )
+            else
+              ..._reviews.map(
+                (rev) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _ReviewCard(
+                    initials: _initialsForName(
+                      (rev['reviewer_name'] as String?) ?? 'M',
+                    ),
+                    avatarColor: AppColors.primaryNavy,
+                    name: (rev['reviewer_name'] as String?) ?? 'Mahasiswa',
+                    date: (rev['created_at'] as String?) ?? '',
+                    stars: (rev['rating'] as num?)?.toInt() ?? 5,
+                    review: (rev['review_text'] as String?) ?? '',
+                  ),
+                ),
+              ),
+            const SizedBox(height: 24),
+
+            // Keluar (Logout) & Hapus Akun Mentor
+            Center(
+              child: Semantics(
+                button: true,
+                label: 'Keluar dari akun',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: _isDeletingAccount ? null : _confirmLogout,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.logout_rounded,
+                            color: Color(0xFFB91C1C),
+                            size: 20,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Keluar',
+                            style: TextStyle(
+                              color: Color(0xFFB91C1C),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Semantics(
+              button: true,
+              label: 'Hapus akun mentor',
+              child: Material(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: _isDeletingAccount ? null : _confirmDeleteAccount,
+                  child: Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFFCA5A5)),
+                    ),
+                    child: _isDeletingAccount
+                        ? const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFFB91C1C),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                'Menghapus akun mentor...',
+                                style: TextStyle(
+                                  color: Color(0xFFB91C1C),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.delete_forever_rounded,
+                                color: Color(0xFFB91C1C),
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Hapus Akun Mentor',
+                                style: TextStyle(
+                                  color: Color(0xFFB91C1C),
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-
-        // Profile Main Card matching Screenshot 1
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppColors.borderSlate.withValues(alpha: 0.8),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.darkSlate.withValues(alpha: 0.04),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Avatar Squircle (tap to change photo / profile)
-              Semantics(
-                button: true,
-                label: 'Ubah foto profil',
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: _editProfile,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      _MentorAvatar(
-                        name: _name,
-                        avatarUrl: _avatarUrl,
-                        size: 82,
-                        radius: 24,
-                      ),
-                      Positioned(
-                        right: -4,
-                        bottom: -4,
-                        child: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryNavy,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          alignment: Alignment.center,
-                          child: const Icon(
-                            Icons.camera_alt_rounded,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Name + Verified Badge
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text(
-                      _name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.darkSlate,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(
-                    Icons.verified_rounded,
-                    color: AppColors.primaryNavy,
-                    size: 19,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 3),
-              Text(
-                _headline,
-                style: const TextStyle(
-                  color: AppColors.secondarySlate,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // Top Rated Pill Badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(
-                      Icons.star_rounded,
-                      color: Color(0xFFC2410C),
-                      size: 16,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      'Top Rated',
-                      style: TextStyle(
-                        color: Color(0xFFC2410C),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // 3 Metrics Box Row
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Row(
-                  children: const [
-                    Expanded(
-                      child: _ProfileMetric(
-                        value: '312',
-                        label: 'Jam mengajar',
-                      ),
-                    ),
-                    _MetricDivider(),
-                    Expanded(
-                      child: _ProfileMetric(value: '4.9', label: 'Rating'),
-                    ),
-                    _MetricDivider(),
-                    Expanded(
-                      child: _ProfileMetric(value: '74', label: 'Murid'),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Featured Mentor Promo Banner matching Screenshot 1
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: AppColors.borderSlate.withValues(alpha: 0.8),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.darkSlate.withValues(alpha: 0.04),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.workspace_premium_rounded,
-                  color: Color(0xFFC2410C),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Jadi Featured Mentor',
-                      style: TextStyle(
-                        color: AppColors.darkSlate,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14.5,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      '0% admin cash-out dan tampil teratas',
-                      style: TextStyle(
-                        color: AppColors.secondarySlate,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Semantics(
-                button: true,
-                label: 'Upgrade ke Featured Mentor',
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: _openUpgrade,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryNavy,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Text(
-                      'Upgrade',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Section: Layanan mentoring
-        const Text(
-          'Layanan mentoring',
-          style: TextStyle(
-            color: AppColors.darkSlate,
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Service Card 1
-        const _ProfileServiceCard(
-          title: 'Code Review & Arsitektur Flutter',
-          duration: '60 menit · 86 sesi terjual',
-          price: '30 TC',
-          tags: ['Flutter', 'BLoC', 'Clean Architecture'],
-        ),
-        const SizedBox(height: 12),
-
-        // Service Card 2
-        const _ProfileServiceCard(
-          title: 'Simulasi Wawancara Mobile Developer',
-          duration: '45 menit · 31 sesi terjual',
-          price: '25 TC',
-          tags: [],
-        ),
-        const SizedBox(height: 22),
-
-        // Section: Ulasan murid matching Screenshot 2
-        const Text(
-          'Ulasan murid',
-          style: TextStyle(
-            color: AppColors.darkSlate,
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Review 1: Arya Pratama
-        const _ReviewCard(
-          initials: 'AP',
-          avatarColor: AppColors.primaryNavy,
-          name: 'Arya Pratama',
-          date: '8 Jul',
-          stars: 5,
-          review: '"Penjelasan BLoC-nya sangat detail dan langsung dipraktikkan ke proyek kasir saya."',
-        ),
-        const SizedBox(height: 12),
-
-        // Review 2: Dewi Lestari
-        const _ReviewCard(
-          initials: 'DL',
-          avatarColor: Color(0xFF0F766E),
-          name: 'Dewi Lestari',
-          date: '20 Jun',
-          stars: 5,
-          review: '"Feedback konstruktif, action plan jelas. Portofolio saya lolos kurasi."',
-        ),
-        const SizedBox(height: 12),
-
-        // Review 3: Rafi Hakim
-        const _ReviewCard(
-          initials: 'RH',
-          avatarColor: Color(0xFFA03B1E),
-          name: 'Rafi Hakim',
-          date: '2 Jun',
-          stars: 4,
-          review: '"Sangat membantu pemula, hanya sesi terasa cepat."',
-        ),
-        const SizedBox(height: 24),
-
-        // Keluar (Logout) & Hapus Akun Mentor
-        Center(
-          child: Semantics(
-            button: true,
-            label: 'Keluar dari akun',
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: _isDeletingAccount ? null : _confirmLogout,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 44),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.logout_rounded,
-                        color: Color(0xFFB91C1C),
-                        size: 20,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Keluar',
-                        style: TextStyle(
-                          color: Color(0xFFB91C1C),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Semantics(
-          button: true,
-          label: 'Hapus akun mentor',
-          child: Material(
-            color: const Color(0xFFFEF2F2),
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: _isDeletingAccount ? null : _confirmDeleteAccount,
-              child: Container(
-                width: double.infinity,
-                constraints: const BoxConstraints(minHeight: 48),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFFCA5A5)),
-                ),
-                child: _isDeletingAccount
-                    ? const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFFB91C1C),
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            'Menghapus akun mentor...',
-                            style: TextStyle(
-                              color: Color(0xFFB91C1C),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      )
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.delete_forever_outlined,
-                            color: Color(0xFFB91C1C),
-                            size: 20,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Hapus Akun Mentor',
-                            style: TextStyle(
-                              color: Color(0xFFB91C1C),
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 String _initialsForName(String name) {
@@ -765,55 +1051,17 @@ class _MentorAvatar extends StatelessWidget {
   final double size;
   final double radius;
 
-  Widget _fallbackBox() => Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(
-      color: AppColors.primaryNavy,
-      borderRadius: BorderRadius.circular(radius),
-    ),
-    alignment: Alignment.center,
-    child: Text(
-      _initialsForName(name),
-      style: TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.w800,
-        fontSize: size * 0.34,
-      ),
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
-    final decodedCacheWidth = (size * 3).round();
-    if (memoryBytes != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: Image.memory(
-          memoryBytes!,
-          width: size,
-          height: size,
-          cacheWidth: decodedCacheWidth,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _fallbackBox(),
-        ),
-      );
-    }
-    final resolvedUrl = ApiClient.resolveMediaUrl(avatarUrl);
-    if (resolvedUrl != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: Image.network(
-          resolvedUrl,
-          width: size,
-          height: size,
-          cacheWidth: decodedCacheWidth,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _fallbackBox(),
-        ),
-      );
-    }
-    return _fallbackBox();
+    return UserAvatarHelper.buildAvatarWidget(
+      avatarUrl: avatarUrl,
+      avatarBytes: memoryBytes,
+      size: size,
+      borderRadius: radius,
+      initial: _initialsForName(name),
+      fallbackBgColor: AppColors.primaryNavy,
+      fallbackTextColor: Colors.white,
+    );
   }
 }
 
@@ -842,9 +1090,6 @@ class _EditMentorProfileSheet extends StatefulWidget {
 }
 
 class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
-  static const int _maxAvatarBytes = 2 * 1024 * 1024;
-  static const List<String> _allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-
   late final TextEditingController _nameController = TextEditingController(
     text: widget.initialName,
   );
@@ -855,6 +1100,11 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
     text: widget.initialBio,
   );
 
+  late String? _selectedPresetAvatarId =
+      (widget.initialAvatarUrl != null &&
+          widget.initialAvatarUrl!.startsWith('avatar:'))
+      ? widget.initialAvatarUrl
+      : null;
   String? _pickedAvatarName;
   Uint8List? _pickedAvatarBytes;
   bool _removeAvatar = false;
@@ -870,16 +1120,6 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
     super.dispose();
   }
 
-  Future<PickedAvatarFile?> _defaultPickAvatar() async {
-    final picked = await FilePicker.pickFile(
-      dialogTitle: 'Pilih Foto Profil',
-      type: FileType.image,
-    );
-    if (picked == null) return null;
-    final bytes = await picked.readAsBytes();
-    return PickedAvatarFile(name: picked.name, bytes: bytes);
-  }
-
   Future<void> _pickPhoto() async {
     if (_isPickingPhoto || _isSaving) return;
     setState(() {
@@ -887,33 +1127,58 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
       _errorMessage = null;
     });
     try {
-      final picked = await (widget.onPickAvatar ?? _defaultPickAvatar)();
-      if (!mounted || picked == null) return;
-      final ext = picked.name.contains('.')
-          ? picked.name.split('.').last.toLowerCase()
-          : '';
-      if (!_allowedExtensions.contains(ext)) {
+      if (widget.onPickAvatar != null) {
+        final picked = await widget.onPickAvatar!();
+        if (!mounted || picked == null) return;
+        final validationError = UserAvatarHelper.validatePngJpg(
+          picked.name,
+          picked.bytes,
+        );
+        if (validationError != null) {
+          setState(() => _errorMessage = validationError);
+          return;
+        }
         setState(() {
-          _errorMessage = 'Format foto harus JPG, PNG, atau WEBP.';
+          _pickedAvatarName = picked.name;
+          _pickedAvatarBytes = picked.bytes;
+          _selectedPresetAvatarId = null;
+          _removeAvatar = false;
+          _errorMessage = null;
         });
         return;
       }
-      if (picked.bytes.isEmpty) {
-        setState(() {
-          _errorMessage = 'Berkas foto kosong dan tidak dapat diunggah.';
-        });
-        return;
-      }
-      if (picked.bytes.length > _maxAvatarBytes) {
-        setState(() {
-          _errorMessage = 'Ukuran foto profil maksimal 2 MB.';
-        });
-        return;
-      }
+
+      final hasAnyPhoto =
+          _pickedAvatarBytes != null ||
+          _selectedPresetAvatarId != null ||
+          (!_removeAvatar &&
+              widget.initialAvatarUrl != null &&
+              widget.initialAvatarUrl!.trim().isNotEmpty);
+      final result = await UserAvatarPickerSheet.show(
+        context,
+        role: UserAvatarRole.mentor,
+        currentPresetId: _selectedPresetAvatarId,
+        hasExistingPhoto: hasAnyPhoto,
+      );
+      if (!mounted || result == null) return;
+
       setState(() {
-        _pickedAvatarName = picked.name;
-        _pickedAvatarBytes = picked.bytes;
-        _removeAvatar = false;
+        if (result.isCleared) {
+          _pickedAvatarName = null;
+          _pickedAvatarBytes = null;
+          _selectedPresetAvatarId = null;
+          _removeAvatar = true;
+        } else if (result.pickedBytes != null) {
+          _pickedAvatarName = result.fileName;
+          _pickedAvatarBytes = result.pickedBytes;
+          _selectedPresetAvatarId = null;
+          _removeAvatar = false;
+        } else if (result.presetAvatarId != null) {
+          _selectedPresetAvatarId = result.presetAvatarId;
+          _pickedAvatarName = null;
+          _pickedAvatarBytes = null;
+          _removeAvatar = false;
+        }
         _errorMessage = null;
       });
     } catch (_) {
@@ -932,6 +1197,7 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
     setState(() {
       _pickedAvatarName = null;
       _pickedAvatarBytes = null;
+      _selectedPresetAvatarId = null;
       _removeAvatar = true;
       _errorMessage = null;
     });
@@ -963,6 +1229,8 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
         'title_headline': headline,
         'bio': bio,
         if (_removeAvatar && _pickedAvatarBytes == null) 'remove_avatar': true,
+        if (_selectedPresetAvatarId != null && _pickedAvatarBytes == null)
+          'avatar_url': _selectedPresetAvatarId,
       };
       final updated = await widget.mentorApi.updateProfile(
         payload,
@@ -975,6 +1243,15 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
           if (updated.containsKey('avatar_url'))
             'avatar_url': updated['avatar_url'],
         });
+      }
+      if (!mounted) return;
+      if (widget.syncLocalSession) {
+        await AppStatusDialog.showSuccess(
+          context,
+          title: 'Profil Tersimpan!',
+          message: 'Perubahan profil dan foto/avatar mentor berhasil disimpan ke database.',
+          buttonText: 'Lanjutkan',
+        );
       }
       if (!mounted) return;
       Navigator.pop(context, updated);
@@ -1051,9 +1328,13 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
   Widget build(BuildContext context) {
     final hasAnyPhoto =
         _pickedAvatarBytes != null ||
+        _selectedPresetAvatarId != null ||
         (!_removeAvatar &&
             widget.initialAvatarUrl != null &&
             widget.initialAvatarUrl!.trim().isNotEmpty);
+    final effectiveAvatarUrl = _removeAvatar
+        ? null
+        : (_selectedPresetAvatarId ?? widget.initialAvatarUrl);
 
     return SafeArea(
       top: false,
@@ -1107,7 +1388,7 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
             ),
             const SizedBox(height: 12),
 
-            // Photo Picker Section
+            // Photo & Avatar Picker Section
             Row(
               children: [
                 ValueListenableBuilder<TextEditingValue>(
@@ -1116,7 +1397,7 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
                     name: value.text.trim().isEmpty
                         ? widget.initialName
                         : value.text,
-                    avatarUrl: _removeAvatar ? null : widget.initialAvatarUrl,
+                    avatarUrl: effectiveAvatarUrl,
                     memoryBytes: _pickedAvatarBytes,
                     size: 72,
                     radius: 20,
@@ -1152,10 +1433,7 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
                                       color: AppColors.primaryNavy,
                                     ),
                                   )
-                                : const Icon(
-                                    Icons.photo_library_outlined,
-                                    size: 18,
-                                  ),
+                                : const Icon(Icons.crop_rounded, size: 18),
                             label: Text(
                               hasAnyPhoto ? 'Ganti Foto' : 'Pilih Foto',
                               style: const TextStyle(
@@ -1185,7 +1463,7 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'Format JPG, PNG, atau WEBP · Maks. 2 MB',
+                        'Format PNG atau JPG (bisa crop) · Maks. 3 MB',
                         style: TextStyle(
                           fontSize: 11.5,
                           color: Color(0xFF475569),
@@ -1196,7 +1474,67 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
+
+            // Quick-Pick Mentor Thematic Avatars
+            const Text(
+              'Atau pilih cepat avatar tematik mentor:',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.secondarySlate,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 52,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: UserAvatarHelper.mentorPresets.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final preset = UserAvatarHelper.mentorPresets[index];
+                  final isSelected =
+                      _pickedAvatarBytes == null &&
+                      !_removeAvatar &&
+                      _selectedPresetAvatarId == preset.id;
+                  return GestureDetector(
+                    onTap: _isSaving
+                        ? null
+                        : () {
+                            setState(() {
+                              _selectedPresetAvatarId = preset.id;
+                              _pickedAvatarBytes = null;
+                              _pickedAvatarName = null;
+                              _removeAvatar = false;
+                              _errorMessage = null;
+                            });
+                          },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 160),
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: preset.bgColor,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primaryNavy
+                              : preset.primaryColor.withValues(alpha: 0.3),
+                          width: isSelected ? 2.4 : 1.2,
+                        ),
+                      ),
+                      child: Icon(
+                        preset.icon,
+                        size: 22,
+                        color: preset.primaryColor,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
 
             _buildLabeledInput(
               label: 'Nama Lengkap',
@@ -1340,13 +1678,11 @@ class _ProfileServiceCard extends StatelessWidget {
     required this.title,
     required this.duration,
     required this.price,
-    this.tags = const [],
   });
 
   final String title;
   final String duration;
   final String price;
-  final List<String> tags;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -1395,32 +1731,6 @@ class _ProfileServiceCard extends StatelessWidget {
         Text(
           duration,
           style: const TextStyle(color: AppColors.secondarySlate, fontSize: 12),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: [
-            for (final tag in tags)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  tag,
-                  style: const TextStyle(
-                    color: AppColors.primaryNavy,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11.5,
-                  ),
-                ),
-              ),
-          ],
         ),
       ],
     ),
@@ -1495,14 +1805,16 @@ class _ReviewCard extends StatelessWidget {
                       fontSize: 14.5,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    date,
-                    style: const TextStyle(
-                      color: AppColors.secondarySlate,
-                      fontSize: 12,
+                  if (date.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      date,
+                      style: const TextStyle(
+                        color: AppColors.secondarySlate,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -1520,15 +1832,17 @@ class _ReviewCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        Text(
-          review,
-          style: const TextStyle(
-            color: Color(0xFF334155),
-            fontSize: 13,
-            height: 1.45,
+        if (review.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            review,
+            style: const TextStyle(
+              color: Color(0xFF334155),
+              fontSize: 13,
+              height: 1.45,
+            ),
           ),
-        ),
+        ],
       ],
     ),
   );

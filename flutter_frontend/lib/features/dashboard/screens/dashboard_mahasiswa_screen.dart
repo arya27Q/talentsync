@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
-import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
 import 'package:flutter_frontend/core/widgets/in_app_guide_section.dart';
 import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 import 'package:flutter_frontend/features/dashboard/data/student_dashboard_api.dart';
 
 class DashboardMahasiswaScreen extends StatefulWidget {
@@ -16,10 +16,10 @@ class DashboardMahasiswaScreen extends StatefulWidget {
 
   @override
   State<DashboardMahasiswaScreen> createState() =>
-      _DashboardMahasiswaScreenState();
+      DashboardMahasiswaScreenState();
 }
 
-class _DashboardMahasiswaScreenState extends State<DashboardMahasiswaScreen> {
+class DashboardMahasiswaScreenState extends State<DashboardMahasiswaScreen> {
   late final StudentDashboardApi _api =
       widget.dashboardApi ?? StudentDashboardApi.instance;
   late Future<Map<String, dynamic>> _dashboardFuture;
@@ -29,6 +29,8 @@ class _DashboardMahasiswaScreenState extends State<DashboardMahasiswaScreen> {
     super.initState();
     _dashboardFuture = _api.dashboard();
   }
+
+  Future<void> reload() => _reload();
 
   Future<void> _reload() async {
     final future = _api.dashboard();
@@ -385,7 +387,7 @@ class _DashboardMahasiswaScreenState extends State<DashboardMahasiswaScreen> {
         .toList();
 
     final name = (user['name'] as String?) ?? 'Mahasiswa';
-    final avatarUrl = ApiClient.resolveMediaUrl(user['avatar_url'] as String?);
+    final rawAvatarUrl = user['avatar_url'] as String?;
     final initial = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : 'M';
     final balanceTc = (wallet['balance_tc'] as num?)?.toInt() ?? 0;
     final estimatedIdr = (wallet['estimated_idr'] as num?)?.toInt() ?? balanceTc * 1000;
@@ -419,42 +421,25 @@ class _DashboardMahasiswaScreenState extends State<DashboardMahasiswaScreen> {
                   Expanded(
                     child: Row(
                       children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryNavy,
-                            borderRadius: BorderRadius.circular(14),
+                        InkWell(
+                          onTap: () async {
+                            final changed = await Navigator.pushNamed(
+                              context,
+                              AppRoutes.editProfile,
+                            );
+                            if (changed == true && mounted) {
+                              _reload();
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(14),
+                          child: UserAvatarHelper.buildAvatarWidget(
+                            avatarUrl: rawAvatarUrl,
+                            size: 44,
+                            borderRadius: 14,
+                            initial: initial,
+                            fallbackBgColor: AppColors.primaryNavy,
+                            fallbackTextColor: Colors.white,
                           ),
-                          clipBehavior: Clip.antiAlias,
-                          child: avatarUrl != null
-                              ? Image.network(
-                                  avatarUrl,
-                                  width: 44,
-                                  height: 44,
-                                  cacheWidth: 132,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, _, _) => Center(
-                                    child: Text(
-                                      initial,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : Center(
-                                  child: Text(
-                                    initial,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(

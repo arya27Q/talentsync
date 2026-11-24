@@ -944,8 +944,9 @@ class _MsmePostingsScreenState extends State<MsmePostingsScreen> {
                           await Navigator.push<void>(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const MsmeReviewSubmissionScreen(),
+                              builder: (context) => MsmeReviewSubmissionScreen(
+                                projectId: pId,
+                              ),
                             ),
                           );
                           _loadProjects();

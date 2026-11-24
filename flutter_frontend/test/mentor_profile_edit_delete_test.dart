@@ -7,12 +7,73 @@ import 'package:flutter_frontend/features/mentor/data/mentor_api.dart';
 import 'package:flutter_frontend/features/mentor/screens/mentor_profile_screen.dart';
 
 final Uint8List _validPng1x1 = Uint8List.fromList(<int>[
-  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
-  0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-  0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
-  0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-  0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
-  0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0A,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82,
 ]);
 
 class _FakeMentorApi extends MentorApi {
@@ -86,26 +147,22 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Edit Profil Mentor'), findsOneWidget);
 
-      // 3. Rejects invalid non-image extension
+      // 3. Rejects invalid non-PNG/JPG extensions (PDF, WEBP)
       nextAvatar = PickedAvatarFile(
         name: 'dokumen.pdf',
-        bytes: Uint8List.fromList(<int>[1, 2, 3]),
+        bytes: Uint8List.fromList(<int>[0x25, 0x50, 0x44, 0x46]),
       );
       await tester.tap(find.text('Pilih Foto'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Format foto harus JPG, PNG, atau WEBP.'),
-        findsOneWidget,
-      );
+      expect(find.text('Format foto harus PNG atau JPG.'), findsOneWidget);
 
-      // 4. Rejects oversized photo > 2 MB
-      nextAvatar = PickedAvatarFile(
-        name: 'besar.png',
-        bytes: Uint8List(2 * 1024 * 1024 + 100),
-      );
+      // 4. Rejects oversized photo > 3 MB
+      final bigPng = Uint8List(3 * 1024 * 1024 + 100);
+      bigPng.setRange(0, _validPng1x1.length, _validPng1x1);
+      nextAvatar = PickedAvatarFile(name: 'besar.png', bytes: bigPng);
       await tester.tap(find.text('Pilih Foto'));
       await tester.pumpAndSettle();
-      expect(find.text('Ukuran foto profil maksimal 2 MB.'), findsOneWidget);
+      expect(find.text('Ukuran foto profil maksimal 3 MB.'), findsOneWidget);
 
       // 5. Accepts valid PNG image, edits name & headline, and saves
       nextAvatar = PickedAvatarFile(name: 'avatar.png', bytes: _validPng1x1);

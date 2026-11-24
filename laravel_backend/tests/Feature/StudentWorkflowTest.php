@@ -214,13 +214,17 @@ class StudentWorkflowTest extends TestCase
             ->assertJsonStructure(['data' => ['balance_tc', 'voucher' => ['voucher_code', 'qr_payload']]]);
     }
 
-    public function test_switch_to_mentor_enforces_five_completed_projects_and_switches_roles_cleanly(): void
+    public function test_switch_to_mentor_enforces_three_pillars_and_switches_roles_cleanly(): void
     {
         $newStudent = $this->makeStudent('24051214088', 'baru@mhs.unesa.ac.id');
         $this->actingAs($newStudent, 'sanctum')
             ->getJson('/api/student/mentor-eligibility')
             ->assertOk()
-            ->assertJsonPath('data.is_eligible', false);
+            ->assertJsonPath('data.is_eligible', false)
+            ->assertJsonPath('data.min_projects_required', 20)
+            ->assertJsonPath('data.min_rating_required', 4.8)
+            ->assertJsonPath('data.min_partner_endorsements', 3)
+            ->assertJsonPath('data.min_external_certs', 1);
 
         $this->actingAs($newStudent, 'sanctum')
             ->postJson('/api/student/switch-to-mentor', ['teaching_skills' => ['Flutter']])
@@ -232,7 +236,8 @@ class StudentWorkflowTest extends TestCase
         $this->actingAs($eligibleStudent, 'sanctum')
             ->getJson('/api/student/mentor-eligibility')
             ->assertOk()
-            ->assertJsonPath('data.is_eligible', true);
+            ->assertJsonPath('data.is_eligible', true)
+            ->assertJsonPath('data.completed_projects_count', 20);
 
         $this->actingAs($eligibleStudent, 'sanctum')
             ->postJson('/api/student/switch-to-mentor', [
@@ -243,10 +248,15 @@ class StudentWorkflowTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.active_role', 'mentor');
 
-        // Can access mentor dashboard now and switch back to student anytime
+        // Can access mentor dashboard & profile (with dual-role flag) and switch back to student anytime
         $this->actingAs($eligibleStudent->fresh(), 'sanctum')
             ->getJson('/api/mentoring/mentor/dashboard')
             ->assertOk();
+
+        $this->actingAs($eligibleStudent->fresh(), 'sanctum')
+            ->getJson('/api/mentoring/mentor/profile')
+            ->assertOk()
+            ->assertJsonPath('data.has_student_role', true);
 
         $this->actingAs($eligibleStudent->fresh(), 'sanctum')
             ->postJson('/api/auth/switch-role', ['role' => 'student'])

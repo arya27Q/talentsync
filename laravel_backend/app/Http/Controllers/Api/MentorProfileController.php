@@ -23,16 +23,79 @@ class MentorProfileController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
+        $user = $request->user();
         $profile = MentorProfile::firstOrCreate(
-            ['user_id' => $request->user()->id],
+            ['user_id' => $user->id],
             ['verification_status' => 'approved'],
         );
 
+        $classes = MentoringClass::query()
+            ->where('mentor_id', $user->id)
+            ->withCount('enrollments')
+            ->latest('id')
+            ->get();
+        $classIds = $classes->pluck('id');
+
+        $completedEnrollments = $classIds->isEmpty()
+            ? collect()
+            : MentoringEnrollment::query()
+                ->with('mentoringClass:id,duration_minutes')
+                ->whereIn('class_id', $classIds)
+                ->where('status', 'completed')
+                ->get();
+
+        $totalMinutes = $completedEnrollments->sum(
+            fn (MentoringEnrollment $e) => (int) ($e->mentoringClass?->duration_minutes ?? 60),
+        );
+        $teachingHours = $totalMinutes > 0 ? (int) round($totalMinutes / 60) : 0;
+
+        $studentsCount = $classIds->isEmpty()
+            ? 0
+            : MentoringEnrollment::query()
+                ->whereIn('class_id', $classIds)
+                ->whereIn('status', ['accepted', 'attended', 'pending_confirmation', 'completed'])
+                ->distinct('student_id')
+                ->count('student_id');
+
+        $reviews = Review::query()
+            ->with('reviewer:id,name')
+            ->where('reviewee_id', $user->id)
+            ->latest('id')
+            ->take(10)
+            ->get();
+
+        $avgRating = $reviews->isNotEmpty()
+            ? round((float) $reviews->avg('rating'), 1)
+            : (float) ($profile->rating_average ?? 0);
+
         return response()->json([
             'status' => 'success',
-            'data' => MentoringPresenter::mentorProfile(
-                $profile->loadMissing('user:id,name,email'),
-            ),
+            'data' => [
+                ...MentoringPresenter::mentorProfile(
+                    $profile->loadMissing('user:id,name,email'),
+                ),
+                'roles' => $user->roles()->pluck('name')->values()->all(),
+                'has_student_role' => $user->hasAssignedRole('student'),
+                'rating_average' => $avgRating,
+                'teaching_hours' => $teachingHours,
+                'students_count' => $studentsCount,
+                'classes' => $classes->map(fn (MentoringClass $c) => [
+                    'id' => $c->id,
+                    'topic' => $c->topic,
+                    'description' => $c->description,
+                    'duration_minutes' => $c->duration_minutes,
+                    'price_tc' => $c->price_tc,
+                    'enrolled_count' => (int) ($c->enrollments_count ?? 0),
+                    'status' => $c->status,
+                ])->values(),
+                'reviews' => $reviews->map(fn (Review $r) => [
+                    'id' => $r->id,
+                    'reviewer_name' => $r->reviewer?->name ?? 'Mahasiswa',
+                    'rating' => (int) $r->rating,
+                    'review_text' => $r->review_text ?? '',
+                    'created_at' => $r->created_at?->translatedFormat('d M Y') ?? '',
+                ])->values(),
+            ],
         ]);
     }
 
@@ -43,15 +106,16 @@ class MentorProfileController extends Controller
             'title_headline' => ['sometimes', 'nullable', 'string', 'max:150'],
             'bio' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'hourly_rate_tc' => ['sometimes', 'integer', 'min:1', 'max:100000'],
-            'avatar_file' => ['sometimes', File::image()->max(2 * 1024)],
+            'avatar_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png'])->max(3 * 1024)],
+            'avatar_url' => ['sometimes', 'nullable', 'string', 'max:2048'],
             'remove_avatar' => ['sometimes', 'boolean'],
             'cv_file' => ['sometimes', File::types(['pdf'])->max(5 * 1024)],
             'verification_document_url' => ['sometimes', 'url', 'max:2048'],
             'portfolio_url' => ['sometimes', 'url', 'max:2048'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
-            'avatar_file.image' => 'Foto profil harus berupa berkas gambar (JPG, PNG, WEBP).',
-            'avatar_file.max' => 'Ukuran foto profil maksimal 2 MB.',
+            'avatar_file.mimes' => 'Format foto profil hanya mendukung PNG atau JPG/JPEG.',
+            'avatar_file.max' => 'Ukuran foto profil maksimal 3 MB.',
             'cv_file.mimes' => 'Format CV harus berupa berkas PDF.',
             'cv_file.max' => 'Ukuran berkas CV maksimal 5 MB.',
         ]);
@@ -75,6 +139,10 @@ class MentorProfileController extends Controller
         } elseif ($request->boolean('remove_avatar')) {
             $data['avatar_url'] = null;
             if ($oldAvatar = $this->publicDiskPath($profile->avatar_url)) {
+                $filesToDeleteAfterSave[] = $oldAvatar;
+            }
+        } elseif (array_key_exists('avatar_url', $data)) {
+            if ($data['avatar_url'] !== $profile->avatar_url && ($oldAvatar = $this->publicDiskPath($profile->avatar_url))) {
                 $filesToDeleteAfterSave[] = $oldAvatar;
             }
         }

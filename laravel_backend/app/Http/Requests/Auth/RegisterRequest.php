@@ -23,8 +23,8 @@ class RegisterRequest extends FormRequest
             'major' => ['required_if:role,student', 'nullable', 'string', 'max:100'],
             'student_id_number' => ['required_if:role,student', 'nullable', 'string', 'max:50', 'unique:student_profiles,student_id_number'],
             'ktm_document_url' => ['nullable', 'url', 'max:2048'],
-            'ktm_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png', 'webp', 'pdf'])->max(5 * 1024)],
-            'avatar_file' => ['sometimes', File::image()->max(3 * 1024)],
+            'ktm_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png', 'pdf'])->max(5 * 1024)],
+            'avatar_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png'])->max(3 * 1024)],
             'avatar_url' => ['nullable', 'string', 'max:2048'],
             'cohort_year' => ['nullable', 'string', 'max:20'],
             'bio' => ['nullable', 'string', 'max:2000'],
@@ -37,7 +37,7 @@ class RegisterRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:5000'],
             'nib' => ['nullable', 'string', 'max:50'],
             'business_document_url' => ['nullable', 'url', 'max:2048'],
-            'logo_file' => ['sometimes', File::image()->max(3 * 1024)],
+            'logo_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png'])->max(3 * 1024)],
             'logo_url' => ['nullable', 'string', 'max:2048'],
         ];
     }
@@ -48,6 +48,10 @@ class RegisterRequest extends FormRequest
             'student_id_number.unique' => 'Akun sudah pernah terdaftar. Silakan langsung masuk melalui halaman login.',
             'email.unique' => 'Akun sudah pernah terdaftar. Silakan langsung masuk melalui halaman login.',
             'ktm_file.max' => 'Ukuran dokumen KTM maksimal 5 MB.',
+            'avatar_file.mimes' => 'Format foto profil hanya mendukung PNG atau JPG/JPEG.',
+            'avatar_file.max' => 'Ukuran foto profil maksimal 3 MB.',
+            'logo_file.mimes' => 'Format logo usaha hanya mendukung PNG atau JPG/JPEG.',
+            'logo_file.max' => 'Ukuran logo usaha maksimal 3 MB.',
         ];
     }
 }

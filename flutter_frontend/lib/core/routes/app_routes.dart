@@ -165,7 +165,21 @@ class AppRoutes {
       return const MsmeReviewApplicantsScreen();
     },
     msmeApplicantProfile: (context) => const MsmeApplicantProfileScreen(),
-    msmeReviewSubmission: (context) => const MsmeReviewSubmissionScreen(),
+    msmeReviewSubmission: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map<String, dynamic>) {
+        return MsmeReviewSubmissionScreen(
+          projectId: (args['projectId'] as num?)?.toInt() ??
+              (args['project_id'] as num?)?.toInt(),
+          milestoneId: (args['milestoneId'] as num?)?.toInt() ??
+              (args['milestone_id'] as num?)?.toInt(),
+        );
+      }
+      if (args is int) {
+        return MsmeReviewSubmissionScreen(projectId: args);
+      }
+      return const MsmeReviewSubmissionScreen();
+    },
     msmeChat: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is ProjectRouteArgs) {

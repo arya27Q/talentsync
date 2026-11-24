@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\MentorProfile;
 use App\Models\MentoringClass;
 use App\Models\MentoringEnrollment;
 use App\Models\TimeCoinWallet;
@@ -13,13 +14,18 @@ class MentorDashboardController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $mentorId = $request->user()->id;
+        $user = $request->user();
+        $mentorId = $user->id;
+        $profile = MentorProfile::where('user_id', $mentorId)->first();
         $classIds = MentoringClass::query()->where('mentor_id', $mentorId)->select('id');
         $balance = TimeCoinWallet::where('user_id', $mentorId)->value('balance') ?? 0;
 
         return response()->json([
             'status' => 'success',
             'data' => [
+                'name' => $user->name,
+                'avatar_url' => $profile?->avatar_url,
+                'title_headline' => $profile?->title_headline,
                 'balance_tc' => $balance,
                 'estimated_idr' => $balance * 1000,
                 'new_bookings' => MentoringEnrollment::whereIn('class_id', $classIds)->where('status', 'pending')->count(),

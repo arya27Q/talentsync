@@ -138,4 +138,47 @@ class MsmeApi {
             'feedback': feedback.trim(),
         },
       );
+
+  Future<Map<String, dynamic>> getSubmissions({
+    int? projectId,
+    String status = 'submitted',
+  }) async {
+    final queryParams = <String>[];
+    if (projectId != null) {
+      queryParams.add('project_id=$projectId');
+    }
+    if (status.isNotEmpty) {
+      queryParams.add('status=$status');
+    }
+    final qs = queryParams.isNotEmpty ? '?${queryParams.join('&')}' : '';
+    final response = await _client.get('/msme/submissions$qs');
+    return (response['data'] as Map<String, dynamic>?) ?? const {};
+  }
+
+  Future<Map<String, dynamic>> requestMilestoneRevision(
+    int milestoneId, {
+    required String revisionNotes,
+    bool recommendMentorConsultation = false,
+  }) async =>
+      await _client.post(
+        '/msme/milestones/$milestoneId/revision',
+        body: {
+          'revision_notes': revisionNotes.trim(),
+          'recommend_mentor_consultation': recommendMentorConsultation,
+        },
+      );
+
+  Future<Map<String, dynamic>> approveMilestone(
+    int milestoneId, {
+    int? rating,
+    String? reviewText,
+  }) async =>
+      await _client.post(
+        '/msme/milestones/$milestoneId/approve',
+        body: {
+          'rating': ?rating,
+          if (reviewText != null && reviewText.trim().isNotEmpty)
+            'review_text': reviewText.trim(),
+        },
+      );
 }

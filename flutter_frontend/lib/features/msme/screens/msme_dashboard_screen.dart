@@ -5,6 +5,7 @@ import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
 import 'package:flutter_frontend/core/widgets/in_app_guide_section.dart';
 import 'package:flutter_frontend/features/auth/widgets/msme_logo_modal.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_screen.dart';
@@ -89,8 +90,23 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
         (_dashboardData?['active_projects_count'] as num?)?.toInt() ?? 0;
     final applicantsCount =
         (_dashboardData?['new_applicants_count'] as num?)?.toInt() ?? 0;
-    final completedCount =
-        (_dashboardData?['completed_projects_count'] as num?)?.toInt() ?? 0;
+    final pendingSubmissionsCount =
+        (_dashboardData?['pending_submissions_count'] as num?)?.toInt() ?? 0;
+    final pendingSubmissionPreview =
+        _dashboardData?['pending_submission_preview'] as Map<String, dynamic>?;
+    final recentPostings =
+        ((_dashboardData?['recent_postings'] as List?) ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+    final runningProjects = recentPostings
+        .where(
+          (p) =>
+              p['status'] == 'in_progress' ||
+              p['status'] == 'review' ||
+              p['status'] == 'open',
+        )
+        .take(3)
+        .toList();
     final slotsUsed =
         (_dashboardData?['active_slots_used'] as num?)?.toInt() ??
         (activeCount > 2 ? 2 : activeCount);
@@ -537,19 +553,20 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                       Expanded(
                         child: _buildMetricCard(
                           icon: Icons.rate_review_rounded,
-                          count: '$completedCount',
+                          count: '$pendingSubmissionsCount',
                           label: 'Perlu ditinjau',
                           buttonLabel: 'Tinjau',
                           badgeLabel: 'Tugas',
                           accentColor: const Color(0xFFD97706),
-                          onTap: () {
-                            Navigator.push<void>(
+                          onTap: () async {
+                            await Navigator.push<void>(
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
                                     const MsmeReviewSubmissionScreen(),
                               ),
                             );
+                            _loadDashboard();
                           },
                         ),
                       ),
@@ -617,7 +634,7 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                if (applicantsCount == 0 && completedCount == 0)
+                if (applicantsCount == 0 && pendingSubmissionsCount == 0)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -661,38 +678,45 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                     ),
                   )
                 else ...[
-                  if (completedCount > 0) ...[
+                  if (pendingSubmissionsCount > 0) ...[
                     _buildActionItem(
                       context,
-                      avatarWidget: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFC2410C),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'SP',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
+                      avatarWidget: UserAvatarHelper.buildAvatarWidget(
+                        avatarUrl:
+                            pendingSubmissionPreview?['student_avatar_url']
+                                as String?,
+                        initial:
+                            (pendingSubmissionPreview?['student_name']
+                                as String?) ??
+                            'M',
+                        size: 44,
+                        borderRadius: 14,
                       ),
-                      title: 'Pengajuan hasil tugas mahasiswa',
-                      subtitle: '$completedCount pengajuan siap divalidasi',
+                      title:
+                          (pendingSubmissionPreview?['project_title']
+                              as String?) ??
+                          'Pengajuan hasil tugas mahasiswa',
+                      subtitle: pendingSubmissionPreview != null
+                          ? '${pendingSubmissionPreview['student_name'] ?? 'Mahasiswa'} · $pendingSubmissionsCount tahap siap divalidasi'
+                          : '$pendingSubmissionsCount pengajuan siap divalidasi',
                       buttonLabel: 'Tinjau',
-                      onTap: () {
-                        Navigator.push<void>(
+                      onTap: () async {
+                        await Navigator.push<void>(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                const MsmeReviewSubmissionScreen(),
+                            builder: (context) => MsmeReviewSubmissionScreen(
+                              projectId:
+                                  (pendingSubmissionPreview?['project_id']
+                                          as num?)
+                                      ?.toInt(),
+                              milestoneId:
+                                  (pendingSubmissionPreview?['milestone_id']
+                                          as num?)
+                                      ?.toInt(),
+                            ),
                           ),
                         );
+                        _loadDashboard();
                       },
                     ),
                     const SizedBox(height: 12),
@@ -741,7 +765,7 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                if (activeCount == 0)
+                if (runningProjects.isEmpty)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
@@ -753,7 +777,7 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                     child: Column(
                       children: [
                         const Icon(
-                          Icons.assignment_outlined,
+                          Icons.assignment_rounded,
                           color: AppColors.secondarySlate,
                           size: 32,
                         ),
@@ -802,122 +826,197 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                     ),
                   )
                 else
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.borderSlate),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0F172A).withValues(alpha: 0.03),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                  ...runningProjects.map((proj) {
+                    final projId = (proj['id'] as num?)?.toInt();
+                    final projTitle =
+                        (proj['title'] as String?) ?? 'Proyek UMKM';
+                    final projStatus = (proj['status'] as String?) ?? 'open';
+                    final student =
+                        proj['accepted_student'] as Map<String, dynamic>?;
+                    final studentName =
+                        (student?['name'] as String?) ?? 'Menunggu pelamar';
+                    final studentUniv =
+                        (student?['university'] as String?) ?? '';
+                    final stage = (proj['current_stage'] as num?)?.toInt() ?? 1;
+                    final totalStages =
+                        (proj['total_stages'] as num?)?.toInt() ?? 3;
+                    final pct =
+                        ((proj['progress_percent'] as num?)?.toDouble() ?? 0) /
+                        100.0;
+                    final hasSub = proj['has_pending_submission'] == true;
+                    final appCount =
+                        (proj['applicants_count'] as num?)?.toInt() ?? 0;
+
+                    return Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: hasSub
+                              ? const Color(0xFFFDE68A)
+                              : AppColors.borderSlate,
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE2E8F0),
-                                borderRadius: BorderRadius.circular(14),
-                                image: const DecorationImage(
-                                  image: NetworkImage(
-                                    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=150&q=80',
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF0F172A,
+                            ).withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              student != null
+                                  ? UserAvatarHelper.buildAvatarWidget(
+                                      avatarUrl:
+                                          student['avatar_url'] as String?,
+                                      initial: studentName,
+                                      size: 46,
+                                      borderRadius: 14,
+                                    )
+                                  : Container(
+                                      width: 46,
+                                      height: 46,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFF6FF),
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: const Icon(
+                                        Icons.work_outline_rounded,
+                                        color: AppColors.primaryNavy,
+                                        size: 22,
+                                      ),
+                                    ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () async {
+                                    if (hasSub) {
+                                      await Navigator.push<void>(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              MsmeReviewSubmissionScreen(
+                                                projectId: projId,
+                                              ),
+                                        ),
+                                      );
+                                      _loadDashboard();
+                                    } else {
+                                      widget.onOpenPostings();
+                                    }
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        projTitle,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.darkSlate,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        student != null
+                                            ? '$studentName${studentUniv.isNotEmpty ? ' · $studentUniv' : ''}'
+                                            : 'Lowongan terbuka · $appCount pelamar',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.secondarySlate,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  fit: BoxFit.cover,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Desain Menu Board & Fee...',
-                                    style: TextStyle(
-                                      fontSize: 14.5,
-                                      fontWeight: FontWeight.bold,
+                              if (student != null)
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: AppColors.borderSlate,
+                                    ),
+                                  ),
+                                  child: IconButton(
+                                    padding: EdgeInsets.zero,
+                                    tooltip: 'Pesan',
+                                    onPressed: () {
+                                      Navigator.push<void>(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => MsmeChatScreen(
+                                            projectId: projId,
+                                            studentName: studentName,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(
+                                      Icons.chat_bubble_outline_rounded,
                                       color: AppColors.darkSlate,
+                                      size: 18,
                                     ),
                                   ),
-                                  SizedBox(height: 3),
-                                  Text(
-                                    'Salsa Putri \u00B7 UNESA',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.secondarySlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.borderSlate),
-                              ),
-                              child: IconButton(
-                                padding: EdgeInsets.zero,
-                                tooltip: 'Pesan',
-                                onPressed: () {
-                                  Navigator.push<void>(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const MsmeChatScreen(),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(
-                                  Icons.chat_bubble_outline_rounded,
-                                  color: AppColors.darkSlate,
-                                  size: 18,
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: const LinearProgressIndicator(
-                                  value: 0.33,
-                                  minHeight: 6,
-                                  backgroundColor: Color(0xFFE2E8F0),
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.primaryNavy,
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: projStatus == 'open'
+                                        ? 0.0
+                                        : pct.clamp(0.0, 1.0),
+                                    minHeight: 6,
+                                    backgroundColor: const Color(0xFFE2E8F0),
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                          AppColors.primaryNavy,
+                                        ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 14),
-                            const Text(
-                              'Tahap 1/3',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.darkSlate,
+                              const SizedBox(width: 12),
+                              Text(
+                                projStatus == 'open'
+                                    ? 'Rekrutmen'
+                                    : hasSub
+                                    ? 'Perlu Tinjau ($stage/$totalStages)'
+                                    : 'Tahap $stage/$totalStages',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: hasSub
+                                      ? const Color(0xFFB45309)
+                                      : AppColors.darkSlate,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
 
                 const SizedBox(height: 24),
 

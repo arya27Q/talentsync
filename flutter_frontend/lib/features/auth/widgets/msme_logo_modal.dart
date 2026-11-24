@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 
 /// Definisi preset avatar logo UMKM
 class MsmeAvatarPreset {
@@ -240,39 +241,44 @@ class _MsmeLogoPickerSheetState extends State<MsmeLogoPickerSheet>
   Future<void> _pickImageFromGallery() async {
     try {
       final picked = await FilePicker.pickFile(
-        dialogTitle: 'Pilih Foto Logo Usaha',
-        type: FileType.image,
+        dialogTitle: 'Pilih Foto Logo Usaha (PNG/JPG)',
+        type: FileType.custom,
+        allowedExtensions: UserAvatarHelper.allowedPhotoExtensions,
       );
 
       if (picked == null) return;
       final bytes = await picked.readAsBytes();
 
-      if (bytes.lengthInBytes > 3 * 1024 * 1024) {
+      final validationError = UserAvatarHelper.validatePngJpg(
+        picked.name,
+        bytes,
+      );
+      if (validationError != null) {
         if (!mounted) return;
         AppStatusDialog.showError(
           context,
-          title: 'Ukuran Foto Terlalu Besar',
+          title: 'Berkas Tidak Didukung',
           message:
-              'Ukuran foto maksimal adalah 3 MB. Harap perkecil atau pilih foto yang lebih ringkas.',
+              '$validationError Berkas selain gambar PNG/JPG (seperti PDF atau dokumen lain) tidak diperbolehkan.',
         );
         return;
       }
 
       if (!mounted) return;
 
-      // Buka dialog penyesuaian posisi / crop framing
-      final confirmedBytes = await _showCropFramingDialog(
+      final cropped = await UserAvatarHelper.showCropDialog(
         context,
-        bytes,
-        picked.name,
+        rawBytes: bytes,
+        fileName: picked.name,
+        title: 'Potong & Sesuaikan Logo',
       );
 
-      if (confirmedBytes != null && mounted) {
+      if (cropped != null && mounted) {
         Navigator.pop(
           context,
           MsmeLogoSelectionResult(
-            pickedBytes: confirmedBytes,
-            fileName: picked.name,
+            pickedBytes: cropped.bytes,
+            fileName: cropped.fileName,
           ),
         );
       }
@@ -282,219 +288,11 @@ class _MsmeLogoPickerSheetState extends State<MsmeLogoPickerSheet>
           context,
           title: 'Kesalahan Pemilihan',
           message:
-              'Terjadi kendala saat memilih foto dari galeri. Pastikan izin akses media telah diberikan.',
+              'Terjadi kendala saat memilih foto dari galeri. Pastikan berkas berupa gambar PNG atau JPG.',
         );
       }
     }
   }
-
-  /// Dialog penyesuaian posisi logo / square crop framing interaktif
-  Future<Uint8List?> _showCropFramingDialog(
-    BuildContext context,
-    Uint8List rawBytes,
-    String fileName,
-  ) =>
-      showDialog<Uint8List>(
-        context: context,
-        barrierDismissible: false,
-        barrierColor: const Color(0xFF0F172A).withValues(alpha: 0.75),
-        builder: (dialogCtx) => Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          insetPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: Container(
-            width: double.infinity,
-            constraints: const BoxConstraints(maxWidth: 400),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF0F172A).withValues(alpha: 0.20),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.crop_rounded,
-                          size: 20,
-                          color: AppColors.primaryNavy,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Sesuaikan Posisi Logo',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.darkSlate,
-                              ),
-                            ),
-                            Text(
-                              'Cubit atau geser untuk memposisikan logo',
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                color: AppColors.secondarySlate,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1, color: AppColors.borderSlate),
-
-                // Interactive Crop Viewport Frame
-                Container(
-                  margin: const EdgeInsets.all(20),
-                  height: 250,
-                  width: 250,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppColors.primaryNavy,
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryNavy.withValues(alpha: 0.15),
-                        blurRadius: 16,
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        InteractiveViewer(
-                          minScale: 0.8,
-                          maxScale: 3.5,
-                          boundaryMargin: const EdgeInsets.all(40),
-                          child: Center(
-                            child: Image.memory(
-                              rawBytes,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                        // Corner Guides Overlay
-                        IgnorePointer(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.4),
-                                width: 1.2,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // File name & Tip
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.check_circle_outline_rounded,
-                        size: 15,
-                        color: Color(0xFF10B981),
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          fileName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.darkSlate,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Action Buttons
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(dialogCtx),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.secondarySlate,
-                            side: const BorderSide(color: AppColors.borderSlate),
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: const Text(
-                            'Ganti Foto',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(dialogCtx, rawBytes),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryNavy,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: const Text(
-                            'Gunakan Foto',
-                            style: TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
 
   @override
   Widget build(BuildContext context) => Container(

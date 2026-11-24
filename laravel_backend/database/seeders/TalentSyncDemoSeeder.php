@@ -69,7 +69,7 @@ class TalentSyncDemoSeeder extends Seeder
                 ],
                 'github_last_synced_at' => now()->subMinutes(5),
                 'is_mentor_eligible' => true,
-                'completed_projects_count' => 5,
+                'completed_projects_count' => 20,
                 'total_contribution_hours' => 96,
                 'rating_average' => 4.90,
             ],

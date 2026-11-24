@@ -134,13 +134,15 @@ class AuthController extends Controller
             'hourly_rate_tc' => ['sometimes', 'integer', 'min:1', 'max:100000'],
             'cv_file' => ['required', File::types(['pdf'])->max(5 * 1024)],
             'portfolio_url' => ['required', 'url', 'max:2048'],
-            'avatar_file' => ['sometimes', File::image()->max(3 * 1024)],
+            'avatar_file' => ['sometimes', File::types(['jpg', 'jpeg', 'png'])->max(3 * 1024)],
             'avatar_url' => ['nullable', 'string', 'max:2048'],
         ], [
             'email.unique' => 'Akun sudah pernah terdaftar. Silakan langsung masuk melalui halaman login.',
             'cv_file.required' => 'CV dalam format PDF wajib diunggah.',
             'cv_file.mimes' => 'Format CV harus berupa berkas PDF.',
             'cv_file.max' => 'Ukuran berkas CV maksimal 5 MB.',
+            'avatar_file.mimes' => 'Format foto profil hanya mendukung PNG atau JPG/JPEG.',
+            'avatar_file.max' => 'Ukuran foto profil maksimal 3 MB.',
         ]);
 
         $cvPath = $request->file('cv_file')->store('mentor-cvs', 'public');

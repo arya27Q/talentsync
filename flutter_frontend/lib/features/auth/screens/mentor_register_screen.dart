@@ -222,13 +222,12 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
   Future<void> _submitRegistration() async {
     if (_isSubmitting || _isUploadingFile) return;
     if (!_agreedToEthics) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
+      AppStatusDialog.showError(
+        context,
+        title: 'Persetujuan Diperlukan',
+        message:
             'Harap centang persetujuan kode etik bimbingan terlebih dahulu.',
-          ),
-          backgroundColor: AppColors.darkSlate,
-        ),
+        buttonText: 'Mengerti',
       );
       return;
     }

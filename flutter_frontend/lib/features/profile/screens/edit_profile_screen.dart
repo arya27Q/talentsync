@@ -1,10 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 import 'package:flutter_frontend/features/profile/data/student_profile_api.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -35,9 +36,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
   String? _error;
+
   String? _avatarUrl;
+  String? _selectedPresetAvatarId;
   String? _pickedAvatarName;
   Uint8List? _pickedAvatarBytes;
+  bool _removeAvatar = false;
+
+  bool get _hasAnyAvatar =>
+      _pickedAvatarBytes != null ||
+      _selectedPresetAvatarId != null ||
+      (!_removeAvatar && _avatarUrl != null && _avatarUrl!.trim().isNotEmpty);
 
   @override
   void initState() {
@@ -73,7 +82,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _bioCtrl.text = (profile['bio'] as String?) ?? '';
       _linkedInCtrl.text = (profile['linkedin_url'] as String?) ?? '';
       _gitHubCtrl.text = (profile['github_username'] as String?) ?? '';
-      _avatarUrl = ApiClient.resolveMediaUrl(profile['avatar_url'] as String?);
+      final rawAvatar = profile['avatar_url'] as String?;
+      _avatarUrl = rawAvatar;
+      _selectedPresetAvatarId =
+          (rawAvatar != null && rawAvatar.startsWith('avatar:'))
+          ? rawAvatar
+          : null;
+      _removeAvatar = false;
       _isPublicProfile = profile['is_public_profile'] != false;
       _isOpenForProjects = profile['is_open_for_projects'] != false;
 
@@ -104,25 +119,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Future<void> _pickAvatar() async {
-    try {
-      final file = await FilePicker.pickFile(
-        dialogTitle: 'Pilih Foto Profil',
-        type: FileType.image,
-      );
-      if (file == null) return;
-      final bytes = await file.readAsBytes();
-      if (bytes.lengthInBytes > 2 * 1024 * 1024) {
-        _showSnack('Ukuran foto maksimal 2 MB.', isError: true);
-        return;
+  Future<void> _openAvatarModal() async {
+    final result = await UserAvatarPickerSheet.show(
+      context,
+      role: UserAvatarRole.student,
+      currentPresetId: _selectedPresetAvatarId,
+      hasExistingPhoto: _hasAnyAvatar,
+    );
+    if (result == null || !mounted) return;
+
+    setState(() {
+      if (result.isCleared) {
+        _pickedAvatarBytes = null;
+        _pickedAvatarName = null;
+        _selectedPresetAvatarId = null;
+        _removeAvatar = true;
+      } else if (result.pickedBytes != null) {
+        _pickedAvatarBytes = result.pickedBytes;
+        _pickedAvatarName = result.fileName;
+        _selectedPresetAvatarId = null;
+        _removeAvatar = false;
+      } else if (result.presetAvatarId != null) {
+        _selectedPresetAvatarId = result.presetAvatarId;
+        _pickedAvatarBytes = null;
+        _pickedAvatarName = null;
+        _removeAvatar = false;
       }
-      setState(() {
-        _pickedAvatarName = file.name;
-        _pickedAvatarBytes = bytes;
-      });
-    } catch (_) {
-      _showSnack('Gagal memilih foto profil.', isError: true);
-    }
+    });
   }
 
   void _addSkill() {
@@ -139,9 +162,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_nameCtrl.text.trim().isEmpty ||
         _universityCtrl.text.trim().isEmpty ||
         _majorCtrl.text.trim().isEmpty) {
-      _showSnack(
-        'Nama, universitas, dan program studi wajib diisi.',
-        isError: true,
+      await AppStatusDialog.showError(
+        context,
+        title: 'Data Belum Lengkap',
+        message: 'Nama lengkap, universitas, dan program studi wajib diisi.',
+        buttonText: 'Lengkapi Data',
       );
       return;
     }
@@ -159,6 +184,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'is_public_profile': _isPublicProfile,
         'is_open_for_projects': _isOpenForProjects,
         'skills': _skills,
+        if (_removeAvatar && _pickedAvatarBytes == null) 'remove_avatar': true,
+        if (_selectedPresetAvatarId != null && _pickedAvatarBytes == null)
+          'avatar_url': _selectedPresetAvatarId,
       };
       final updated = await _api.updateProfile(
         body,
@@ -167,34 +195,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         fileBytes: _pickedAvatarBytes,
       );
       await ApiClient.instance.updateSessionUser({
-        'name': updated['name'],
-        if (updated['avatar_url'] != null) 'avatar_url': updated['avatar_url'],
+        'name': updated['name'] ?? _nameCtrl.text.trim(),
+        'avatar_url': updated['avatar_url'],
         if (updated['university'] != null) 'university': updated['university'],
         if (updated['major'] != null) 'major': updated['major'],
       });
       if (!mounted) return;
-      _showSnack('Profil mahasiswa berhasil disimpan.');
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Profil Tersimpan!',
+        message: 'Perubahan profil dan foto/avatar mahasiswa Anda berhasil disimpan ke database.',
+        buttonText: 'Kembali ke Profil',
+      );
+      if (!mounted) return;
       Navigator.pop(context, true);
     } on ApiException catch (e) {
-      _showSnack(e.message, isError: true);
+      if (!mounted) return;
+      await AppStatusDialog.showError(
+        context,
+        title: 'Gagal Menyimpan Profil',
+        message: e.message,
+        buttonText: 'Coba Lagi',
+      );
     } catch (_) {
-      _showSnack('Gagal menyimpan perubahan profil.', isError: true);
+      if (!mounted) return;
+      await AppStatusDialog.showError(
+        context,
+        title: 'Kendala Koneksi',
+        message: 'Gagal menyimpan perubahan profil. Coba lagi.',
+        buttonText: 'Mengerti',
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
-  }
-
-  void _showSnack(String message, {bool isError = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError
-            ? const Color(0xFFB91C1C)
-            : AppColors.primaryNavy,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
   }
 
   @override
@@ -318,97 +351,161 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Widget _buildAvatarPicker() {
     final displayName = _nameCtrl.text.trim();
+    final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'M';
+    final effectiveUrl = _removeAvatar
+        ? null
+        : (_selectedPresetAvatarId ?? _avatarUrl);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderSlate),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              width: 60,
-              height: 60,
-              color: AppColors.lightBlueSurface,
-              child: _pickedAvatarBytes != null
-                  ? Image.memory(
-                      _pickedAvatarBytes!,
-                      width: 60,
-                      height: 60,
-                      cacheWidth: 160,
-                      fit: BoxFit.cover,
-                    )
-                  : _avatarUrl != null && _avatarUrl!.isNotEmpty
-                  ? Image.network(
-                      _avatarUrl!,
-                      width: 60,
-                      height: 60,
-                      cacheWidth: 160,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Center(
-                        child: Text(
-                          displayName.isNotEmpty
-                              ? displayName[0].toUpperCase()
-                              : 'M',
+          Row(
+            children: [
+              GestureDetector(
+                onTap: _openAvatarModal,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    UserAvatarHelper.buildAvatarWidget(
+                      avatarUrl: effectiveUrl,
+                      avatarBytes: _pickedAvatarBytes,
+                      size: 68,
+                      borderRadius: 18,
+                      initial: initial,
+                    ),
+                    Positioned(
+                      right: -4,
+                      bottom: -4,
+                      child: Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryNavy,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_rounded,
+                          size: 13,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Foto & Avatar Profil',
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Unggah PNG/JPG (bisa crop) atau pilih avatar tematik',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.secondarySlate,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 40,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primaryNavy,
+                          side: const BorderSide(color: AppColors.primaryNavy),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _openAvatarModal,
+                        icon: const Icon(Icons.crop_rounded, size: 16),
+                        label: Text(
+                          _pickedAvatarName != null
+                              ? 'Ganti Foto Terpilih'
+                              : 'Unggah & Potong Foto',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryNavy,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12.5,
                           ),
                         ),
                       ),
-                    )
-                  : Center(
-                      child: Text(
-                        displayName.isNotEmpty
-                            ? displayName[0].toUpperCase()
-                            : 'M',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryNavy,
-                        ),
-                      ),
                     ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Atau pilih cepat avatar tematik:',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.secondarySlate,
             ),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Foto Profil Publik',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkSlate,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                SizedBox(
-                  height: 44,
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryNavy,
-                      side: const BorderSide(color: AppColors.primaryNavy),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 54,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: UserAvatarHelper.studentPresets.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final preset = UserAvatarHelper.studentPresets[index];
+                final isSelected =
+                    _pickedAvatarBytes == null &&
+                    !_removeAvatar &&
+                    _selectedPresetAvatarId == preset.id;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedPresetAvatarId = preset.id;
+                      _pickedAvatarBytes = null;
+                      _pickedAvatarName = null;
+                      _removeAvatar = false;
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: preset.bgColor,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primaryNavy
+                            : preset.primaryColor.withValues(alpha: 0.3),
+                        width: isSelected ? 2.4 : 1.2,
                       ),
                     ),
-                    onPressed: _pickAvatar,
-                    icon: const Icon(Icons.photo_camera_rounded, size: 17),
-                    label: Text(
-                      _pickedAvatarName ?? 'Ganti Foto',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: Icon(
+                      preset.icon,
+                      size: 24,
+                      color: preset.primaryColor,
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         ],
