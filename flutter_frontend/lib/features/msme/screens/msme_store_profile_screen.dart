@@ -89,7 +89,9 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
             ),
             onPressed: () async {
               Navigator.pop(dialogContext);
-              await _authApi.logout();
+              try {
+                await _authApi.logout();
+              } catch (_) {}
               if (!context.mounted) return;
               Navigator.pushNamedAndRemoveUntil(
                 context,

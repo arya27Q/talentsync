@@ -60,6 +60,7 @@ import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_sc
 import 'package:flutter_frontend/features/msme/screens/msme_applicant_profile_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_inbox_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_barter_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_upgrade_pro_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_store_profile_screen.dart';
@@ -88,6 +89,7 @@ class AppRoutes {
   static const String msmeApplicantProfile = '/msme/applicant-profile';
   static const String msmeReviewSubmission = '/msme/review-submission';
   static const String msmeChat = '/msme/chat';
+  static const String msmeInbox = '/msme/inbox';
   static const String msmeBarter = '/msme/barter';
   static const String msmeUpgradePro = '/msme/upgrade-pro';
   static const String msmeStoreProfile = '/msme/store-profile';
@@ -189,6 +191,8 @@ class AppRoutes {
         return MsmeChatScreen(
           projectId: (args['projectId'] as num?)?.toInt() ??
               (args['project_id'] as num?)?.toInt(),
+          studentId: (args['studentId'] as num?)?.toInt() ??
+              (args['student_id'] as num?)?.toInt(),
           studentName: (args['studentName'] as String?) ?? 'Mahasiswa',
         );
       }
@@ -197,6 +201,7 @@ class AppRoutes {
       }
       return const MsmeChatScreen();
     },
+    msmeInbox: (context) => const MsmeInboxScreen(),
     msmeBarter: (context) => const MsmeBarterScreen(),
     msmeUpgradePro: (context) => const MsmeUpgradeProScreen(),
     msmeStoreProfile: (context) => const MsmeStoreProfileScreen(),

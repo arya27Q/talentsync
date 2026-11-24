@@ -23,12 +23,26 @@ class ProjectWorkflowService
     ) {
     }
 
-    public function apply(User $student, Project $project, array $data): ProjectApplication
+    public function apply(User $student, Project $project, array $data, ?UploadedFile $cvFile = null): ProjectApplication
     {
         abort_unless($project->status === 'open', 409, 'Lowongan proyek ini sudah ditutup atau sedang dikerjakan.');
 
         $check = $this->eligibility->projectApplicationEligibility($student, $project);
-        abort_unless($check['can_apply'], 403, $check['reason']);
+        $linkedinUrl = isset($data['linkedin_url']) ? trim((string) $data['linkedin_url']) : '';
+        $cvUrlInput = isset($data['cv_url']) ? trim((string) $data['cv_url']) : '';
+        $githubUrl = isset($data['github_url']) ? trim((string) $data['github_url']) : '';
+
+        $hasExternalCredentials = $linkedinUrl !== '' && ($cvUrlInput !== '' || $cvFile !== null);
+
+        if ($project->requires_endorsement) {
+            abort_unless($check['can_apply'], 403, $check['reason']);
+        } else {
+            abort_unless(
+                $check['can_apply'] || $hasExternalCredentials,
+                403,
+                'Wajib memiliki Portofolio Terverifikasi, Badge Rekomendasi Mentor, atau melampirkan tautan LinkedIn dan CV sebelum melamar proyek UMKM.',
+            );
+        }
 
         $portfolioIds = $data['portfolio_ids'] ?? [];
         if ($portfolioIds !== []) {
@@ -38,10 +52,67 @@ class ProjectWorkflowService
             abort_if($ownedCount !== count(array_unique($portfolioIds)), 422, 'Portofolio yang dipilih tidak valid.');
         }
 
+        $storedCvPath = null;
+        $cvUrl = $cvUrlInput !== '' ? $cvUrlInput : null;
+        $cvFileName = null;
+        if ($cvFile !== null) {
+            $storedCvPath = $cvFile->store('application-cvs', 'public');
+            $cvUrl = Storage::disk('public')->url($storedCvPath);
+            $cvFileName = $cvFile->getClientOriginalName();
+        }
+
+        $isReapplication = false;
         try {
-            $application = DB::transaction(function () use ($student, $project, $data, $portfolioIds, $check) {
+            $application = DB::transaction(function () use (
+                $student,
+                $project,
+                $data,
+                $portfolioIds,
+                $check,
+                $linkedinUrl,
+                $cvUrl,
+                $cvFileName,
+                $githubUrl,
+                &$isReapplication,
+            ) {
                 $lockedProject = Project::query()->lockForUpdate()->findOrFail($project->id);
                 abort_unless($lockedProject->status === 'open', 409, 'Lowongan proyek ini sudah tidak terbuka.');
+
+                if ($linkedinUrl !== '' && $student->studentProfile && empty($student->studentProfile->linkedin_url)) {
+                    $student->studentProfile->update(['linkedin_url' => $linkedinUrl]);
+                }
+
+                $existing = ProjectApplication::where('project_id', $lockedProject->id)
+                    ->where('student_id', $student->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existing !== null) {
+                    if (! in_array($existing->status, ['rejected', 'rejected_referred_mentor'], true)) {
+                        abort(409, 'Anda sudah mengajukan lamaran untuk proyek ini.');
+                    }
+
+                    $isReapplication = true;
+                    $existing->update([
+                        'cover_letter' => $data['cover_letter'],
+                        'portfolio_ids' => array_values(array_unique($portfolioIds)),
+                        'portfolio_link' => $data['portfolio_link'] ?? $existing->portfolio_link,
+                        'linkedin_url' => $linkedinUrl !== '' ? $linkedinUrl : $existing->linkedin_url,
+                        'cv_url' => $cvUrl ?? $existing->cv_url,
+                        'cv_file_name' => $cvFileName ?? $existing->cv_file_name,
+                        'github_url' => $githubUrl !== '' ? $githubUrl : $existing->github_url,
+                        'has_mentor_endorsement_snapshot' => $check['has_mentor_endorsement'],
+                        'timeline_commitment' => $data['timeline_commitment'] ?? $lockedProject->duration_label,
+                        'dedication_hours' => $data['dedication_hours'] ?? '10-15 jam / minggu',
+                        'status' => 'pending',
+                        'rejection_feedback' => null,
+                        'recommended_mentor_id' => null,
+                        'reviewed_at' => null,
+                        'applied_at' => now(),
+                    ]);
+
+                    return $existing->fresh();
+                }
 
                 return ProjectApplication::create([
                     'project_id' => $lockedProject->id,
@@ -49,6 +120,10 @@ class ProjectWorkflowService
                     'cover_letter' => $data['cover_letter'],
                     'portfolio_ids' => array_values(array_unique($portfolioIds)),
                     'portfolio_link' => $data['portfolio_link'] ?? null,
+                    'linkedin_url' => $linkedinUrl !== '' ? $linkedinUrl : null,
+                    'cv_url' => $cvUrl,
+                    'cv_file_name' => $cvFileName,
+                    'github_url' => $githubUrl !== '' ? $githubUrl : null,
                     'has_mentor_endorsement_snapshot' => $check['has_mentor_endorsement'],
                     'timeline_commitment' => $data['timeline_commitment'] ?? $lockedProject->duration_label,
                     'dedication_hours' => $data['dedication_hours'] ?? '10-15 jam / minggu',
@@ -57,17 +132,27 @@ class ProjectWorkflowService
                 ]);
             }, 3);
         } catch (QueryException $exception) {
+            if ($storedCvPath !== null) {
+                Storage::disk('public')->delete($storedCvPath);
+            }
             if (ProjectApplication::where('project_id', $project->id)->where('student_id', $student->id)->exists()) {
                 abort(409, 'Anda sudah mengajukan lamaran untuk proyek ini.');
             }
             throw $exception;
+        } catch (\Throwable $e) {
+            if ($storedCvPath !== null) {
+                Storage::disk('public')->delete($storedCvPath);
+            }
+            throw $e;
         }
 
         $this->notifications->send(
             $project->msme_id,
             'project_application_received',
-            'Pelamar Baru Proyek UMKM',
-            "{$student->name} melamar untuk proyek {$project->title}.",
+            $isReapplication ? 'Lamaran Ulang Proyek UMKM' : 'Pelamar Baru Proyek UMKM',
+            $isReapplication
+                ? "{$student->name} mengajukan lamaran ulang untuk proyek {$project->title}."
+                : "{$student->name} melamar untuk proyek {$project->title}.",
             '/msme/review-applicants',
             ['project_id' => $project->id],
         );
@@ -75,8 +160,10 @@ class ProjectWorkflowService
         $this->notifications->send(
             $student,
             'project_application_submitted',
-            'Lamaran Proyek Terkirim',
-            "Lamaran Anda untuk {$project->title} sedang menunggu kurasi mitra UMKM.",
+            $isReapplication ? 'Lamaran Ulang Terkirim' : 'Lamaran Proyek Terkirim',
+            $isReapplication
+                ? "Lamaran ulang Anda untuk {$project->title} sedang menunggu kurasi mitra UMKM."
+                : "Lamaran Anda untuk {$project->title} sedang menunggu kurasi mitra UMKM.",
             '/my-projects',
             ['project_id' => $project->id],
         );

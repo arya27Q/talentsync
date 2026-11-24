@@ -651,7 +651,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                     ),
                                   )
                                 : const Text(
-                                    'Simpan ke Database',
+                                    'Simpan',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
@@ -735,6 +735,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
     final isBookmarked = p['is_bookmarked'] == true;
     final hasApplied = p['has_applied'] == true;
+    final applicationStatus = (p['application_status'] as String?) ?? '';
+    final canReapply =
+        p['can_reapply'] == true ||
+        ((applicationStatus == 'rejected' ||
+                applicationStatus == 'rejected_referred_mentor') &&
+            (p['status'] as String?) == 'open');
+    final isApplyDisabled = hasApplied && !canReapply;
     final canApply = eligibility['can_apply'] != false;
     final isMsme = (_sessionUser?['role'] as String?)?.toLowerCase() == 'msme';
     final photoUrl = ApiClient.resolveMediaUrl(
@@ -904,7 +911,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                         children: [
                           _metricBox(
                             '${p['reward_tc'] ?? 0} TC',
-                            'Rp${((p['estimated_idr'] as num?)?.toInt() ?? 0)} escrow',
+                            'Rp${((p['estimated_idr'] as num?)?.toInt() ?? 0)}',
                           ),
                           const SizedBox(width: 8),
                           _metricBox(
@@ -1251,30 +1258,56 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   children: [
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.primaryNavy),
+                        side: BorderSide(
+                          color: hasApplied
+                              ? AppColors.primaryNavy
+                              : AppColors.borderSlate,
+                        ),
+                        backgroundColor: hasApplied
+                            ? Colors.white
+                            : const Color(0xFFF8FAFC),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
+                          horizontal: 14,
                           vertical: 14,
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.workspaceChat,
-                        arguments: ProjectRouteArgs(projectId: projectId),
-                      ),
-                      icon: const Icon(
-                        Icons.chat_bubble_outline_rounded,
+                      onPressed: () {
+                        if (!hasApplied) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Lamar proyek ini terlebih dahulu untuk membuka obrolan dengan Mitra UMKM.',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.workspaceChat,
+                          arguments: ProjectRouteArgs(projectId: projectId),
+                        );
+                      },
+                      icon: Icon(
+                        hasApplied
+                            ? Icons.chat_bubble_outline_rounded
+                            : Icons.lock_outline_rounded,
                         size: 18,
-                        color: AppColors.primaryNavy,
+                        color: hasApplied
+                            ? AppColors.primaryNavy
+                            : AppColors.secondarySlate,
                       ),
-                      label: const Text(
+                      label: Text(
                         'Chat UMKM',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primaryNavy,
+                          color: hasApplied
+                              ? AppColors.primaryNavy
+                              : AppColors.secondarySlate,
                         ),
                       ),
                     ),
@@ -1282,7 +1315,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                     Expanded(
                       child: FilledButton(
                         style: FilledButton.styleFrom(
-                          backgroundColor: hasApplied
+                          backgroundColor: isApplyDisabled
                               ? AppColors.secondarySlate
                               : AppColors.primaryNavy,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1290,7 +1323,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        onPressed: hasApplied
+                        onPressed: isApplyDisabled
                             ? null
                             : () => Navigator.pushNamed(
                                 context,
@@ -1300,8 +1333,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 ),
                               ),
                         child: Text(
-                          hasApplied
-                              ? 'Lamaran Sudah Dikirim'
+                          canReapply
+                              ? 'Lamar Ulang Proyek'
+                              : hasApplied
+                              ? (applicationStatus == 'accepted'
+                                    ? 'Lamaran Diterima'
+                                    : 'Lamaran Sudah Dikirim')
                               : 'Lamar Proyek Ini',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,

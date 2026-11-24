@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_frontend/core/network/api_client.dart';
 
 class ProjectApi {
@@ -42,10 +44,45 @@ class ProjectApi {
     required String coverLetter,
     List<int> portfolioIds = const [],
     String? portfolioLink,
+    String? linkedinUrl,
+    String? cvUrl,
+    String? cvFileName,
+    Uint8List? cvFileBytes,
+    String? githubUrl,
     String? timelineCommitment,
     String? dedicationHours,
     bool commitmentAccepted = true,
   }) async {
+    final hasCvFile = cvFileName != null && cvFileBytes != null;
+    if (hasCvFile) {
+      final fields = <String, String>{
+        'cover_letter': coverLetter.trim(),
+        'commitment_accepted': commitmentAccepted ? '1' : '0',
+        if (portfolioLink != null && portfolioLink.trim().isNotEmpty)
+          'portfolio_link': portfolioLink.trim(),
+        if (linkedinUrl != null && linkedinUrl.trim().isNotEmpty)
+          'linkedin_url': linkedinUrl.trim(),
+        if (cvUrl != null && cvUrl.trim().isNotEmpty) 'cv_url': cvUrl.trim(),
+        if (githubUrl != null && githubUrl.trim().isNotEmpty)
+          'github_url': githubUrl.trim(),
+        if (timelineCommitment != null && timelineCommitment.trim().isNotEmpty)
+          'timeline_commitment': timelineCommitment.trim(),
+        if (dedicationHours != null && dedicationHours.trim().isNotEmpty)
+          'dedication_hours': dedicationHours.trim(),
+      };
+      for (var i = 0; i < portfolioIds.length; i++) {
+        fields['portfolio_ids[$i]'] = '${portfolioIds[i]}';
+      }
+      final res = await _client.postMultipart(
+        '/projects/$projectId/apply',
+        fields: fields,
+        fileField: 'cv_file',
+        fileName: cvFileName,
+        fileBytes: cvFileBytes,
+      );
+      return res['data'] as Map<String, dynamic>;
+    }
+
     final res = await _client.post(
       '/projects/$projectId/apply',
       body: {
@@ -53,6 +90,11 @@ class ProjectApi {
         if (portfolioIds.isNotEmpty) 'portfolio_ids': portfolioIds,
         if (portfolioLink != null && portfolioLink.trim().isNotEmpty)
           'portfolio_link': portfolioLink.trim(),
+        if (linkedinUrl != null && linkedinUrl.trim().isNotEmpty)
+          'linkedin_url': linkedinUrl.trim(),
+        if (cvUrl != null && cvUrl.trim().isNotEmpty) 'cv_url': cvUrl.trim(),
+        if (githubUrl != null && githubUrl.trim().isNotEmpty)
+          'github_url': githubUrl.trim(),
         'timeline_commitment': ?timelineCommitment,
         'dedication_hours': ?dedicationHours,
         'commitment_accepted': commitmentAccepted,

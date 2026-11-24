@@ -8,7 +8,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProjectMessage extends Model
 {
     protected $fillable = [
-        'project_id', 'sender_id', 'milestone_id', 'message', 'attachment_url', 'attachment_name', 'read_at',
+        'project_id',
+        'student_id',
+        'sender_id',
+        'milestone_id',
+        'message',
+        'attachment_url',
+        'attachment_name',
+        'read_at',
     ];
 
     protected function casts(): array
@@ -21,6 +28,11 @@ class ProjectMessage extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'student_id');
+    }
+
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
@@ -31,4 +43,3 @@ class ProjectMessage extends Model
         return $this->belongsTo(ProjectMilestone::class, 'milestone_id');
     }
 }
-

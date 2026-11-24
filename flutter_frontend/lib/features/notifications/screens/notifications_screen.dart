@@ -3,6 +3,7 @@ import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
+import 'package:flutter_frontend/core/routes/student_route_args.dart';
 import 'package:flutter_frontend/features/notifications/data/notification_api.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -96,25 +97,147 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     if (!mounted) return;
-    final route = _resolveRoute(item['target_route'] as String?);
-    if (route != null) {
-      Navigator.pushNamed(context, route);
-    }
+    _navigateToTarget(item);
   }
 
-  String? _resolveRoute(String? targetRoute) {
-    if (targetRoute == null || targetRoute.isEmpty) return null;
-    if (_role == 'mentor') {
-      if (targetRoute.contains('wallet')) return AppRoutes.mentorCashOut;
-      return null;
+  void _navigateToTarget(Map<String, dynamic> item) {
+    final targetRoute = (item['target_route'] as String?) ?? '';
+    final rawArgs = item['target_args'];
+    final args = rawArgs is Map<String, dynamic>
+        ? rawArgs
+        : rawArgs is Map
+        ? Map<String, dynamic>.from(rawArgs)
+        : const <String, dynamic>{};
+
+    final projectId = (args['project_id'] as num?)?.toInt();
+    final studentId = (args['student_id'] as num?)?.toInt();
+    final milestoneId = (args['milestone_id'] as num?)?.toInt();
+    final recommendedMentorId =
+        (args['recommended_mentor_id'] as num?)?.toInt() ??
+        (args['mentor_id'] as num?)?.toInt();
+    final enrollmentId = (args['enrollment_id'] as num?)?.toInt();
+
+    if (_role == 'msme') {
+      if (targetRoute.contains('/msme/chat')) {
+        if (projectId != null) {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.msmeChat,
+            arguments: {
+              'project_id': projectId,
+              'student_id': ?studentId,
+            },
+          );
+        } else {
+          Navigator.pushNamed(context, AppRoutes.msmeInbox);
+        }
+        return;
+      }
+      if (targetRoute.contains('/msme/review-applicants')) {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.msmeReviewApplicants,
+          arguments: {'projectId': ?projectId},
+        );
+        return;
+      }
+      if (targetRoute.contains('/msme/review-submission')) {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.msmeReviewSubmission,
+          arguments: {
+            'projectId': ?projectId,
+            'milestoneId': ?milestoneId,
+          },
+        );
+        return;
+      }
+      if (targetRoute.contains('wallet')) {
+        Navigator.pushNamed(context, AppRoutes.msmeBarter);
+        return;
+      }
+      return;
     }
-    if (targetRoute.contains('wallet')) return AppRoutes.wallet;
-    if (targetRoute.contains('certificates')) return AppRoutes.certificates;
-    if (targetRoute.contains('portfolio')) return AppRoutes.portfolio;
-    if (targetRoute.contains('help-support')) return AppRoutes.helpSupport;
-    if (targetRoute.contains('projects')) return AppRoutes.myProjects;
-    if (targetRoute.contains('mentoring')) return AppRoutes.myMentors;
-    return null;
+
+    if (_role == 'mentor') {
+      if (targetRoute.contains('wallet') || targetRoute.contains('cash')) {
+        Navigator.pushNamed(context, AppRoutes.mentorCashOut);
+        return;
+      }
+      return;
+    }
+
+    // Student role deep-links
+    if (recommendedMentorId != null &&
+        (targetRoute.contains('/mentors/profile') ||
+            targetRoute.contains('/mentors'))) {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.mentorProfile,
+        arguments: MentorDetailArgs(mentorId: recommendedMentorId),
+      );
+      return;
+    }
+    if (targetRoute == '/mentors' || targetRoute.contains('find-mentors')) {
+      Navigator.pushNamed(context, AppRoutes.findMentors);
+      return;
+    }
+    if (targetRoute.contains('/workspace/chat')) {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.workspaceChat,
+        arguments: ProjectRouteArgs(projectId: projectId),
+      );
+      return;
+    }
+    if (targetRoute.contains('/workspace/kanban')) {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.workspaceKanban,
+        arguments: ProjectRouteArgs(projectId: projectId),
+      );
+      return;
+    }
+    if (targetRoute.contains('/workspace/submission')) {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.submission,
+        arguments: ProjectRouteArgs(projectId: projectId),
+      );
+      return;
+    }
+    if (targetRoute.contains('mentoring') && enrollmentId != null) {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.mentorChat,
+        arguments: MentoringEnrollmentArgs(enrollmentId: enrollmentId),
+      );
+      return;
+    }
+    if (targetRoute.contains('wallet')) {
+      Navigator.pushNamed(context, AppRoutes.wallet);
+      return;
+    }
+    if (targetRoute.contains('certificates')) {
+      Navigator.pushNamed(context, AppRoutes.certificates);
+      return;
+    }
+    if (targetRoute.contains('portfolio')) {
+      Navigator.pushNamed(context, AppRoutes.portfolio);
+      return;
+    }
+    if (targetRoute.contains('help-support')) {
+      Navigator.pushNamed(context, AppRoutes.helpSupport);
+      return;
+    }
+    if (targetRoute.contains('projects')) {
+      Navigator.pushNamed(context, AppRoutes.myProjects);
+      return;
+    }
+    if (targetRoute.contains('mentoring')) {
+      Navigator.pushNamed(context, AppRoutes.myMentors);
+      return;
+    }
   }
 
   @override
@@ -167,6 +290,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   context,
                   _role == 'mentor'
                       ? AppRoutes.mentorDashboard
+                      : _role == 'msme'
+                      ? AppRoutes.msmeDashboard
                       : AppRoutes.studentDashboard,
                 );
               }

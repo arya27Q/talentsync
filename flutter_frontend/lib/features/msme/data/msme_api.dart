@@ -14,6 +14,11 @@ class MsmeApi {
   Future<Map<String, dynamic>> getProfile() async =>
       (await _client.get('/msme/profile'))['data'] as Map<String, dynamic>;
 
+  Future<void> deleteAccount() async {
+    await _client.delete('/msme/account');
+    await _client.clearSession();
+  }
+
   Future<Map<String, dynamic>> updateProfile(
     Map<String, dynamic> body, {
     String? logoFileName,
@@ -130,14 +135,32 @@ class MsmeApi {
   Future<Map<String, dynamic>> rejectToMentor(
     int applicationId, {
     String? feedback,
+    int? recommendedMentorId,
+    bool allowCatalogChoice = false,
   }) async =>
       await _client.post(
         '/msme/applications/$applicationId/reject-to-mentor',
         body: {
           if (feedback != null && feedback.trim().isNotEmpty)
             'feedback': feedback.trim(),
+          'recommended_mentor_id': ?recommendedMentorId,
+          if (allowCatalogChoice) 'allow_catalog_choice': true,
         },
       );
+
+  Future<List<Map<String, dynamic>>> getRecommendedMentors({
+    String? search,
+  }) async {
+    final response = await _client.get(
+      '/mentoring/mentors',
+      query: {
+        if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+      },
+    );
+    final rows = response['data'];
+    if (rows is! List) return const [];
+    return rows.whereType<Map<String, dynamic>>().toList(growable: false);
+  }
 
   Future<Map<String, dynamic>> getSubmissions({
     int? projectId,

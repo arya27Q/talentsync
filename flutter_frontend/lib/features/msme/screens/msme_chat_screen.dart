@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
 import 'package:flutter_frontend/features/workspace/data/workspace_api.dart';
@@ -14,12 +15,14 @@ class MsmeChatScreen extends StatefulWidget {
   const MsmeChatScreen({
     super.key,
     this.projectId,
+    this.studentId,
     this.studentName = 'Mahasiswa',
     this.workspaceApi,
     this.msmeApi,
   });
 
   final int? projectId;
+  final int? studentId;
   final String studentName;
   final WorkspaceApi? workspaceApi;
   final MsmeApi? msmeApi;
@@ -38,8 +41,11 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
 
   bool _isLoading = true;
   bool _isSending = false;
+  bool _canSend = true;
+  String? _chatClosedReason;
   String? _error;
   int? _resolvedProjectId;
+  int? _resolvedStudentId;
   int? _currentUserId;
   Map<String, dynamic> _project = const {};
   Map<String, dynamic>? _acceptedStudent;
@@ -114,13 +120,24 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
         return;
       }
 
-      final res = await _workspaceApi.messages(targetId);
+      final targetStudentId = widget.studentId ?? _resolvedStudentId;
+      final res = await _workspaceApi.messages(
+        targetId,
+        studentId: targetStudentId,
+      );
       if (!mounted) return;
+      final studentObj =
+          (res['student'] as Map<String, dynamic>?) ??
+          (res['accepted_student'] as Map<String, dynamic>?);
       setState(() {
         _resolvedProjectId = targetId;
+        _resolvedStudentId =
+            targetStudentId ?? (studentObj?['id'] as num?)?.toInt();
         _project = (res['project'] as Map<String, dynamic>?) ?? const {};
-        _acceptedStudent = res['accepted_student'] as Map<String, dynamic>?;
+        _acceptedStudent = studentObj;
         _activeMilestone = res['active_milestone'] as Map<String, dynamic>?;
+        _canSend = res['can_send'] != false;
+        _chatClosedReason = res['chat_closed_reason'] as String?;
         _messages = ((res['messages'] as List?) ?? const [])
             .whereType<Map<String, dynamic>>()
             .toList();
@@ -170,6 +187,7 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
         projectId,
         message: text,
         milestoneId: (_activeMilestone?['id'] as num?)?.toInt(),
+        studentId: _resolvedStudentId,
       );
       if (!mounted) return;
       setState(() {
@@ -220,6 +238,7 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
         fileName: picked.name,
         fileBytes: bytes,
         milestoneId: (_activeMilestone?['id'] as num?)?.toInt(),
+        studentId: _resolvedStudentId,
       );
       if (!mounted) return;
       setState(() {
@@ -318,23 +337,13 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryNavy,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _initials(resolvedStudentName),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                  UserAvatarHelper.buildAvatarWidget(
+                    avatarUrl: _acceptedStudent?['avatar_url'] as String?,
+                    initial: _initials(resolvedStudentName),
+                    size: 42,
+                    borderRadius: 14,
+                    fallbackBgColor: AppColors.primaryNavy,
+                    fallbackTextColor: Colors.white,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -543,7 +552,7 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
             ),
 
             // Quick Reply Chips
-            if (_resolvedProjectId != null)
+            if (_canSend && _resolvedProjectId != null)
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
@@ -580,106 +589,138 @@ class _MsmeChatScreenState extends State<MsmeChatScreen> {
                 ),
               ),
 
-            // Bottom Input Row
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  top: BorderSide(
-                    color: AppColors.borderSlate.withValues(alpha: 0.8),
+            // Bottom Input Row (or Read-only closed banner when rejected / no applicant)
+            if (_canSend && _resolvedProjectId != null)
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(
+                      color: AppColors.borderSlate.withValues(alpha: 0.8),
+                    ),
                   ),
                 ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.borderSlate),
-                    ),
-                    child: IconButton(
-                      tooltip: 'Lampirkan file',
-                      padding: EdgeInsets.zero,
-                      onPressed:
-                          (_isSending || _resolvedProjectId == null)
-                          ? null
-                          : _pickAndSendFile,
-                      icon: const Icon(
-                        Icons.attach_file_rounded,
-                        color: AppColors.secondarySlate,
-                        size: 22,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Container(
-                      height: 46,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
                         color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: AppColors.borderSlate),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      alignment: Alignment.center,
-                      child: TextField(
-                        controller: _messageController,
-                        enabled: _resolvedProjectId != null,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (_) => _sendMessage(),
-                        decoration: const InputDecoration(
-                          hintText: 'Tulis pesan',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 13.5,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
+                      child: IconButton(
+                        tooltip: 'Lampirkan file',
+                        padding: EdgeInsets.zero,
+                        onPressed:
+                            (_isSending || _resolvedProjectId == null)
+                            ? null
+                            : _pickAndSendFile,
+                        icon: const Icon(
+                          Icons.attach_file_rounded,
+                          color: AppColors.secondarySlate,
+                          size: 22,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: _resolvedProjectId != null
-                          ? AppColors.primaryNavy
-                          : AppColors.borderSlate,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      tooltip: 'Kirim pesan',
-                      padding: EdgeInsets.zero,
-                      onPressed:
-                          (_isSending || _resolvedProjectId == null)
-                          ? null
-                          : () => _sendMessage(),
-                      icon: _isSending
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.send_rounded,
-                              color: Colors.white,
-                              size: 18,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: AppColors.borderSlate),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        alignment: Alignment.center,
+                        child: TextField(
+                          controller: _messageController,
+                          enabled: _resolvedProjectId != null,
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _sendMessage(),
+                          decoration: const InputDecoration(
+                            hintText: 'Tulis pesan',
+                            hintStyle: TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 13.5,
                             ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: _resolvedProjectId != null
+                            ? AppColors.primaryNavy
+                            : AppColors.borderSlate,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        tooltip: 'Kirim pesan',
+                        padding: EdgeInsets.zero,
+                        onPressed:
+                            (_isSending || _resolvedProjectId == null)
+                            ? null
+                            : () => _sendMessage(),
+                        icon: _isSending
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.send_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF8FAFC),
+                  border: Border(top: BorderSide(color: AppColors.borderSlate)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.lock_outline_rounded,
+                      size: 18,
+                      color: AppColors.secondarySlate,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _chatClosedReason ??
+                            'Obrolan ditutup (hanya baca). Pesan evaluasi Anda tetap tersimpan untuk mahasiswa.',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondarySlate,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),

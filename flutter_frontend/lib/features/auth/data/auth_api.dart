@@ -292,6 +292,9 @@ class AuthApi {
   Future<void> logout() async {
     try {
       await _client.post('/auth/logout');
+    } catch (_) {
+      // Abaikan error jaringan atau token invalid di server saat logout.
+      // Sesi lokal tetap wajib dibersihkan secara tuntas.
     } finally {
       await _client.clearSession();
     }

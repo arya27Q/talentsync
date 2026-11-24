@@ -75,6 +75,9 @@ final class ProjectPresenter
             'eligibility' => $eligibility,
             'has_applied' => $application !== null,
             'application_status' => $application?->status,
+            'can_reapply' => $application !== null
+                && in_array($application->status, ['rejected', 'rejected_referred_mentor'], true)
+                && $project->status === 'open',
         ];
     }
 
@@ -129,6 +132,13 @@ final class ProjectPresenter
             'timeline_commitment' => $application->timeline_commitment,
             'dedication_hours' => $application->dedication_hours,
             'rejection_feedback' => $application->rejection_feedback,
+            'recommended_mentor' => $application->relationLoaded('recommendedMentor') && $application->recommendedMentor
+                ? [
+                    'id' => $application->recommendedMentor->id,
+                    'name' => $application->recommendedMentor->name,
+                    'title_headline' => $application->recommendedMentor->mentorProfile?->title_headline,
+                ]
+                : null,
             'applied_at' => $application->applied_at?->toIso8601String(),
             'project' => $application->relationLoaded('project') && $application->project
                 ? self::projectCard($application->project)

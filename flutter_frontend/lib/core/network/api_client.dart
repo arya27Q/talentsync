@@ -268,6 +268,9 @@ class ApiClient {
           : <String, dynamic>{};
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        if (response.statusCode == 401) {
+          await clearSession();
+        }
         String message =
             payload['message'] as String? ?? 'Permintaan gagal. Coba lagi.';
         final errors = payload['errors'] is Map<String, dynamic>

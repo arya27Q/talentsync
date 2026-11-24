@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
+import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/auth/widgets/msme_logo_modal.dart';
 import 'package:flutter_frontend/features/msme/data/msme_api.dart';
@@ -47,6 +49,7 @@ class _MsmeEditProfileScreenState extends State<MsmeEditProfileScreen> {
 
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isDeletingAccount = false;
 
   @override
   void initState() {
@@ -311,6 +314,10 @@ class _MsmeEditProfileScreenState extends State<MsmeEditProfileScreen> {
 
                           // 3. Section: Dokumen & Legalitas
                           _buildLegalSection(),
+                          const SizedBox(height: 24),
+
+                          // 4. Section: Hapus Akun Mitra UMKM
+                          _buildDangerZoneSection(),
                           const SizedBox(height: 32),
                         ],
                       ),
@@ -861,6 +868,168 @@ class _MsmeEditProfileScreenState extends State<MsmeEditProfileScreen> {
               decoration: _inputDecoration(
                 Icons.verified_user_rounded,
                 '13 digit nomor NIB',
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Future<void> _confirmDeleteAccount() async {
+    if (_isDeletingAccount) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Hapus Akun Mitra Permanen?',
+          style: TextStyle(
+            color: AppColors.darkSlate,
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+          ),
+        ),
+        content: const Text(
+          'Seluruh data profil usaha, logo, dan akses akun Mitra UMKM Anda akan dihapus permanen. Pastikan tidak ada proyek berjalan atau saldo escrow yang masih tertahan.',
+          style: TextStyle(
+            color: AppColors.secondarySlate,
+            fontSize: 13.5,
+            height: 1.45,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text(
+              'Batal',
+              style: TextStyle(
+                color: AppColors.secondarySlate,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFB91C1C),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Ya, Hapus Akun',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeletingAccount = true);
+    try {
+      await _msmeApi.deleteAccount();
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.roleSelection,
+        (_) => false,
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isDeletingAccount = false);
+      await AppStatusDialog.showError(
+        context,
+        title: 'Tidak Dapat Menghapus Akun',
+        message: e.message,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isDeletingAccount = false);
+      await AppStatusDialog.showError(
+        context,
+        title: 'Gagal Menghapus Akun',
+        message: 'Terjadi kendala saat menghapus akun Mitra UMKM.',
+      );
+    }
+  }
+
+  Widget _buildDangerZoneSection() => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFFCA5A5)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFB91C1C),
+                  size: 18,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Hapus Akun Permanen',
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFFB91C1C),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Tindakan ini menghapus profil usaha dan menonaktifkan akses login secara permanen.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFF7F1D1D),
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFB91C1C),
+                  backgroundColor: Colors.white,
+                  side: const BorderSide(color: Color(0xFFFCA5A5)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _isSaving || _isDeletingAccount
+                    ? null
+                    : _confirmDeleteAccount,
+                icon: _isDeletingAccount
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFFB91C1C),
+                        ),
+                      )
+                    : const Icon(Icons.delete_forever_rounded, size: 18),
+                label: Text(
+                  _isDeletingAccount
+                      ? 'Menghapus akun...'
+                      : 'Hapus Akun Mitra UMKM',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13.5,
+                  ),
+                ),
               ),
             ),
           ],

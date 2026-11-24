@@ -684,6 +684,12 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
   }
 
   Widget _buildRadarCard(List<Map<String, dynamic>> metrics) {
+    final maxScore = metrics.fold<num>(
+      0,
+      (prev, m) => math.max(prev, (m['score'] as num?) ?? 0),
+    );
+    final isFresh = maxScore <= 15;
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -694,13 +700,38 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Peta Kompetensi Skill',
-            style: TextStyle(
-              fontSize: 15.5,
-              fontWeight: FontWeight.bold,
-              color: AppColors.darkSlate,
-            ),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Peta Kompetensi Skill',
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkSlate,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isFresh
+                      ? const Color(0xFFF1F5F9)
+                      : AppColors.lightBlueSurface,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  isFresh ? 'Pemula' : 'Otomatis Aktif',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                    color: isFresh
+                        ? AppColors.secondarySlate
+                        : AppColors.primaryNavy,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
           SizedBox(
@@ -708,6 +739,18 @@ class _PortfolioDashboardScreenState extends State<PortfolioDashboardScreen> {
             width: double.infinity,
             child: CustomPaint(painter: _RadarChartPainter(metrics: metrics)),
           ),
+          if (isFresh) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Grafik peta kompetensi akan membesar otomatis saat kamu menyelesaikan proyek UMKM, menambah portofolio, atau meraih sertifikat bimbingan.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11.5,
+                color: AppColors.secondarySlate,
+                height: 1.4,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -1314,17 +1357,21 @@ class _RadarChartPainter extends CustomPainter {
     }
 
     final valuePath = Path();
+    var hasPositiveScore = false;
+    final vertexPoints = <Offset>[];
     for (var i = 0; i < count; i++) {
-      final score = ((metrics[i]['score'] as num?)?.toDouble() ?? 60.0).clamp(
+      final score = ((metrics[i]['score'] as num?)?.toDouble() ?? 0.0).clamp(
         0.0,
         100.0,
       );
+      if (score > 0) hasPositiveScore = true;
       final r = radius * (score / 100.0);
       final angle = -math.pi / 2 + step * i;
       final pt = Offset(
         center.dx + r * math.cos(angle),
         center.dy + r * math.sin(angle),
       );
+      vertexPoints.add(pt);
       if (i == 0) {
         valuePath.moveTo(pt.dx, pt.dy);
       } else {
@@ -1350,19 +1397,31 @@ class _RadarChartPainter extends CustomPainter {
     }
     valuePath.close();
 
-    canvas.drawPath(
-      valuePath,
-      Paint()
-        ..color = AppColors.primaryNavy.withValues(alpha: 0.22)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawPath(
-      valuePath,
-      Paint()
-        ..color = AppColors.primaryNavy
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
+    if (hasPositiveScore) {
+      canvas.drawPath(
+        valuePath,
+        Paint()
+          ..color = AppColors.primaryNavy.withValues(alpha: 0.22)
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawPath(
+        valuePath,
+        Paint()
+          ..color = AppColors.primaryNavy
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+      final dotPaint = Paint()..color = AppColors.primaryNavy;
+      for (final pt in vertexPoints) {
+        canvas.drawCircle(pt, 3.0, dotPaint);
+      }
+    } else {
+      canvas.drawCircle(
+        center,
+        4.0,
+        Paint()..color = AppColors.borderSlate,
+      );
+    }
   }
 
   @override

@@ -21,7 +21,7 @@ class MyProjectsScreen extends StatefulWidget {
 class _MyProjectsScreenState extends State<MyProjectsScreen> {
   late final ProjectApi _api = widget.projectApi ?? ProjectApi.instance;
 
-  int _selectedTabIndex = 0; // 0: Aktif, 1: Menunggu, 2: Selesai
+  int _selectedTabIndex = 0; // 0: Diterima, 1: Menunggu, 2: Ditolak, 3: Selesai
   late Future<Map<String, dynamic>> _future;
 
   @override
@@ -38,26 +38,29 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
 
   Widget _buildFilterTab(String label, int index) {
     final bool isSelected = _selectedTabIndex == index;
-    return Expanded(
-      child: GestureDetector(
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InkWell(
         onTap: () => setState(() => _selectedTabIndex = index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryNavy : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
+            color: isSelected ? AppColors.primaryNavy : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.primaryNavy
+                  : AppColors.borderSlate,
+            ),
           ),
-          child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.white : AppColors.secondarySlate,
-                ),
-              ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : AppColors.darkSlate,
             ),
           ),
         ),
@@ -111,9 +114,28 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
             final active = ((data['active_projects'] as List?) ?? const [])
                 .whereType<Map<String, dynamic>>()
                 .toList();
-            final pending =
+            final rawPending =
                 ((data['pending_applications'] as List?) ?? const [])
                     .whereType<Map<String, dynamic>>()
+                    .toList();
+            final explicitRejected =
+                ((data['rejected_applications'] as List?) ?? const [])
+                    .whereType<Map<String, dynamic>>()
+                    .toList();
+            final pending = rawPending
+                .where((a) {
+                  final st = (a['status'] as String?) ?? 'pending';
+                  return st != 'rejected' && st != 'rejected_referred_mentor';
+                })
+                .toList();
+            final rejected = explicitRejected.isNotEmpty
+                ? explicitRejected
+                : rawPending
+                    .where((a) {
+                      final st = (a['status'] as String?) ?? '';
+                      return st == 'rejected' ||
+                          st == 'rejected_referred_mentor';
+                    })
                     .toList();
             final completed =
                 ((data['completed_projects'] as List?) ?? const [])
@@ -198,19 +220,16 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // Tabs
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.borderSlate),
-                      ),
+                    // Tabs (Horizontal Scrollable Pills)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
                       child: Row(
                         children: [
-                          _buildFilterTab('Aktif (${active.length})', 0),
+                          _buildFilterTab('Diterima (${active.length})', 0),
                           _buildFilterTab('Menunggu (${pending.length})', 1),
-                          _buildFilterTab('Selesai (${completed.length})', 2),
+                          _buildFilterTab('Ditolak (${rejected.length})', 2),
+                          _buildFilterTab('Selesai (${completed.length})', 3),
                         ],
                       ),
                     ),
@@ -220,6 +239,8 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                       _buildActiveList(active)
                     else if (_selectedTabIndex == 1)
                       _buildPendingList(pending)
+                    else if (_selectedTabIndex == 2)
+                      _buildRejectedList(rejected)
                     else
                       _buildCompletedList(completed),
                   ],
@@ -578,16 +599,276 @@ class _MyProjectsScreenState extends State<MyProjectsScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: projectId == null
-                    ? null
-                    : () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.projectDetail,
-                        arguments: ProjectRouteArgs(projectId: projectId),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: projectId == null
+                          ? null
+                          : () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.projectDetail,
+                              arguments: ProjectRouteArgs(projectId: projectId),
+                            ),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Lihat Detail'),
                       ),
-                child: const Text('Lihat Detail Proyek'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primaryNavy,
+                      ),
+                      onPressed: projectId == null
+                          ? null
+                          : () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.workspaceChat,
+                              arguments: ProjectRouteArgs(projectId: projectId),
+                            ),
+                      icon: const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Chat UMKM'),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildRejectedList(List<Map<String, dynamic>> items) {
+    if (items.isEmpty) {
+      return _emptyBox('Tidak ada lamaran yang ditolak.');
+    }
+    return Column(
+      children: items.map((app) {
+        final proj = (app['project'] as Map<String, dynamic>?) ?? const {};
+        final msme = (proj['msme'] as Map<String, dynamic>?) ?? const {};
+        final projectId = (proj['id'] as num?)?.toInt();
+        final feedback = (app['rejection_feedback'] as String?)?.trim();
+        final recMentor = app['recommended_mentor'] as Map<String, dynamic>?;
+        final recMentorName = (recMentor?['name'] as String?)?.trim();
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFFECACA)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      (msme['business_name'] as String?) ?? 'Mitra UMKM',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryNavy,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      'Ditolak',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFB91C1C),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                (proj['title'] as String?) ?? '',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.darkSlate,
+                ),
+              ),
+              if (recMentorName != null && recMentorName.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.school_rounded,
+                        size: 16,
+                        color: Color(0xFFD97706),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Rekomendasi Mentor: $recMentorName',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF92400E),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              if (feedback != null && feedback.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.canvasWhite,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.borderSlate),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Catatan Evaluasi UMKM:',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.darkSlate,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        feedback,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondarySlate,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: projectId == null
+                          ? null
+                          : () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.workspaceChat,
+                              arguments: ProjectRouteArgs(projectId: projectId),
+                            ),
+                      icon: const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 15,
+                        color: AppColors.primaryNavy,
+                      ),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Arsip Chat'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primaryNavy,
+                      ),
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.findMentors,
+                      ),
+                      icon: const Icon(
+                        Icons.school_rounded,
+                        size: 15,
+                        color: Colors.white,
+                      ),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Cari Mentor'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if ((proj['status'] as String?) == 'open' &&
+                  projectId != null) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primaryNavy,
+                      side: const BorderSide(color: AppColors.primaryNavy),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () async {
+                      await Navigator.pushNamed(
+                        context,
+                        AppRoutes.applyProject,
+                        arguments: ProjectRouteArgs(projectId: projectId),
+                      );
+                      if (mounted) {
+                        _reload();
+                      }
+                    },
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: const Text(
+                      'Lamar Ulang Proyek Ini',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         );

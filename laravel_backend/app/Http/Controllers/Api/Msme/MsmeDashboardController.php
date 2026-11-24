@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectPresenter;
 use App\Models\Project;
 use App\Models\ProjectApplication;
+use App\Models\ProjectMessage;
 use App\Models\ProjectMilestone;
 use App\Models\TimeCoinWallet;
 use Illuminate\Http\JsonResponse;
@@ -27,6 +28,11 @@ class MsmeDashboardController extends Controller
         $projectIds = (clone $projectsQuery)->pluck('id');
         $newApplicantsCount = ProjectApplication::whereIn('project_id', $projectIds)
             ->where('status', 'pending')
+            ->count();
+
+        $unreadMessagesCount = ProjectMessage::whereIn('project_id', $projectIds)
+            ->where('sender_id', '!=', $user->id)
+            ->whereNull('read_at')
             ->count();
 
         $pendingSubmissionsQuery = ProjectMilestone::query()
@@ -106,6 +112,7 @@ class MsmeDashboardController extends Controller
                 'locked_balance_tc' => (int) $wallet->locked_balance,
                 'active_projects_count' => $activeProjectsCount,
                 'new_applicants_count' => $newApplicantsCount,
+                'unread_messages_count' => $unreadMessagesCount,
                 'pending_submissions_count' => $pendingSubmissionsCount,
                 'pending_submission_preview' => $pendingSubmissionPreview,
                 'completed_projects_count' => $completedProjectsCount,

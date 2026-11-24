@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Msme;
 
 use App\Http\Controllers\Controller;
+use App\Models\BankAccount;
+use App\Models\EscrowDispute;
 use App\Models\Project;
 use App\Models\ProjectApplication;
 use App\Models\Review;
@@ -10,7 +12,9 @@ use App\Models\TimeCoinWallet;
 use App\Models\UmkmProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\File;
 
 class MsmeProfileController extends Controller
@@ -129,5 +133,78 @@ class MsmeProfileController extends Controller
                 'is_verified' => (bool) $profile->is_verified,
             ],
         ]);
+    }
+
+    public function destroyAccount(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $hasActiveProjects = Project::where('msme_id', $user->id)
+            ->whereIn('status', ['in_progress', 'review'])
+            ->exists();
+        abort_if($hasActiveProjects, 409, 'Selesaikan proyek yang sedang berjalan atau menunggu peninjauan sebelum menghapus akun.');
+
+        $wallet = TimeCoinWallet::where('user_id', $user->id)->first();
+        abort_if(($wallet?->locked_balance ?? 0) > 0, 409, 'Masih terdapat saldo TimeCoin yang tertahan di escrow.');
+
+        $hasOpenDisputes = EscrowDispute::where('reporter_id', $user->id)
+            ->where('status', '!=', 'resolved')
+            ->exists();
+        abort_if($hasOpenDisputes, 409, 'Selesaikan laporan sengketa escrow terlebih dahulu sebelum menghapus akun.');
+
+        $profile = UmkmProfile::where('user_id', $user->id)->first();
+        $filesToDelete = array_values(array_filter([
+            $this->publicDiskPath($profile?->logo_url),
+            $this->publicDiskPath($profile?->business_document_url),
+        ]));
+
+        DB::transaction(function () use ($user, $profile) {
+            $user->tokens()->delete();
+            BankAccount::where('user_id', $user->id)->delete();
+
+            // Close any remaining open postings so students cannot apply to a deleted MSME
+            Project::where('msme_id', $user->id)
+                ->where('status', 'open')
+                ->update(['status' => 'cancelled']);
+
+            if ($profile) {
+                $profile->update([
+                    'business_name' => 'Akun Mitra Terhapus',
+                    'logo_url' => null,
+                    'business_document_url' => null,
+                    'description' => null,
+                    'nib' => null,
+                    'is_verified' => false,
+                ]);
+            }
+
+            $user->update([
+                'name' => 'Akun Mitra Terhapus',
+                'email' => "deleted-msme-{$user->id}-".Str::lower(Str::random(6)).'@deleted.talentsync.local',
+                'password' => Str::random(40),
+            ]);
+        }, 3);
+
+        foreach ($filesToDelete as $path) {
+            Storage::disk('public')->delete($path);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Akun Mitra UMKM berhasil dihapus secara permanen.',
+        ]);
+    }
+
+    private function publicDiskPath(?string $url): ?string
+    {
+        if (! $url) {
+            return null;
+        }
+        $path = parse_url($url, PHP_URL_PATH);
+        if (! is_string($path) || ! str_starts_with($path, '/storage/')) {
+            return null;
+        }
+
+        return substr($path, strlen('/storage/'));
     }
 }

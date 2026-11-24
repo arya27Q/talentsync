@@ -148,7 +148,7 @@ class _InboxScreenState extends State<InboxScreen> {
                     : _threads.isEmpty
                     ? const Center(
                         child: Text(
-                          'Belum ada percakapan aktif dengan UMKM atau Mentor.',
+                          'Lamar proyek UMKM terlebih dahulu untuk membuka obrolan dengan mitra, atau ikuti sesi bimbingan mentor.',
                           textAlign: TextAlign.center,
                           style: TextStyle(color: AppColors.secondarySlate),
                         ),

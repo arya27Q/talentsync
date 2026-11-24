@@ -35,6 +35,9 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
 
   bool _isLoading = true;
   bool _isSending = false;
+  bool _canSend = true;
+  String? _applicationStatus;
+  String? _chatClosedReason;
   String? _error;
   int? _resolvedProjectId;
   int? _currentUserId;
@@ -103,6 +106,9 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
         _resolvedProjectId = targetId;
         _project = (res['project'] as Map<String, dynamic>?) ?? const {};
         _activeMilestone = res['active_milestone'] as Map<String, dynamic>?;
+        _canSend = res['can_send'] != false;
+        _applicationStatus = res['application_status'] as String?;
+        _chatClosedReason = res['chat_closed_reason'] as String?;
         _messages = ((res['messages'] as List?) ?? const [])
             .whereType<Map<String, dynamic>>()
             .toList();
@@ -521,75 +527,150 @@ class _WorkspaceChatScreenState extends State<WorkspaceChatScreen> {
                     ),
                   ),
 
-                  // Quick Chips
-                  SizedBox(
-                    height: 36,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _quickChips.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 8),
-                      itemBuilder: (_, i) => ActionChip(
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: AppColors.borderSlate),
-                        label: Text(
-                          _quickChips[i],
-                          style: const TextStyle(fontSize: 11.5),
-                        ),
-                        onPressed: () => _sendMessage(_quickChips[i]),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Input Bar
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      border: Border(
-                        top: BorderSide(color: AppColors.borderSlate),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          tooltip: 'Lampirkan berkas',
-                          onPressed: _isSending ? null : _pickAndSendFile,
-                          icon: const Icon(
-                            Icons.attach_file_rounded,
-                            color: AppColors.secondarySlate,
+                  if (_canSend) ...[
+                    // Quick Chips
+                    SizedBox(
+                      height: 36,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: _quickChips.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 8),
+                        itemBuilder: (_, i) => ActionChip(
+                          backgroundColor: Colors.white,
+                          side: const BorderSide(color: AppColors.borderSlate),
+                          label: Text(
+                            _quickChips[i],
+                            style: const TextStyle(fontSize: 11.5),
                           ),
+                          onPressed: () => _sendMessage(_quickChips[i]),
                         ),
-                        Expanded(
-                          child: TextField(
-                            controller: _textController,
-                            onSubmitted: (_) => _sendMessage(),
-                            decoration: const InputDecoration(
-                              hintText: 'Tulis pesan ke mitra UMKM...',
-                              border: InputBorder.none,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Input Bar
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                          top: BorderSide(color: AppColors.borderSlate),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            tooltip: 'Lampirkan berkas',
+                            onPressed: _isSending ? null : _pickAndSendFile,
+                            icon: const Icon(
+                              Icons.attach_file_rounded,
+                              color: AppColors.secondarySlate,
                             ),
                           ),
-                        ),
-                        IconButton(
-                          tooltip: 'Kirim pesan',
-                          onPressed: _isSending ? null : () => _sendMessage(),
-                          icon: _isSending
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
+                          Expanded(
+                            child: TextField(
+                              controller: _textController,
+                              onSubmitted: (_) => _sendMessage(),
+                              decoration: const InputDecoration(
+                                hintText: 'Tulis pesan ke mitra UMKM...',
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Kirim pesan',
+                            onPressed:
+                                _isSending ? null : () => _sendMessage(),
+                            icon: _isSending
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.send_rounded,
+                                    color: AppColors.primaryNavy,
                                   ),
-                                )
-                              : const Icon(
-                                  Icons.send_rounded,
-                                  color: AppColors.primaryNavy,
-                                ),
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ] else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFFFBEB),
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFFDE68A)),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.lock_outline_rounded,
+                                size: 18,
+                                color: Color(0xFFB45309),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _chatClosedReason ??
+                                      'Obrolan ini ditutup karena lamaran tidak dilanjutkan. Baca pesan evaluasi dari Mitra UMKM di atas sebagai bahan belajar.',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF92400E),
+                                    height: 1.4,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_applicationStatus == 'rejected') ...[
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton.icon(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.primaryNavy,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 11,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.findMentors,
+                                ),
+                                icon: const Icon(
+                                  Icons.school_rounded,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                                label: const Text(
+                                  'Cari Mentor untuk Tingkatkan Keahlian',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                 ],
               ),
       ),

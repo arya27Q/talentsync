@@ -103,8 +103,14 @@ class WorkspaceApi {
         as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> messages(int projectId) async =>
-      (await _client.get('/projects/$projectId/messages'))['data']
+  Future<Map<String, dynamic>> messages(
+    int projectId, {
+    int? studentId,
+  }) async =>
+      (await _client.get(
+            '/projects/$projectId/messages',
+            query: {if (studentId != null) 'student_id': '$studentId'},
+          ))['data']
           as Map<String, dynamic>;
 
   Future<Map<String, dynamic>> sendMessage(
@@ -113,6 +119,7 @@ class WorkspaceApi {
     String? fileName,
     Uint8List? fileBytes,
     int? milestoneId,
+    int? studentId,
   }) async {
     if (fileName != null && fileBytes != null) {
       return (await _client.postMultipart(
@@ -121,6 +128,7 @@ class WorkspaceApi {
               if (message != null && message.trim().isNotEmpty)
                 'message': message.trim(),
               if (milestoneId != null) 'milestone_id': '$milestoneId',
+              if (studentId != null) 'student_id': '$studentId',
             },
             fileField: 'attachment_file',
             fileName: fileName,
@@ -134,6 +142,7 @@ class WorkspaceApi {
             if (message != null && message.trim().isNotEmpty)
               'message': message.trim(),
             'milestone_id': ?milestoneId,
+            'student_id': ?studentId,
           },
         ))['data']
         as Map<String, dynamic>;

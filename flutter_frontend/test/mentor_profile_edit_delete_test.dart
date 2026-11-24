@@ -194,9 +194,13 @@ void main() {
       expect(find.text('Andika Pratama'), findsOneWidget);
       expect(find.text('Senior Flutter Architect'), findsOneWidget);
 
-      // 6. Scroll to bottom and delete mentor account
+      // 6. Open Edit Profil sheet again and delete mentor account from inside Edit Profil
+      await tester.tap(find.byIcon(Icons.edit_rounded));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Profil Mentor'), findsOneWidget);
+
       final deleteButton = find.text('Hapus Akun Mentor');
-      await tester.scrollUntilVisible(deleteButton, 300);
+      await tester.ensureVisible(deleteButton);
       await tester.pumpAndSettle();
       await tester.tap(deleteButton);
       await tester.pumpAndSettle();

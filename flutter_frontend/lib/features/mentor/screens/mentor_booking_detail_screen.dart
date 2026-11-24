@@ -89,7 +89,7 @@ class MentorBookingDetailScreen extends StatelessWidget {
                 const SizedBox(width: 14),
                 const Expanded(
                   child: Text(
-                    'Booking Detail',
+                    'Detail Booking',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

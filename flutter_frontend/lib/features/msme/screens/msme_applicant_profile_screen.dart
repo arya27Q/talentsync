@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
+import 'package:flutter_frontend/features/msme/widgets/msme_reject_mentor_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MsmeApplicantProfileScreen extends StatefulWidget {
   const MsmeApplicantProfileScreen({
@@ -125,143 +128,65 @@ class _MsmeApplicantProfileScreenState
     }
   }
 
-  void _onReject() {
+  Future<void> _openExternalUrl(String rawUrl, String label) async {
+    final resolved = ApiClient.resolveMediaUrl(rawUrl) ?? rawUrl.trim();
+    final uri = Uri.tryParse(resolved);
+    if (uri == null) return;
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Tidak dapat membuka tautan $label.')),
+      );
+    }
+  }
+
+  Future<void> _onReject() async {
     final appId = _resolvedApplicationId;
     final name = (_detail?['name'] as String?) ??
         (widget.applicantData?['name'] as String?) ??
         widget.applicantName;
 
-    final textController = TextEditingController(
-      text:
-          'Mitra menyarankan untuk mengikuti bimbingan mentor terlebih dahulu agar portofolio dan kesiapan kerja semakin optimal.',
+    final result = await MsmeRejectMentorDialog.show(
+      context,
+      studentName: name,
+      msmeApi: _msmeApi,
     );
+    if (result == null || !mounted) return;
 
-    showDialog<void>(
-      context: context,
-      barrierColor: const Color(0xFF0F172A).withValues(alpha: 0.55),
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.school_rounded,
-                color: Color(0xFFD97706),
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'Tolak & Arahkan Mentor',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkSlate,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Beri arahan bimbingan mentor ramah untuk $name agar dapat meningkatkan keahlian sebelum melamar kembali:',
-              style: const TextStyle(
-                fontSize: 12.5,
-                color: AppColors.secondarySlate,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: textController,
-              maxLines: 3,
-              style: const TextStyle(fontSize: 13, color: AppColors.darkSlate),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFFF8FAFC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.borderSlate),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.borderSlate),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primaryNavy),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Batal',
-              style: TextStyle(color: AppColors.secondarySlate),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD97706),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              if (appId == null) {
-                Navigator.pop(context, true);
-                return;
-              }
-              final feedback = textController.text.trim();
-              try {
-                await _msmeApi.rejectToMentor(appId, feedback: feedback);
-                if (!mounted) return;
-                await AppStatusDialog.showSuccess(
-                  context,
-                  title: 'Arahan Terkirim!',
-                  message:
-                      'Saran bimbingan mentor telah dikirimkan secara edukatif ke $name.',
-                  buttonText: 'Tutup',
-                );
-                if (mounted) {
-                  Navigator.pop(context, true);
-                }
-              } catch (e) {
-                if (!mounted) return;
-                await AppStatusDialog.showError(
-                  context,
-                  title: 'Gagal Mengirimkan Arahan',
-                  message: '$e',
-                );
-              }
-            },
-            child: const Text(
-              'Kirim Arahan',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    if (appId == null) {
+      Navigator.pop(context, true);
+      return;
+    }
+
+    try {
+      await _msmeApi.rejectToMentor(
+        appId,
+        feedback: result.feedback,
+        recommendedMentorId: result.recommendedMentorId,
+        allowCatalogChoice: result.allowCatalogChoice,
+      );
+      if (!mounted) return;
+      final mentorInfo = result.recommendedMentorName != null
+          ? ' bersama Mentor ${result.recommendedMentorName}'
+          : '';
+      await AppStatusDialog.showSuccess(
+        context,
+        title: 'Arahan Terkirim!',
+        message:
+            'Saran bimbingan mentor$mentorInfo telah dikirimkan secara edukatif ke $name.',
+        buttonText: 'Tutup',
+      );
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      await AppStatusDialog.showError(
+        context,
+        title: 'Gagal Mengirimkan Arahan',
+        message: '$e',
+      );
+    }
   }
 
   void _onChat() {
@@ -270,11 +195,14 @@ class _MsmeApplicantProfileScreenState
         widget.applicantName;
     final projectId = (_detail?['project_id'] as num?)?.toInt() ??
         (widget.applicantData?['project_id'] as num?)?.toInt();
+    final studentId = (_detail?['student_id'] as num?)?.toInt() ??
+        (widget.applicantData?['student_id'] as num?)?.toInt();
     Navigator.push<void>(
       context,
       MaterialPageRoute(
         builder: (context) => MsmeChatScreen(
           projectId: projectId,
+          studentId: studentId,
           studentName: name,
         ),
       ),
@@ -295,18 +223,55 @@ class _MsmeApplicantProfileScreenState
     final major = (_detail?['major'] as String?) ??
         (widget.applicantData?['major'] as String?) ??
         'S1 Sistem Informasi';
-    final rating =
-        ((_detail?['rating'] ?? widget.applicantData?['rating'] ?? 4.9) as num)
-            .toStringAsFixed(1);
-    final completedCount = _detail?['completed_projects_count'] ??
-        widget.applicantData?['completed_projects_count'] ??
-        3;
+    final rawRating =
+        ((_detail?['rating'] ?? widget.applicantData?['rating'] ?? 0) as num)
+            .toDouble();
+    final rating = rawRating > 0 ? rawRating.toStringAsFixed(1) : 'Baru';
+    final completedCount =
+        ((_detail?['completed_projects_count'] ??
+                    widget.applicantData?['completed_projects_count'] ??
+                    0)
+                as num)
+            .toInt();
+    final contributionHours =
+        ((_detail?['total_contribution_hours'] ??
+                    widget.applicantData?['total_contribution_hours'] ??
+                    0)
+                as num)
+            .toInt();
     final hasMentorEndorsement = (_detail?['has_mentor_endorsement'] ??
         widget.applicantData?['has_mentor_endorsement'] ??
         false) as bool;
     final mentorName = (_detail?['mentor_name'] as String?) ??
         (widget.applicantData?['mentor_name'] as String?) ??
-        'Dimas Prasetyo (Senior Engineer)';
+        'Mentor TalentSync';
+    final linkedinUrl = ((_detail?['linkedin_url'] as String?) ??
+            (widget.applicantData?['linkedin_url'] as String?))
+        ?.trim();
+    final cvUrl = ((_detail?['cv_url'] as String?) ??
+            (widget.applicantData?['cv_url'] as String?))
+        ?.trim();
+    final cvFileName = ((_detail?['cv_file_name'] as String?) ??
+            (widget.applicantData?['cv_file_name'] as String?))
+        ?.trim();
+    final githubUrl = ((_detail?['github_url'] as String?) ??
+            (widget.applicantData?['github_url'] as String?))
+        ?.trim();
+    final portfolioLink = ((_detail?['portfolio_link'] as String?) ??
+            (widget.applicantData?['portfolio_link'] as String?))
+        ?.trim();
+    final hasCredentials =
+        (cvUrl != null && cvUrl.isNotEmpty) ||
+        (linkedinUrl != null && linkedinUrl.isNotEmpty) ||
+        (githubUrl != null && githubUrl.isNotEmpty) ||
+        (portfolioLink != null && portfolioLink.isNotEmpty);
+    final applicationStatus =
+        ((_detail?['status'] as String?) ??
+                (widget.applicantData?['status'] as String?) ??
+                'pending')
+            .toLowerCase();
+    final isPending = applicationStatus == 'pending';
+    final isAccepted = applicationStatus == 'accepted';
     final coverLetter = (_detail?['cover_letter'] as String?) ??
         (widget.applicantData?['cover_letter'] as String?) ??
         'Yth. Mitra UMKM, saya siap berkontribusi secara profesional untuk proyek ini.';
@@ -558,10 +523,10 @@ class _MsmeApplicantProfileScreenState
                                 'Proyek',
                               ),
                               _buildMetricDivider(),
-                              _buildProfileMetric('96', 'Jam'),
+                              _buildProfileMetric('$contributionHours', 'Jam'),
                               _buildMetricDivider(),
                               _buildProfileMetric(
-                                '${certificates.isNotEmpty ? certificates.length : 4}',
+                                '${certificates.length}',
                                 'Sertifikat',
                               ),
                             ],
@@ -711,6 +676,74 @@ class _MsmeApplicantProfileScreenState
                     ),
                   ],
 
+                  // Section 2.5: Kredensial Pelamar (CV, LinkedIn, GitHub)
+                  if (hasCredentials) ...[
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Berkas & Kredensial Pelamar',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.darkSlate,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: Column(
+                        children: [
+                          if (cvUrl != null && cvUrl.isNotEmpty)
+                            _buildCredentialRow(
+                              icon: Icons.description_rounded,
+                              title: 'Curriculum Vitae (CV)',
+                              subtitle:
+                                  (cvFileName != null && cvFileName.isNotEmpty)
+                                  ? cvFileName
+                                  : cvUrl,
+                              accentColor: AppColors.primaryNavy,
+                              onTap: () => _openExternalUrl(cvUrl, 'CV'),
+                            ),
+                          if (linkedinUrl != null && linkedinUrl.isNotEmpty)
+                            _buildCredentialRow(
+                              icon: Icons.work_outline_rounded,
+                              title: 'Profil LinkedIn',
+                              subtitle: linkedinUrl,
+                              accentColor: const Color(0xFF0A66C2),
+                              onTap: () =>
+                                  _openExternalUrl(linkedinUrl, 'LinkedIn'),
+                            ),
+                          if (githubUrl != null && githubUrl.isNotEmpty)
+                            _buildCredentialRow(
+                              icon: Icons.code_rounded,
+                              title: 'Repositori GitHub',
+                              subtitle: githubUrl,
+                              accentColor: AppColors.darkSlate,
+                              onTap: () =>
+                                  _openExternalUrl(githubUrl, 'GitHub'),
+                            ),
+                          if (portfolioLink != null && portfolioLink.isNotEmpty)
+                            _buildCredentialRow(
+                              icon: Icons.link_rounded,
+                              title: 'Tautan Portofolio Tambahan',
+                              subtitle: portfolioLink,
+                              accentColor: const Color(0xFF0D9488),
+                              onTap: () => _openExternalUrl(
+                                portfolioLink,
+                                'Portofolio',
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 24),
 
                   // Section 3: Hasil proyek nyata / Portofolio
@@ -731,7 +764,7 @@ class _MsmeApplicantProfileScreenState
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${portfolios.isNotEmpty ? portfolios.length : 3} terverifikasi',
+                        '${portfolios.length} terverifikasi',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.secondarySlate,
@@ -742,80 +775,68 @@ class _MsmeApplicantProfileScreenState
                   ),
                   const SizedBox(height: 12),
 
-                  // Horizontal Carousel of Real Projects
-                  SizedBox(
-                    height: 260,
-                    child: portfolios.isNotEmpty
-                        ? ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: portfolios.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(width: 14),
-                            itemBuilder: (context, index) {
-                              final p = portfolios[index];
-                              final pTitle = (p['title'] as String?) ??
-                                  'Portofolio Digital';
-                              final pClient = (p['organization_or_partner'] as String?) ??
-                                  'Mitra TalentSync';
-                              final isVerified =
-                                  (p['is_verified'] as bool?) ?? true;
-                              final quote = (p['short_summary'] as String?) ??
-                                  (p['description'] as String?) ??
-                                  '"Proyek selesai tepat waktu dengan hasil memuaskan."';
-                              final pTech = (p['tools_or_tech'] as String?) ??
-                                  'Figma · Flutter';
-                              final pRating =
-                                  ((p['rating'] as num?) ?? 5.0).toStringAsFixed(1);
-                              final pImage = (p['image_url'] as String?) ??
-                                  'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=300&q=80';
+                  if (portfolios.isNotEmpty)
+                    SizedBox(
+                      height: 260,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: portfolios.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(width: 14),
+                        itemBuilder: (context, index) {
+                          final p = portfolios[index];
+                          final pTitle = (p['title'] as String?) ??
+                              'Portofolio Digital';
+                          final pClient = (p['organization_or_partner'] as String?) ??
+                              'Mitra TalentSync';
+                          final isVerified =
+                              (p['is_verified'] as bool?) ?? true;
+                          final quote = (p['short_summary'] as String?) ??
+                              (p['description'] as String?) ??
+                              '"Proyek selesai tepat waktu dengan hasil memuaskan."';
+                          final pTech = (p['tools_or_tech'] as String?) ??
+                              'Figma · Flutter';
+                          final pRating =
+                              ((p['rating'] as num?) ?? 5.0).toStringAsFixed(1);
+                          final pImage = (p['image_url'] as String?) ??
+                              'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=300&q=80';
 
-                              return _buildRealProjectCard(
-                                title: pTitle,
-                                client: pClient,
-                                verifiedBadge: isVerified
-                                    ? 'Diverifikasi UMKM'
-                                    : 'Portofolio',
-                                isMentorVerified: hasMentorEndorsement,
-                                quote: quote,
-                                tech: pTech,
-                                rating: pRating,
-                                imageUrl: pImage,
-                              );
-                            },
-                          )
-                        : ListView(
-                            scrollDirection: Axis.horizontal,
-                            physics: const BouncingScrollPhysics(),
-                            children: [
-                              _buildRealProjectCard(
-                                title: 'Modul offline-sync aplikasi kasir',
-                                client: 'Koperasi Pasar Genteng',
-                                verifiedBadge: 'Diverifikasi Mentor',
-                                isMentorVerified: true,
-                                quote:
-                                    '"Dipakai 40 pedagang setiap hari tanpa kendala."',
-                                tech: 'Flutter · SQLite',
-                                rating: '5.0',
-                                imageUrl:
-                                    'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=300&q=80',
-                              ),
-                              const SizedBox(width: 14),
-                              _buildRealProjectCard(
-                                title: 'Sistem reservasi meja',
-                                client: 'Warung Pak Gito',
-                                verifiedBadge: 'Diverifikasi UMKM',
-                                isMentorVerified: false,
-                                quote:
-                                    '"Pesanan ganda hilang, karyawan mudah memakainya."',
-                                tech: 'Laravel · MySQL',
-                                rating: '5.0',
-                                imageUrl:
-                                    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=300&q=80',
-                              ),
-                            ],
-                          ),
-                  ),
+                          return _buildRealProjectCard(
+                            title: pTitle,
+                            client: pClient,
+                            verifiedBadge: isVerified
+                                ? 'Diverifikasi UMKM'
+                                : 'Portofolio',
+                            isMentorVerified: hasMentorEndorsement,
+                            quote: quote,
+                            tech: pTech,
+                            rating: pRating,
+                            imageUrl: pImage,
+                          );
+                        },
+                      ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: Text(
+                        hasCredentials
+                            ? 'Pelamar ini belum menyelesaikan proyek di TalentSync. Silakan tinjau CV, LinkedIn, atau GitHub pelamar di bagian Berkas & Kredensial di atas.'
+                            : 'Pelamar ini belum memiliki portofolio proyek terverifikasi di TalentSync. Anda dapat menyarankan bimbingan mentor terlebih dahulu jika dirasa belum sesuai.',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          color: AppColors.secondarySlate,
+                          height: 1.45,
+                        ),
+                      ),
+                    ),
 
                   const SizedBox(height: 24),
 
@@ -904,21 +925,23 @@ class _MsmeApplicantProfileScreenState
                         ),
                       );
                     })
-                  else ...[
-                    _buildCertificateTile(
-                      title: 'Arsitektur Aplikasi Mobile Modern',
-                      issuer: 'Mentor Dimas Prasetyo · TalentSync',
-                      tag: 'Mentor Verified',
-                      isMentor: true,
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.borderSlate),
+                      ),
+                      child: const Text(
+                        'Belum ada sertifikat bimbingan yang tercatat di TalentSync.',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: AppColors.secondarySlate,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    _buildCertificateTile(
-                      title: 'Desain Sistem & UI/UX Standar Industri',
-                      issuer: 'Google UX Certificate',
-                      tag: 'Eksternal',
-                      isMentor: false,
-                    ),
-                  ],
 
                   const SizedBox(height: 24),
 
@@ -1055,95 +1078,245 @@ class _MsmeApplicantProfileScreenState
                     ),
                   ],
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.borderSlate),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _onReject,
-                            borderRadius: BorderRadius.circular(14),
-                            child: const Center(
-                              child: Text(
-                                'Tolak & Arahkan',
-                                style: TextStyle(
-                                  color: Color(0xFFB45309),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                child: isPending
+                    ? Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: AppColors.borderSlate,
+                                ),
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: _onReject,
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: const Center(
+                                    child: Text(
+                                      'Tolak & Arahkan',
+                                      style: TextStyle(
+                                        color: Color(0xFFB45309),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryNavy,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryNavy.withValues(
-                                alpha: 0.25,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: Container(
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryNavy,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primaryNavy.withValues(
+                                      alpha: 0.25,
+                                    ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _onAccept,
-                            borderRadius: BorderRadius.circular(14),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Flexible(
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        'Terima & Kunci Escrow',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: _onAccept,
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Flexible(
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              'Terima & Kunci Escrow',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        SizedBox(width: 8),
+                                        Icon(
+                                          Icons.handshake_rounded,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  SizedBox(width: 8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isAccepted
+                                    ? const Color(0xFFECFDF5)
+                                    : const Color(0xFFFEF2F2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isAccepted
+                                      ? const Color(0xFFA7F3D0)
+                                      : const Color(0xFFFECACA),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
                                   Icon(
-                                    Icons.handshake_rounded,
-                                    color: Colors.white,
+                                    isAccepted
+                                        ? Icons.check_circle_rounded
+                                        : Icons.cancel_rounded,
                                     size: 18,
+                                    color: isAccepted
+                                        ? const Color(0xFF047857)
+                                        : const Color(0xFFB91C1C),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      isAccepted
+                                          ? 'Pelamar Sudah Diterima'
+                                          : 'Lamaran Ditolak · Diarahkan ke Mentor',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: isAccepted
+                                            ? const Color(0xFF047857)
+                                            : const Color(0xFFB91C1C),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 10),
+                          FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.primaryNavy,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 13,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: _onChat,
+                            child: Text(
+                              isAccepted ? 'Chat' : 'Arsip Chat',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCredentialRow({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color accentColor,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.canvasWhite,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderSlate),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: accentColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.darkSlate,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.secondarySlate,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Icon(
+                Icons.open_in_new_rounded,
+                size: 16,
+                color: accentColor,
+              ),
+            ],
+          ),
         ),
       ),
     );

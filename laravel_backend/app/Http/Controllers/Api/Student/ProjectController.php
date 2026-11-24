@@ -139,6 +139,7 @@ class ProjectController extends Controller
     public function applyContext(Request $request, Project $project): JsonResponse
     {
         $student = $request->user();
+        $student->load('studentProfile');
         $project->load(['msme.umkmProfile', 'milestones']);
         $eligibility = $this->eligibility->projectApplicationEligibility($student, $project);
         $portfolios = Portfolio::where('student_id', $student->id)
@@ -148,19 +149,34 @@ class ProjectController extends Controller
             ->map(fn (Portfolio $p) => StudentPresenter::portfolio($p))
             ->values();
 
+        $profile = $student->studentProfile;
+        $githubUsername = trim((string) ($profile?->github_username ?? ''));
+        $githubUrl = $githubUsername !== ''
+            ? (str_starts_with($githubUsername, 'http') ? $githubUsername : 'https://github.com/'.ltrim($githubUsername, '@/'))
+            : null;
+
         return response()->json([
             'status' => 'success',
             'data' => [
                 'project' => ProjectPresenter::projectCard($project),
                 'eligibility' => $eligibility,
                 'portfolios' => $portfolios,
+                'student_profile_links' => [
+                    'linkedin_url' => $profile?->linkedin_url,
+                    'github_url' => $githubUrl,
+                ],
             ],
         ]);
     }
 
     public function apply(ApplyProjectRequest $request, Project $project): JsonResponse
     {
-        $application = $this->workflow->apply($request->user(), $project, $request->validated());
+        $application = $this->workflow->apply(
+            $request->user(),
+            $project,
+            $request->validated(),
+            $request->file('cv_file'),
+        );
 
         return response()->json([
             'status' => 'success',

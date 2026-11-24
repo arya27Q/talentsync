@@ -34,7 +34,14 @@ class PortfolioController extends Controller
         $mentoringMinutes = (int) $completedMentoring->sum(fn (MentoringEnrollment $e) => $e->mentoringClass?->duration_minutes ?? 60);
 
         $skills = $student->studentSkills;
-        $radarMetrics = $this->buildRadarMetrics($skills);
+        $completedProjectsCount = (int) ($student->studentProfile?->completed_projects_count ?? 0);
+        $radarMetrics = $this->buildRadarMetrics(
+            $skills,
+            $portfolios,
+            $completedProjectsCount,
+            $certificates->count(),
+            $completedMentoring->count(),
+        );
 
         $endorsements = MentoringEnrollment::query()
             ->with('mentoringClass.mentor:id,name')
@@ -103,43 +110,81 @@ class PortfolioController extends Controller
         ]);
     }
 
-    private function buildRadarMetrics($skills): array
-    {
-        if ($skills->isEmpty()) {
-            return [
-                ['label' => 'Flutter', 'score' => 70],
-                ['label' => 'Laravel', 'score' => 65],
-                ['label' => 'UI Design', 'score' => 60],
-                ['label' => 'Database', 'score' => 65],
-                ['label' => 'Komunikasi', 'score' => 80],
-                ['label' => 'Testing', 'score' => 60],
-            ];
-        }
+    private function buildRadarMetrics(
+        $skills,
+        $portfolios,
+        int $completedProjectsCount,
+        int $certificatesCount,
+        int $mentoringCount,
+    ): array {
+        $verifiedPortfolios = $portfolios->filter(fn (Portfolio $p) => (bool) $p->is_verified);
+        $totalEvidence = max($portfolios->count(), $completedProjectsCount);
+        $hasAnyActivity = $totalEvidence > 0 || $certificatesCount > 0 || $mentoringCount > 0;
 
-        $items = $skills->take(6)->map(fn (StudentSkill $s) => [
-            'label' => $s->name,
-            'score' => (int) $s->score,
-        ])->values()->all();
+        // Build searchable portfolio text for category/tool matching
+        $portfolioCorpus = $portfolios->map(function (Portfolio $p) {
+            return mb_strtolower(trim(implode(' ', array_filter([
+                $p->title,
+                $p->category,
+                $p->tools_or_tech ?? '',
+                $p->description ?? '',
+            ]))));
+        });
 
-        $fallbacks = [
-            ['label' => 'Komunikasi', 'score' => 88],
-            ['label' => 'Testing', 'score' => 72],
-            ['label' => 'Database', 'score' => 75],
-            ['label' => 'UI Design', 'score' => 70],
-            ['label' => 'Laravel', 'score' => 70],
-            ['label' => 'Flutter', 'score' => 85],
-        ];
-        foreach ($fallbacks as $fallback) {
-            if (count($items) >= 6) {
+        $defaultLabels = ['Flutter', 'Laravel', 'UI Design', 'Database', 'Komunikasi', 'Testing'];
+
+        $labels = $skills->take(6)
+            ->map(fn (StudentSkill $s) => [
+                'label' => $s->name,
+                'is_verified' => (bool) $s->is_verified,
+                'raw_score' => (int) $s->score,
+            ])
+            ->values()
+            ->all();
+
+        foreach ($defaultLabels as $fallbackLabel) {
+            if (count($labels) >= 6) {
                 break;
             }
-            $exists = collect($items)->contains(fn ($i) => mb_strtolower($i['label']) === mb_strtolower($fallback['label']));
+            $exists = collect($labels)->contains(
+                fn ($row) => mb_strtolower($row['label']) === mb_strtolower($fallbackLabel)
+            );
             if (! $exists) {
-                $items[] = $fallback;
+                $labels[] = [
+                    'label' => $fallbackLabel,
+                    'is_verified' => false,
+                    'raw_score' => 0,
+                ];
             }
         }
 
-        return $items;
+        // Dynamic scaling:
+        // - 0 portfolios, 0 completed projects, 0 certs, 0 mentoring -> 0 (or tiny 15 baseline only for explicitly added skills)
+        // - Grows automatically as verified portfolios, completed projects, certs, and mentoring sessions accumulate!
+        $activityBase = $hasAnyActivity
+            ? min(85, ($totalEvidence * 18) + ($verifiedPortfolios->count() * 8) + ($certificatesCount * 6) + ($mentoringCount * 5))
+            : 0;
+
+        return collect($labels)->map(function (array $item) use ($hasAnyActivity, $activityBase, $portfolioCorpus) {
+            $label = $item['label'];
+            $needle = mb_strtolower($label);
+
+            if (! $hasAnyActivity) {
+                // Fresh student without any portfolio/project/cert/mentoring yet:
+                // keep chart small/zero so it visibly expands once real portfolio work exists
+                $score = $item['raw_score'] > 0 ? 15 : 0;
+                return ['label' => $label, 'score' => $score];
+            }
+
+            $matchedPortfolios = $portfolioCorpus->filter(fn (string $text) => str_contains($text, $needle))->count();
+            $bonus = ($matchedPortfolios * 12) + ($item['is_verified'] ? 10 : 0);
+            if ($needle === 'komunikasi') {
+                $bonus += 8;
+            }
+            $score = max(20, min(100, $activityBase + $bonus));
+
+            return ['label' => $label, 'score' => $score];
+        })->values()->all();
     }
 }
 

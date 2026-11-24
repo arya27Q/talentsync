@@ -8,6 +8,7 @@ import 'package:flutter_frontend/features/auth/widgets/msme_logo_modal.dart';
 import 'package:flutter_frontend/features/auth/widgets/user_avatar_modal.dart';
 import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
+import 'package:flutter_frontend/features/msme/screens/msme_inbox_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
 
@@ -90,6 +91,8 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
         (_dashboardData?['active_projects_count'] as num?)?.toInt() ?? 0;
     final applicantsCount =
         (_dashboardData?['new_applicants_count'] as num?)?.toInt() ?? 0;
+    final unreadMessagesCount =
+        (_dashboardData?['unread_messages_count'] as num?)?.toInt() ?? 0;
     final pendingSubmissionsCount =
         (_dashboardData?['pending_submissions_count'] as num?)?.toInt() ?? 0;
     final pendingSubmissionPreview =
@@ -169,43 +172,115 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                         ],
                       ),
                     ),
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.borderSlate),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF0F172A)
-                                .withValues(alpha: 0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                    // Tombol Kotak Pesan (Chat Mahasiswa)
+                    InkWell(
+                      onTap: () async {
+                        await Navigator.push<void>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MsmeInboxScreen(),
                           ),
-                        ],
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          const Icon(
-                            Icons.notifications_none_rounded,
-                            color: AppColors.darkSlate,
-                            size: 24,
-                          ),
-                          Positioned(
-                            top: 10,
-                            right: 11,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFF59E0B),
-                                shape: BoxShape.circle,
-                              ),
+                        );
+                        if (mounted) {
+                          _loadDashboard();
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.borderSlate),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Icon(
+                              Icons.chat_bubble_outline_rounded,
+                              color: AppColors.darkSlate,
+                              size: 22,
                             ),
-                          ),
-                        ],
+                            if (unreadMessagesCount > 0)
+                              Positioned(
+                                top: 6,
+                                right: 6,
+                                child: Container(
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryNavy,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      unreadMessagesCount > 9
+                                          ? '9+'
+                                          : '$unreadMessagesCount',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () async {
+                        await Navigator.pushNamed(
+                          context,
+                          AppRoutes.notifications,
+                        );
+                        if (mounted) {
+                          _loadDashboard();
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.borderSlate),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            const Icon(
+                              Icons.notifications_none_rounded,
+                              color: AppColors.darkSlate,
+                              size: 24,
+                            ),
+                            if (applicantsCount > 0 ||
+                                pendingSubmissionsCount > 0)
+                              Positioned(
+                                top: 10,
+                                right: 11,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF59E0B),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

@@ -101,7 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
 
-    Route::get('/inbox', [InboxController::class, 'index'])->middleware('role:student');
+    Route::get('/inbox', [InboxController::class, 'index'])->middleware('role:student|msme');
     Route::post('/disputes', [DisputeController::class, 'store']);
 });
 
@@ -187,6 +187,7 @@ Route::middleware(['auth:sanctum', 'role:msme'])->prefix('msme')->group(function
     Route::get('/dashboard', [MsmeDashboardController::class, 'index']);
     Route::get('/profile', [MsmeProfileController::class, 'show']);
     Route::match(['put', 'post'], '/profile', [MsmeProfileController::class, 'update']);
+    Route::delete('/account', [MsmeProfileController::class, 'destroyAccount']);
     Route::get('/projects', [MsmeProjectController::class, 'index']);
     Route::post('/projects', [MsmeProjectController::class, 'store']);
     Route::get('/projects/{project}', [MsmeProjectController::class, 'show']);

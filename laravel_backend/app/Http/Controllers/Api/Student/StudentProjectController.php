@@ -26,13 +26,14 @@ class StudentProjectController extends Controller
         $student = $request->user();
 
         $applications = ProjectApplication::query()
-            ->with(['project.msme.umkmProfile', 'project.milestones'])
+            ->with(['project.msme.umkmProfile', 'project.milestones', 'recommendedMentor.mentorProfile'])
             ->where('student_id', $student->id)
             ->latest('applied_at')
             ->get();
 
         $activeProjects = [];
         $pendingApplications = [];
+        $rejectedApplications = [];
         $completedProjects = [];
         $escrowTotalTc = 0;
 
@@ -83,6 +84,8 @@ class StudentProjectController extends Controller
                     'review_text' => $review?->review_text,
                     'completed_at' => $project->updated_at?->toIso8601String(),
                 ];
+            } elseif (in_array($app->status, ['rejected', 'rejected_referred_mentor'], true)) {
+                $rejectedApplications[] = ProjectPresenter::application($app);
             } else {
                 $pendingApplications[] = ProjectPresenter::application($app);
             }
@@ -95,10 +98,12 @@ class StudentProjectController extends Controller
                     'active_count' => count($activeProjects),
                     'escrow_total_tc' => $escrowTotalTc,
                     'pending_count' => count($pendingApplications),
+                    'rejected_count' => count($rejectedApplications),
                     'completed_count' => count($completedProjects),
                 ],
                 'active_projects' => $activeProjects,
                 'pending_applications' => $pendingApplications,
+                'rejected_applications' => $rejectedApplications,
                 'completed_projects' => $completedProjects,
             ],
         ]);

@@ -25,20 +25,26 @@ class StudentEligibilityService
 
         if ($project->requires_endorsement) {
             $canApply = $hasMentorEndorsement;
+            $requiresExternalCredentials = false;
+            $canApplyWithExternalCredentials = false;
             $reason = $canApply
                 ? 'Memenuhi syarat khusus pelamar ber-Badge Rekomendasi Mentor.'
                 : 'Proyek ini mewajibkan Badge Rekomendasi Kerja dari Mentor. Ikuti bimbingan mentor terlebih dahulu.';
         } else {
             $canApply = $hasVerifiedPortfolio || $hasMentorEndorsement;
+            $canApplyWithExternalCredentials = true;
+            $requiresExternalCredentials = ! $canApply;
             $reason = $canApply
                 ? ($hasMentorEndorsement
                     ? 'Memenuhi syarat melalui Badge Rekomendasi Mentor.'
                     : 'Memenuhi syarat melalui Portofolio Terverifikasi.')
-                : 'Wajib memiliki Portofolio Terverifikasi atau Badge Rekomendasi Mentor sebelum melamar proyek UMKM.';
+                : 'Belum memiliki portofolio terverifikasi. Kamu tetap bisa melamar dengan melampirkan LinkedIn + CV (wajib) dan GitHub (opsional), atau ikuti bimbingan mentor.';
         }
 
         return [
             'can_apply' => $canApply,
+            'can_apply_with_external_credentials' => $canApplyWithExternalCredentials,
+            'requires_external_credentials' => $requiresExternalCredentials,
             'has_verified_portfolio' => $hasVerifiedPortfolio,
             'has_mentor_endorsement' => $hasMentorEndorsement,
             'requires_endorsement' => (bool) $project->requires_endorsement,

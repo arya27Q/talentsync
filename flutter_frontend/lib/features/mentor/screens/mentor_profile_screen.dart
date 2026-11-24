@@ -137,6 +137,10 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
         mentorApi: _mentorApi,
         onPickAvatar: widget.onPickAvatar,
         syncLocalSession: widget.mentorApi == null,
+        onRequestDeleteAccount: () {
+          Navigator.pop(sheetContext);
+          _confirmDeleteAccount();
+        },
       ),
     );
     if (updated != null && mounted) {
@@ -912,7 +916,7 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
               ),
             const SizedBox(height: 24),
 
-            // Keluar (Logout) & Hapus Akun Mentor
+            // Keluar (Logout)
             Center(
               child: Semantics(
                 button: true,
@@ -947,73 +951,6 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                         ],
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Semantics(
-              button: true,
-              label: 'Hapus akun mentor',
-              child: Material(
-                color: const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(16),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: _isDeletingAccount ? null : _confirmDeleteAccount,
-                  child: Container(
-                    width: double.infinity,
-                    constraints: const BoxConstraints(minHeight: 48),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFFCA5A5)),
-                    ),
-                    child: _isDeletingAccount
-                        ? const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Color(0xFFB91C1C),
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              Text(
-                                'Menghapus akun mentor...',
-                                style: TextStyle(
-                                  color: Color(0xFFB91C1C),
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          )
-                        : const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.delete_forever_rounded,
-                                color: Color(0xFFB91C1C),
-                                size: 20,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Hapus Akun Mentor',
-                                style: TextStyle(
-                                  color: Color(0xFFB91C1C),
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
                   ),
                 ),
               ),
@@ -1074,6 +1011,7 @@ class _EditMentorProfileSheet extends StatefulWidget {
     required this.mentorApi,
     required this.syncLocalSession,
     this.onPickAvatar,
+    this.onRequestDeleteAccount,
   });
 
   final String initialName;
@@ -1083,6 +1021,7 @@ class _EditMentorProfileSheet extends StatefulWidget {
   final MentorApi mentorApi;
   final bool syncLocalSession;
   final Future<PickedAvatarFile?> Function()? onPickAvatar;
+  final VoidCallback? onRequestDeleteAccount;
 
   @override
   State<_EditMentorProfileSheet> createState() =>
@@ -1628,6 +1567,81 @@ class _EditMentorProfileSheetState extends State<_EditMentorProfileSheet> {
                       ),
               ),
             ),
+            if (widget.onRequestDeleteAccount != null) ...[
+              const SizedBox(height: 20),
+              const Divider(height: 1, color: AppColors.borderSlate),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFFCA5A5)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: Color(0xFFB91C1C),
+                          size: 18,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Hapus Akun Permanen',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFB91C1C),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Menghapus akun akan menonaktifkan profil dan akses login mentor secara permanen.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: Color(0xFF7F1D1D),
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFB91C1C),
+                          backgroundColor: Colors.white,
+                          side: const BorderSide(color: Color(0xFFFCA5A5)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _isSaving || _isPickingPhoto
+                            ? null
+                            : widget.onRequestDeleteAccount,
+                        icon: const Icon(
+                          Icons.delete_forever_rounded,
+                          size: 18,
+                        ),
+                        label: const Text(
+                          'Hapus Akun Mentor',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
