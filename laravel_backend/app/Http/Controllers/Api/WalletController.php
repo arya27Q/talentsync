@@ -360,6 +360,15 @@ class WalletController extends Controller
             return $cashOut->fresh();
         }, 3);
 
+        \App\Models\AdminAuditLog::record(
+            $request,
+            $data['status'] === 'completed' ? 'cash_out_approved' : 'cash_out_rejected',
+            'cash_out_request',
+            $result->id,
+            "Cash-Out #{$result->id} ({$result->amount_tc} TC)",
+            "Status pencairan diubah menjadi {$result->status} untuk user #{$result->user_id}.",
+        );
+
         return response()->json(['status' => 'success', 'message' => 'Status cash-out diperbarui.', 'data' => [
             'id' => $result->id,
             'status' => $result->status,

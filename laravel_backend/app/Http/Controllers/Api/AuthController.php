@@ -240,6 +240,17 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($user->isSuspended()) {
+            $reason = trim((string) ($user->suspended_reason ?? ''));
+            throw ValidationException::withMessages([
+                'email' => [
+                    $reason !== ''
+                        ? "Akun Anda sedang dibekukan oleh Admin TalentSync. Alasan: {$reason}"
+                        : 'Akun Anda sedang dibekukan oleh Admin TalentSync. Silakan hubungi tim bantuan.',
+                ],
+            ]);
+        }
+
         $wallet = TimeCoinWallet::firstOrCreate(
             ['user_id' => $user->id],
             ['balance' => 0, 'locked_balance' => 0],

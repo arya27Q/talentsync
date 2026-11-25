@@ -45,6 +45,15 @@ class AdminMentorPremiumController extends Controller
             return $record->fresh();
         }, 3);
 
+        \App\Models\AdminAuditLog::record(
+            $request,
+            $data['payment_status'] === 'paid' ? 'mentor_premium_approved' : 'mentor_premium_rejected',
+            'mentor_premium_subscription',
+            $result->id,
+            "Langganan Mentor Premium #{$result->id}",
+            "Status pembayaran diubah menjadi {$result->payment_status} untuk mentor #{$result->mentor_id}.",
+        );
+
         return response()->json(['status' => 'success', 'message' => 'Status pembayaran Premium diperbarui.', 'data' => [
             'id' => $result->id,
             'payment_status' => $result->payment_status,

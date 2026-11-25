@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_client.dart';
@@ -31,6 +32,11 @@ class _SplashScreenState extends State<SplashScreen> {
   void _startSessionCheck() {
     _timer = Timer(const Duration(milliseconds: 1800), () async {
       if (!mounted) return;
+
+      if (kIsWeb) {
+        Navigator.pushReplacementNamed(context, AppRoutes.adminLogin);
+        return;
+      }
 
       final isTest = Platform.environment.containsKey('FLUTTER_TEST');
       if (isTest) {

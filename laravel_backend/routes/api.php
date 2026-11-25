@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Admin\AdminPortalController;
 use App\Http\Controllers\Api\AdminMentorPremiumController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DisputeController;
@@ -103,7 +104,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
 
     Route::get('/inbox', [InboxController::class, 'index'])->middleware('role:student|msme');
-    Route::post('/disputes', [DisputeController::class, 'store']);
+    Route::post('/disputes', [DisputeController::class, 'store'])->middleware(['not_suspended', 'throttle:5,1']);
 });
 
 Route::middleware('auth:sanctum')->prefix('mentoring')->group(function () {
@@ -161,23 +162,44 @@ Route::middleware('auth:sanctum')->prefix('mentoring')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminPortalController::class, 'dashboard']);
+    Route::get('/users', [AdminPortalController::class, 'users']);
+    Route::patch('/users/{user}/verification', [AdminPortalController::class, 'updateUserVerification']);
+    Route::patch('/users/{user}/suspension', [AdminPortalController::class, 'updateUserSuspension']);
+    Route::post('/users/{user}/force-logout', [AdminPortalController::class, 'forceLogoutUser']);
+    Route::post('/users/{user}/wallet-adjustment', [AdminPortalController::class, 'adjustUserWallet']);
+    Route::get('/disputes', [AdminPortalController::class, 'disputes']);
+    Route::patch('/disputes/{dispute}', [AdminPortalController::class, 'resolveDispute']);
+    Route::get('/projects', [AdminPortalController::class, 'projects']);
+    Route::patch('/projects/{project}/status', [AdminPortalController::class, 'updateProjectStatus']);
+    Route::get('/mentoring-classes', [AdminPortalController::class, 'mentoringClasses']);
+    Route::patch('/mentoring-classes/{mentoringClass}/status', [AdminPortalController::class, 'updateMentoringClassStatus']);
+    Route::get('/rewards', [AdminPortalController::class, 'rewards']);
+    Route::post('/rewards', [AdminPortalController::class, 'storeReward']);
+    Route::patch('/rewards/{reward}', [AdminPortalController::class, 'updateReward']);
+    Route::get('/transactions', [AdminPortalController::class, 'transactions']);
+    Route::get('/audit-logs', [AdminPortalController::class, 'auditLogs']);
+    Route::get('/export/{resource}', [AdminPortalController::class, 'exportCsv']);
+    Route::get('/security/anomalies', [AdminPortalController::class, 'securityAnomalies']);
+    Route::post('/security/confirm-password', [AdminPortalController::class, 'confirmPassword']);
+    Route::post('/announcements/broadcast', [AdminPortalController::class, 'broadcastAnnouncement']);
     Route::get('/mentor-premium-subscriptions/pending', [AdminMentorPremiumController::class, 'pending']);
     Route::patch('/mentor-premium-subscriptions/{subscription}', [AdminMentorPremiumController::class, 'resolve']);
     Route::get('/cash-outs/pending', [WalletController::class, 'pendingCashOuts']);
 });
 
-Route::middleware('auth:sanctum')->prefix('wallet')->group(function () {
+Route::middleware(['auth:sanctum', 'not_suspended'])->prefix('wallet')->group(function () {
     Route::get('/summary', [WalletController::class, 'summary']);
     Route::get('/transactions', [WalletController::class, 'transactions']);
-    Route::post('/top-up', [WalletController::class, 'topUp']);
+    Route::post('/top-up', [WalletController::class, 'topUp'])->middleware('throttle:10,1');
     Route::get('/recipients', [WalletController::class, 'recipients']);
-    Route::post('/transfer', [WalletController::class, 'transfer']);
+    Route::post('/transfer', [WalletController::class, 'transfer'])->middleware('throttle:10,1');
     Route::get('/bank-accounts', [WalletController::class, 'bankAccounts']);
     Route::post('/bank-accounts', [WalletController::class, 'storeBankAccount']);
     Route::get('/rewards', [WalletController::class, 'rewards']);
     Route::post('/rewards/{reward}/redeem', [WalletController::class, 'redeemReward']);
     Route::post('/cash-out', [WalletController::class, 'requestCashOut'])
-        ->middleware('role:student|mentor');
+        ->middleware(['role:student|mentor', 'throttle:5,1']);
     Route::get('/cash-outs', [WalletController::class, 'cashOutHistory'])
         ->middleware('role:student|mentor');
     Route::patch('/cash-outs/{cashOutRequest}', [WalletController::class, 'resolveCashOut'])

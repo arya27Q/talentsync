@@ -18,6 +18,17 @@ class EnsureRole
             ], 403);
         }
 
+        if ($request->user()->isSuspended()) {
+            $reason = trim((string) ($request->user()->suspended_reason ?? ''));
+
+            return response()->json([
+                'status' => 'error',
+                'message' => $reason !== ''
+                    ? "Akun Anda sedang dibekukan oleh Admin TalentSync. Alasan: {$reason}"
+                    : 'Akun Anda sedang dibekukan oleh Admin TalentSync.',
+            ], 403);
+        }
+
         return $next($request);
     }
 }
