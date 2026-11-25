@@ -17,6 +17,7 @@ class MentorStudent {
     this.needsReview = 0,
     this.assessmentScore,
     this.sessionDurationMinutes = 60,
+    this.durationLabel = '7 Hari',
     this.priceTc = 0,
   });
 
@@ -37,6 +38,7 @@ class MentorStudent {
   final int needsReview;
   final int? assessmentScore;
   final int sessionDurationMinutes;
+  final String durationLabel;
   final int priceTc;
 
   factory MentorStudent.fromEnrollment(Map<String, dynamic> data) {
@@ -55,6 +57,15 @@ class MentorStudent {
         .map((part) => part[0].toUpperCase())
         .join();
     final status = data['status'] as String? ?? 'pending';
+    final durationMinutes =
+        (mentoringClass['duration_minutes'] as num?)?.toInt() ?? 60;
+    final rawLabel = (mentoringClass['duration_label'] as String?)?.trim();
+    final durationDays = (mentoringClass['duration_days'] as num?)?.toInt();
+    final resolvedLabel = (rawLabel != null && rawLabel.isNotEmpty)
+        ? rawLabel
+        : (durationDays != null && durationDays >= 2
+              ? '$durationDays Hari'
+              : '$durationMinutes menit');
 
     return MentorStudent(
       id: student['id'] as int?,
@@ -73,7 +84,8 @@ class MentorStudent {
       recommended: data['has_endorsement'] == true,
       needsReview: status == 'attended' ? 1 : 0,
       assessmentScore: data['assessment_score'] as int?,
-      sessionDurationMinutes: mentoringClass['duration_minutes'] as int? ?? 60,
+      sessionDurationMinutes: durationMinutes,
+      durationLabel: resolvedLabel,
       priceTc: data['paid_tc'] as int? ?? 0,
     );
   }

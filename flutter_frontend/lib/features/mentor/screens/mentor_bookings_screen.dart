@@ -126,9 +126,10 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
         await _loadBookings();
         if (!mounted) return;
       } on ApiException catch (error) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(error.message)));
+        }
         return;
       }
 
@@ -182,8 +183,9 @@ class _MentorBookingsScreenState extends State<MentorBookingsScreen> {
               if (score == null ||
                   score < 0 ||
                   score > 100 ||
-                  feedback.length < 5)
+                  feedback.length < 5) {
                 return;
+              }
               Navigator.pop(dialogContext, (score, feedback));
             },
             child: const Text('Kirim evaluasi'),
@@ -576,8 +578,8 @@ class _BookingCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       booking.time.isNotEmpty
-                          ? '${booking.date} · ${booking.time} · ${booking.durationMinutes} menit'
-                          : '${booking.date} · ${booking.durationMinutes} menit',
+                          ? '${booking.date} · ${booking.time} · ${booking.durationLabel}'
+                          : '${booking.date} · ${booking.durationLabel}',
                       style: const TextStyle(
                         color: AppColors.secondarySlate,
                         fontSize: 12,

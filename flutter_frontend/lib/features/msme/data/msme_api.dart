@@ -150,11 +150,16 @@ class MsmeApi {
 
   Future<List<Map<String, dynamic>>> getRecommendedMentors({
     String? search,
+    String? category,
   }) async {
     final response = await _client.get(
       '/mentoring/mentors',
       query: {
         if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+        if (category != null &&
+            category.trim().isNotEmpty &&
+            category.trim() != 'Semua')
+          'category': category.trim(),
       },
     );
     final rows = response['data'];

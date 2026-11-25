@@ -84,6 +84,8 @@ class MentorProfileController extends Controller
                     'topic' => $c->topic,
                     'description' => $c->description,
                     'duration_minutes' => $c->duration_minutes,
+                    'duration_days' => $c->duration_days,
+                    'duration_label' => $c->effectiveDurationLabel(),
                     'price_tc' => $c->price_tc,
                     'enrolled_count' => (int) ($c->enrollments_count ?? 0),
                     'status' => $c->status,

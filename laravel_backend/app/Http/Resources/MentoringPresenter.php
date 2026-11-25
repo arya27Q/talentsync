@@ -41,6 +41,8 @@ final class MentoringPresenter
             'description' => $class->description,
             'scheduled_time' => $class->scheduled_time,
             'duration_minutes' => $class->duration_minutes,
+            'duration_days' => $class->duration_days,
+            'duration_label' => $class->effectiveDurationLabel(),
             'price_tc' => $class->price_tc,
             'meeting_link' => $includeMeetingLink ? $class->meeting_link : null,
             'capacity' => $class->capacity,
@@ -80,6 +82,8 @@ final class MentoringPresenter
                 'topic' => $class->topic,
                 'scheduled_time' => $class->scheduled_time,
                 'duration_minutes' => $class->duration_minutes,
+                'duration_days' => $class->duration_days,
+                'duration_label' => $class->effectiveDurationLabel(),
                 'price_tc' => $class->price_tc,
             ] : null,
         ];

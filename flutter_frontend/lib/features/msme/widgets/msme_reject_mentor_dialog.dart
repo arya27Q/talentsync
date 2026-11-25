@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/features/mentor/widgets/mentor_skill_picker.dart';
 import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 
 class RejectToMentorResult {
@@ -50,6 +51,7 @@ class _MsmeRejectMentorDialogState extends State<MsmeRejectMentorDialog> {
   late final TextEditingController _feedbackController;
 
   bool _isLoadingMentors = true;
+  String _selectedCategory = 'Semua';
   List<Map<String, dynamic>> _mentors = const [];
   int? _selectedOptionId; // null = belum dipilih, -1 = katalog mentor lain, >0 = ID mentor spesifik
   String? _selectedMentorName;
@@ -109,8 +111,11 @@ class _MsmeRejectMentorDialogState extends State<MsmeRejectMentorDialog> {
   }
 
   Future<void> _loadMentors() async {
+    setState(() => _isLoadingMentors = true);
     try {
-      final list = await _msmeApi.getRecommendedMentors();
+      final list = await _msmeApi.getRecommendedMentors(
+        category: _selectedCategory,
+      );
       if (!mounted) return;
       setState(() {
         _mentors = list;
@@ -208,6 +213,76 @@ class _MsmeRejectMentorDialogState extends State<MsmeRejectMentorDialog> {
                 ],
               ),
               const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: _selectedCategory,
+                isExpanded: true,
+                dropdownColor: Colors.white,
+                elevation: 6,
+                menuMaxHeight: 320,
+                borderRadius: BorderRadius.circular(14),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.primaryNavy,
+                  size: 20,
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppColors.canvasWhite,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 9,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.borderSlate),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.borderSlate),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: AppColors.primaryNavy,
+                      width: 1.4,
+                    ),
+                  ),
+                ),
+                items: MentorSkillPicker.filterLabels.map((cat) {
+                  final label = cat == 'Semua' ? 'Semua Bidang Mentor' : cat;
+                  return DropdownMenuItem<String>(
+                    value: cat,
+                    child: Row(
+                      children: [
+                        Icon(
+                          MentorSkillPicker.iconForLabel(cat),
+                          size: 16,
+                          color: AppColors.primaryNavy,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.darkSlate,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value == null || value == _selectedCategory) return;
+                  setState(() => _selectedCategory = value);
+                  _loadMentors();
+                },
+              ),
+              const SizedBox(height: 8),
               if (_isLoadingMentors)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
@@ -235,12 +310,24 @@ class _MsmeRejectMentorDialogState extends State<MsmeRejectMentorDialog> {
                           final headline =
                               (m['title_headline'] as String?) ??
                               'Peer Mentor TalentSync';
-                          final rate = (m['hourly_rate_tc'] as num?)?.toInt();
+                          final nearest =
+                              m['nearest_class'] as Map<String, dynamic>?;
+                          final displayPrice =
+                              (nearest?['price_tc'] as num?)?.toInt() ??
+                              (m['hourly_rate_tc'] as num?)?.toInt();
+                          final rawDur =
+                              (nearest?['duration_label'] as String?)?.trim();
+                          final subtitleWithDuration =
+                              (rawDur != null && rawDur.isNotEmpty)
+                              ? '$headline · Durasi $rawDur'
+                              : headline;
                           return _buildMentorOption(
                             optionId: mentorId ?? 0,
                             name: mentorName,
-                            subtitle: headline,
-                            rateLabel: rate != null ? '$rate TC/sesi' : null,
+                            subtitle: subtitleWithDuration,
+                            rateLabel: displayPrice != null
+                                ? '$displayPrice TC'
+                                : null,
                           );
                         }),
                         _buildMentorOption(

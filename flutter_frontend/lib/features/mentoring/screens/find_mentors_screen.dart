@@ -6,6 +6,7 @@ import 'package:flutter_frontend/core/network/api_client.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/mentor/widgets/mentor_skill_picker.dart';
 import 'package:flutter_frontend/features/mentoring/data/student_mentoring_api.dart';
 import 'package:flutter_frontend/features/wallet/data/wallet_api.dart';
 
@@ -28,7 +29,7 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
       widget.mentoringApi ?? StudentMentoringApi.instance;
   late final WalletApi _walletApi = widget.walletApi ?? WalletApi.instance;
 
-  int _selectedCategoryIndex = 0;
+  String _selectedCategory = 'Semua';
   String _sortKey = 'rating_desc';
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
@@ -38,13 +39,7 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
   int _balanceTc = 0;
   List<Map<String, dynamic>> _mentors = const [];
 
-  final List<String> _categories = const [
-    'Semua',
-    'Mobile',
-    'UI/UX Design',
-    'Backend',
-    'Product',
-  ];
+  final List<String> _categories = MentorSkillPicker.filterLabels;
 
   @override
   void initState() {
@@ -68,7 +63,7 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
       final results = await Future.wait([
         _api.mentors(
           search: _searchController.text,
-          category: _categories[_selectedCategoryIndex],
+          category: _selectedCategory,
           sort: _sortKey,
         ),
         _walletApi.summary().catchError((_) => const <String, dynamic>{}),
@@ -293,31 +288,48 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
             ),
           ],
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${nearestClass?['price_tc'] ?? priceTc} TC / ${nearestClass?['duration_minutes'] ?? 60} mnt',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFFB45309),
-                  fontSize: 13.5,
-                ),
-              ),
-              if (nearestClass != null)
-                Flexible(
-                  child: Text(
-                    'Slot: ${nearestClass['topic']}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      color: Color(0xFF16A34A),
-                      fontWeight: FontWeight.w600,
+          Builder(
+            builder: (context) {
+              final rawDur = (nearestClass?['duration_label'] as String?)
+                  ?.trim();
+              final durText = (rawDur != null && rawDur.isNotEmpty)
+                  ? rawDur
+                  : (nearestClass != null
+                        ? '${nearestClass['duration_minutes'] ?? 60} mnt'
+                        : 'Program');
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      '${nearestClass?['price_tc'] ?? priceTc} TC / $durText',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFFB45309),
+                        fontSize: 13.5,
+                      ),
                     ),
                   ),
-                ),
-            ],
+                  if (nearestClass != null) ...[
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Slot: ${nearestClass['topic']}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: Color(0xFF16A34A),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
           const SizedBox(height: 14),
           Row(
@@ -567,49 +579,146 @@ class _FindMentorsScreenState extends State<FindMentorsScreen> {
 
                 const SizedBox(height: 12),
 
-                // Categories
-                SizedBox(
-                  height: 36,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: _categories.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 8),
-                    itemBuilder: (_, i) {
-                      final selected = _selectedCategoryIndex == i;
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() => _selectedCategoryIndex = i);
-                          _load();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? AppColors.primaryNavy
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: selected
-                                  ? AppColors.primaryNavy
-                                  : AppColors.borderSlate,
+                // Filter Kategori Bidang (Crafted Dropdown)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _selectedCategory,
+                    isExpanded: true,
+                    dropdownColor: Colors.white,
+                    elevation: 6,
+                    menuMaxHeight: 360,
+                    borderRadius: BorderRadius.circular(16),
+                    icon: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: AppColors.lightBlueSurface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.primaryNavy,
+                        size: 20,
+                      ),
+                    ),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderSlate,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderSlate,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: AppColors.primaryNavy,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                    selectedItemBuilder: (context) => _categories.map((cat) {
+                      final displayLabel = cat == 'Semua'
+                          ? 'Semua Bidang Keahlian'
+                          : cat;
+                      return Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: AppColors.lightBlueSurface,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              MentorSkillPicker.iconForLabel(cat),
+                              size: 15,
+                              color: AppColors.primaryNavy,
                             ),
                           ),
-                          child: Text(
-                            _categories[i],
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: selected
-                                  ? Colors.white
-                                  : AppColors.secondarySlate,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              displayLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.darkSlate,
+                              ),
                             ),
                           ),
+                        ],
+                      );
+                    }).toList(),
+                    items: _categories.map((cat) {
+                      final isSelected = _selectedCategory == cat;
+                      final displayLabel = cat == 'Semua'
+                          ? 'Semua Bidang Keahlian'
+                          : cat;
+                      return DropdownMenuItem<String>(
+                        value: cat,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.primaryNavy
+                                    : AppColors.lightBlueSurface,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                MentorSkillPicker.iconForLabel(cat),
+                                size: 16,
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.primaryNavy,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                displayLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isSelected
+                                      ? AppColors.primaryNavy
+                                      : AppColors.darkSlate,
+                                ),
+                              ),
+                            ),
+                            if (isSelected)
+                              const Icon(
+                                Icons.check_rounded,
+                                size: 18,
+                                color: AppColors.primaryNavy,
+                              ),
+                          ],
                         ),
                       );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value == null || value == _selectedCategory) return;
+                      setState(() => _selectedCategory = value);
+                      _load();
                     },
                   ),
                 ),

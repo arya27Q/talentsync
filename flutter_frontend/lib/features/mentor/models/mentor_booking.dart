@@ -9,6 +9,7 @@ class MentorBooking {
     required this.date,
     this.time = '',
     required this.durationMinutes,
+    this.durationLabel = '7 Hari',
     required this.price,
     this.message = '',
     this.sessionGoals = const [],
@@ -27,6 +28,7 @@ class MentorBooking {
   final String date;
   final String time;
   final int durationMinutes;
+  final String durationLabel;
   final int price;
   final String message;
   final List<String> sessionGoals;
@@ -48,6 +50,14 @@ class MentorBooking {
     final scheduled = DateTime.tryParse(
       classData['scheduled_time'] as String? ?? '',
     );
+    final durationMinutes = (classData['duration_minutes'] as num?)?.toInt() ?? 60;
+    final rawLabel = (classData['duration_label'] as String?)?.trim();
+    final durationDays = (classData['duration_days'] as num?)?.toInt();
+    final resolvedLabel = (rawLabel != null && rawLabel.isNotEmpty)
+        ? rawLabel
+        : (durationDays != null && durationDays >= 2
+              ? '$durationDays Hari'
+              : '$durationMinutes menit');
 
     return MentorBooking(
       enrollmentId: data['id'] as int?,
@@ -60,10 +70,15 @@ class MentorBooking {
       time: scheduled == null
           ? ''
           : '${scheduled.toLocal().hour.toString().padLeft(2, '0')}:${scheduled.toLocal().minute.toString().padLeft(2, '0')}',
-      durationMinutes: classData['duration_minutes'] as int? ?? 60,
+      durationMinutes: durationMinutes,
+      durationLabel: resolvedLabel,
       price: data['paid_tc'] as int? ?? 0,
-      message: data['mentor_feedback'] as String? ?? '',
-      repositoryUrl: studentData['email'] as String?,
+      message: (data['student_notes'] as String?)?.trim().isNotEmpty == true
+          ? data['student_notes'] as String
+          : (data['mentor_feedback'] as String? ?? ''),
+      repositoryUrl: (data['materials_url'] as String?)?.trim().isNotEmpty == true
+          ? data['materials_url'] as String
+          : (studentData['email'] as String?),
       meetingUrl: classData['meeting_link'] as String?,
       score: data['assessment_score'] == null
           ? null
@@ -80,8 +95,10 @@ const mentorBookingRequests = [
     date: 'Kam, 26 Jun',
     time: '19.00',
     durationMinutes: 60,
+    durationLabel: '7 Hari',
     price: 30,
-    message: 'Mas Dimas, aplikasi antrean saya mulai lambat saat datanya banyak. Saya ingin dicek strukturnya sebelum melamar proyek UMKM.',
+    message:
+        'Mas Dimas, aplikasi antrean saya mulai lambat saat datanya banyak. Saya ingin dicek strukturnya sebelum melamar proyek UMKM.',
     sessionGoals: [
       'Tahu bottleneck performa',
       'Struktur folder yang benar',
@@ -98,6 +115,7 @@ const mentorBookingRequests = [
     date: 'Jum, 27 Jun',
     time: '16.00',
     durationMinutes: 60,
+    durationLabel: '2 Minggu',
     price: 30,
     status: 'pending',
   ),
@@ -110,6 +128,7 @@ const mentorScheduledBookings = [
     date: 'Hari ini',
     time: '19.00',
     durationMinutes: 60,
+    durationLabel: '5 Hari',
     price: 30,
     meetingUrl: 'meet.google.com/tsy-arya-019',
     status: 'accepted',
@@ -120,6 +139,7 @@ const mentorScheduledBookings = [
     date: 'Besok',
     time: '20.00',
     durationMinutes: 60,
+    durationLabel: '7 Hari',
     price: 30,
     meetingUrl: 'meet.google.com/tsy-dewi-114',
     status: 'accepted',
@@ -133,6 +153,7 @@ const mentorCompletedBookings = [
     date: '8 Jul',
     time: '',
     durationMinutes: 60,
+    durationLabel: '7 Hari',
     price: 30,
     score: 'Nilai 88/100',
     status: 'completed',
@@ -143,6 +164,7 @@ const mentorCompletedBookings = [
     date: '24 Jun',
     time: '',
     durationMinutes: 60,
+    durationLabel: '5 Hari',
     price: 30,
     score: 'Nilai 82/100',
     status: 'completed',

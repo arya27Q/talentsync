@@ -10,12 +10,29 @@ class MentoringClass extends Model
 {
     protected $fillable = [
         'mentor_id', 'topic', 'description', 'scheduled_time', 'duration_minutes',
-        'price_tc', 'meeting_link', 'capacity', 'status',
+        'duration_label', 'duration_days', 'price_tc', 'meeting_link', 'capacity', 'status',
     ];
 
     protected function casts(): array
     {
-        return ['scheduled_time' => 'datetime'];
+        return [
+            'scheduled_time' => 'datetime',
+            'duration_minutes' => 'integer',
+            'duration_days' => 'integer',
+        ];
+    }
+
+    public function effectiveDurationLabel(): string
+    {
+        $label = trim((string) ($this->duration_label ?? ''));
+        if ($label !== '') {
+            return $label;
+        }
+        if (($this->duration_days ?? 0) >= 2) {
+            return "{$this->duration_days} Hari";
+        }
+
+        return ($this->duration_minutes ?? 60).' menit';
     }
 
     public function mentor(): BelongsTo

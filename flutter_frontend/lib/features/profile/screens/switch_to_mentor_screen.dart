@@ -1216,7 +1216,7 @@ class _SwitchToMentorScreenState extends State<SwitchToMentorScreen> {
           ),
           const SizedBox(height: 14),
           const Text(
-            'Tarif Bimbingan per Sesi 60 Menit',
+            'Tarif Dasar Bimbingan (TimeCoin)',
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),

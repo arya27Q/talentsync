@@ -264,12 +264,20 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  'Durasi: ${c['duration_minutes'] ?? 60} menit · Google Meet',
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    color: AppColors.secondarySlate,
-                  ),
+                Builder(
+                  builder: (context) {
+                    final rawDur = (c['duration_label'] as String?)?.trim();
+                    final durText = (rawDur != null && rawDur.isNotEmpty)
+                        ? rawDur
+                        : '${c['duration_minutes'] ?? 60} menit';
+                    return Text(
+                      'Durasi pendampingan: $durText · Sesuai kinerja',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFF475569),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -288,9 +296,9 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
             child: Column(
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Saldo Dompet TimeCoin'),
+                    const Expanded(child: Text('Saldo Dompet TimeCoin')),
+                    const SizedBox(width: 8),
                     Text(
                       '$_balanceTc TC',
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -299,9 +307,9 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                 ),
                 const SizedBox(height: 8),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Biaya Sesi (Ditahan Escrow)'),
+                    const Expanded(child: Text('Biaya Sesi (Ditahan Escrow)')),
+                    const SizedBox(width: 8),
                     Text(
                       '- $priceTc TC',
                       style: const TextStyle(
@@ -313,12 +321,14 @@ class _BookingSessionScreenState extends State<BookingSessionScreen> {
                 ),
                 const Divider(height: 20),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Sisa Saldo Setelah Booking',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    const Expanded(
+                      child: Text(
+                        'Sisa Saldo Setelah Booking',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       enough ? '$remainingTc TC' : 'Kurang ${-remainingTc} TC',
                       style: TextStyle(

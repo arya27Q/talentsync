@@ -55,9 +55,10 @@ class _MentorFeaturedUpgradeScreenState
       );
       if (mounted) Navigator.pop(context, true);
     } on ApiException catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(error.message)));
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

@@ -856,15 +856,20 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
               )
             else
               ..._classes.map(
-                (cls) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _ProfileServiceCard(
-                    title: (cls['topic'] as String?) ?? 'Sesi Mentoring',
-                    duration:
-                        '${cls['duration_minutes'] ?? 60} menit · ${cls['enrolled_count'] ?? 0} pendaftar',
-                    price: '${cls['price_tc'] ?? 0} TC',
-                  ),
-                ),
+                (cls) {
+                  final rawDur = (cls['duration_label'] as String?)?.trim();
+                  final durText = (rawDur != null && rawDur.isNotEmpty)
+                      ? rawDur
+                      : '${cls['duration_minutes'] ?? 60} menit';
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _ProfileServiceCard(
+                      title: (cls['topic'] as String?) ?? 'Sesi Mentoring',
+                      duration: '$durText · ${cls['enrolled_count'] ?? 0} pendaftar',
+                      price: '${cls['price_tc'] ?? 0} TC',
+                    ),
+                  );
+                },
               ),
             const SizedBox(height: 20),
 

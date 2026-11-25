@@ -22,8 +22,10 @@ class MentorCatalogController extends Controller
         $sort = trim((string) $request->query('sort', 'rating_desc'));
 
         $query = User::query()
-            ->whereHas('roleRecord', fn ($q) => $q->where('name', 'mentor'))
-            ->orWhereHas('roles', fn ($q) => $q->where('name', 'mentor'))
+            ->where(function ($roleQuery) {
+                $roleQuery->whereHas('roleRecord', fn ($q) => $q->where('name', 'mentor'))
+                    ->orWhereHas('roles', fn ($q) => $q->where('name', 'mentor'));
+            })
             ->with('mentorProfile')
             ->when($search !== '', function ($q) use ($search) {
                 $like = '%'.$search.'%';
@@ -31,18 +33,30 @@ class MentorCatalogController extends Controller
                     $inner->whereRaw('LOWER(name) LIKE ?', [$like])
                         ->orWhereHas('mentorProfile', fn ($profile) => $profile
                             ->whereRaw('LOWER(COALESCE(title_headline, "")) LIKE ?', [$like])
-                            ->orWhereRaw('LOWER(COALESCE(bio, "")) LIKE ?', [$like]));
+                            ->orWhereRaw('LOWER(COALESCE(bio, "")) LIKE ?', [$like]))
+                        ->orWhereHas('mentoringClasses', fn ($c) => $c
+                            ->where('status', 'open')
+                            ->where(function ($classSearch) use ($like) {
+                                $classSearch->whereRaw('LOWER(topic) LIKE ?', [$like])
+                                    ->orWhereRaw('LOWER(COALESCE(description, "")) LIKE ?', [$like]);
+                            }));
                 });
             })
             ->when($category !== '' && $category !== 'semua', function ($q) use ($category) {
-                $like = '%'.$category.'%';
-                $q->where(function ($inner) use ($like) {
-                    $inner->whereHas('mentorProfile', fn ($profile) => $profile
-                        ->whereRaw('LOWER(COALESCE(title_headline, "")) LIKE ?', [$like])
-                        ->orWhereRaw('LOWER(COALESCE(bio, "")) LIKE ?', [$like]))
-                        ->orWhereHas('mentoringClasses', fn ($c) => $c
-                            ->where('status', 'open')
-                            ->whereRaw('LOWER(topic) LIKE ?', [$like]));
+                $keywords = $this->categoryKeywords($category);
+                $q->where(function ($inner) use ($keywords) {
+                    foreach ($keywords as $keyword) {
+                        $like = '%'.$keyword.'%';
+                        $inner->orWhereHas('mentorProfile', fn ($profile) => $profile
+                            ->whereRaw('LOWER(COALESCE(title_headline, "")) LIKE ?', [$like])
+                            ->orWhereRaw('LOWER(COALESCE(bio, "")) LIKE ?', [$like]))
+                            ->orWhereHas('mentoringClasses', fn ($c) => $c
+                                ->where('status', 'open')
+                                ->where(function ($classMatch) use ($like) {
+                                    $classMatch->whereRaw('LOWER(topic) LIKE ?', [$like])
+                                        ->orWhereRaw('LOWER(COALESCE(description, "")) LIKE ?', [$like]);
+                                }));
+                    }
                 });
             });
 
@@ -121,6 +135,8 @@ class MentorCatalogController extends Controller
                         'topic' => $nearestClass->topic,
                         'scheduled_time' => $nearestClass->scheduled_time?->toIso8601String(),
                         'duration_minutes' => $nearestClass->duration_minutes,
+                        'duration_days' => $nearestClass->duration_days,
+                        'duration_label' => $nearestClass->effectiveDurationLabel(),
                         'price_tc' => $nearestClass->price_tc,
                     ] : null,
                 ];
@@ -261,5 +277,24 @@ class MentorCatalogController extends Controller
         $mentoringClass->loadCount(['enrollments as enrolled_count' => fn ($query) => $query->whereNotIn('status', ['absent', 'declined'])]);
 
         return response()->json(['status' => 'success', 'data' => MentoringPresenter::mentoringClass($mentoringClass)]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function categoryKeywords(string $category): array
+    {
+        $map = [
+            'web programming' => ['web programming', 'web', 'laravel', 'react', 'next.js', 'node.js', 'vue', 'php', 'tailwind', 'postgresql', 'backend', 'frontend', 'fullstack', 'django', 'golang'],
+            'app development' => ['app development', 'mobile', 'flutter', 'dart', 'react native', 'kotlin', 'swift', 'android', 'ios', 'firebase', 'rest api'],
+            'ai engineering' => ['ai engineering', 'python', 'machine learning', 'llm', 'data science', 'computer vision', 'nlp', 'pytorch', 'tensorflow', 'rag'],
+            'ui/ux & desain' => ['ui/ux', 'figma', 'desain', 'design', 'canva', 'grafis', 'branding', 'kemasan'],
+            'digital marketing' => ['digital marketing', 'marketing', 'meta ads', 'tiktok shop', 'seo', 'copywriting', 'social media', 'iklan'],
+            'konten & video' => ['konten', 'video editing', 'capcut', 'premiere', 'fotografi', 'reels', 'multimedia'],
+            'bisnis & keuangan' => ['bisnis', 'keuangan', 'akuntansi', 'excel', 'pembukuan', 'business plan', 'operasional', 'product management', 'pajak'],
+            'karier & portofolio' => ['portofolio', 'portfolio', 'review cv', 'interview', 'linkedin', 'presentasi', 'karier'],
+        ];
+
+        return $map[$category] ?? [$category];
     }
 }

@@ -122,9 +122,10 @@ class _MentorStudentLearningRoomScreenState
           const SnackBar(content: Text('Endorsement berhasil disimpan.')),
         );
       } on ApiException catch (error) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(error.message)));
+        }
       }
     }
     notes.dispose();
@@ -638,7 +639,7 @@ class _SubmissionRow extends StatelessWidget {
             feedback: feedbackController.text.trim(),
             decision: decision,
           );
-          if (context.mounted)
+          if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
@@ -646,10 +647,12 @@ class _SubmissionRow extends StatelessWidget {
                 ),
               ),
             );
+          }
         } on ApiException catch (error) {
-          if (context.mounted)
+          if (context.mounted) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(error.message)));
+          }
         }
       }
     }

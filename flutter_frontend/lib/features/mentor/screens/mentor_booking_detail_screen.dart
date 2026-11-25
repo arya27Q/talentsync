@@ -270,10 +270,10 @@ class MentorBookingDetailScreen extends StatelessWidget {
                             child: _MetricBox(
                               icon: Icons.access_time_rounded,
                               iconColor: AppColors.primaryNavy,
-                              line1: booking.time.isNotEmpty
-                                  ? '${booking.time} · ${booking.durationMinutes}'
-                                  : '${booking.durationMinutes} mnt',
-                              line2: 'mnt',
+                              line1: booking.durationLabel,
+                              line2: booking.time.isNotEmpty
+                                  ? 'Mulai ${booking.time}'
+                                  : 'Pendampingan',
                             ),
                           ),
                           const SizedBox(width: 8),

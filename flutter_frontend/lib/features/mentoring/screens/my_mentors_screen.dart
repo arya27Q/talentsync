@@ -259,6 +259,8 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
   ) {
     final cls = (enrollment['class'] as Map<String, dynamic>?) ?? const {};
     final enrollmentId = (enrollment['id'] as num).toInt();
+    final rawDur = (cls['duration_label'] as String?)?.trim();
+    final durText = (rawDur != null && rawDur.isNotEmpty) ? rawDur : null;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -273,7 +275,11 @@ class _MyMentorsScreenState extends State<MyMentorsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  (cls['mentor_name'] as String?) ?? 'Mentor',
+                  durText != null
+                      ? '${(cls['mentor_name'] as String?) ?? 'Mentor'} · $durText'
+                      : ((cls['mentor_name'] as String?) ?? 'Mentor'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFF93C5FD),
                     fontSize: 12,

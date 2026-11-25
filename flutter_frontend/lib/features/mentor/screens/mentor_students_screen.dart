@@ -37,15 +37,17 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
       final byStudent = <int, MentorStudent>{};
       for (final enrollment in enrollments) {
         final student = MentorStudent.fromEnrollment(enrollment);
-        if (student.id != null)
+        if (student.id != null) {
           byStudent.putIfAbsent(student.id!, () => student);
+        }
       }
-      if (mounted)
+      if (mounted) {
         setState(() {
           _students
             ..clear()
             ..addAll(byStudent.values);
         });
+      }
     } on ApiException catch (error) {
       if (mounted) setState(() => _error = error.message);
     } finally {
@@ -111,7 +113,7 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
     try {
       await MentorApi.instance.endorse(eligible.enrollmentId!, notes);
       await _loadStudents();
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -119,10 +121,12 @@ class _MentorStudentsScreenState extends State<MentorStudentsScreen> {
             ),
           ),
         );
+      }
     } on ApiException catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(error.message)));
+      }
     }
   }
 

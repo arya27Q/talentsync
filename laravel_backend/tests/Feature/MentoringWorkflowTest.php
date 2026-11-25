@@ -368,6 +368,100 @@ class MentoringWorkflowTest extends TestCase
         Storage::disk('public')->assertMissing('mentor-cvs/'.$cvFile->hashName());
     }
 
+    public function test_mentor_custom_duration_rejects_one_day_and_propagates_label_to_student_and_msme_catalog(): void
+    {
+        $mentor = $this->userWithRole('mentor');
+        MentorProfile::create([
+            'user_id' => $mentor->id,
+            'title_headline' => 'Peer Mentor Flutter',
+            'hourly_rate_tc' => 30,
+            'verification_status' => 'approved',
+        ]);
+        $student = $this->userWithRole('student');
+
+        $this->actingAs($mentor, 'sanctum')
+            ->postJson('/api/mentoring/mentor/classes', [
+                'topic' => 'Durasi 1 Hari Tidak Valid',
+                'scheduled_time' => now()->addDay()->toIso8601String(),
+                'duration_days' => 1,
+                'duration_label' => '1 Hari',
+                'price_tc' => 30,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('duration_days');
+
+        $this->actingAs($mentor, 'sanctum')
+            ->postJson('/api/mentoring/mentor/classes', [
+                'topic' => 'Durasi Label 1 Hari Tidak Valid',
+                'scheduled_time' => now()->addDay()->toIso8601String(),
+                'duration_label' => '1 Hari',
+                'price_tc' => 30,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('duration_label');
+
+        $created = $this->actingAs($mentor, 'sanctum')
+            ->postJson('/api/mentoring/mentor/classes', [
+                'topic' => 'Pendampingan Portofolio Kasir UMKM',
+                'description' => 'Bimbingan intensif sesuai kinerja sampai siap lamar.',
+                'scheduled_time' => now()->addDays(2)->toIso8601String(),
+                'duration_days' => 14,
+                'duration_label' => '2 Minggu',
+                'price_tc' => 45,
+                'capacity' => 1,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.duration_days', 14)
+            ->assertJsonPath('data.duration_label', '2 Minggu');
+
+        $classId = $created->json('data.id');
+
+        $this->actingAs($student, 'sanctum')
+            ->getJson('/api/mentoring/mentors')
+            ->assertOk()
+            ->assertJsonPath('data.0.nearest_class.id', $classId)
+            ->assertJsonPath('data.0.nearest_class.duration_days', 14)
+            ->assertJsonPath('data.0.nearest_class.duration_label', '2 Minggu');
+
+        $this->actingAs($student, 'sanctum')
+            ->getJson("/api/mentoring/classes/{$classId}")
+            ->assertOk()
+            ->assertJsonPath('data.duration_label', '2 Minggu');
+
+        $webMentor = $this->userWithRole('mentor');
+        MentorProfile::create([
+            'user_id' => $webMentor->id,
+            'title_headline' => 'Backend Web Engineer',
+            'bio' => 'Keahlian: Laravel, Golang',
+            'hourly_rate_tc' => 40,
+            'verification_status' => 'approved',
+        ]);
+        MentoringClass::create([
+            'mentor_id' => $webMentor->id,
+            'topic' => 'REST API Golang & Laravel',
+            'description' => "Bangun API UMKM.\nKeahlian: Laravel, Golang.",
+            'scheduled_time' => now()->addDays(3),
+            'duration_minutes' => 60,
+            'duration_days' => 7,
+            'duration_label' => '7 Hari',
+            'price_tc' => 40,
+            'capacity' => 5,
+            'status' => 'open',
+        ]);
+
+        $this->actingAs($student, 'sanctum')
+            ->getJson('/api/mentoring/mentors?category='.urlencode('Web Programming'))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $webMentor->id);
+
+        $this->actingAs($student, 'sanctum')
+            ->getJson('/api/mentoring/mentors?search=Golang')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $webMentor->id);
+    }
+
     private function userWithRole(string $role): User
     {
         return User::factory()->create([

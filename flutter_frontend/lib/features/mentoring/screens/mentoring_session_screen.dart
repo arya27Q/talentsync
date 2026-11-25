@@ -232,12 +232,23 @@ class _MentoringSessionScreenState extends State<MentoringSessionScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            'Status: ${_enrollment['status'] ?? '-'} · ${_enrollment['paid_tc'] ?? 0} TC',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
+                          Builder(
+                            builder: (context) {
+                              final rawDur = (cls['duration_label'] as String?)
+                                  ?.trim();
+                              final durSegment =
+                                  (rawDur != null && rawDur.isNotEmpty)
+                                  ? ' · Durasi $rawDur'
+                                  : '';
+                              return Text(
+                                'Status: ${_enrollment['status'] ?? '-'}$durSegment · ${_enrollment['paid_tc'] ?? 0} TC',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 16),
                           Row(

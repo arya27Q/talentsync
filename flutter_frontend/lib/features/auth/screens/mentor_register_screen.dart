@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/features/mentor/widgets/mentor_skill_picker.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
@@ -50,16 +51,6 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
   ];
 
   final Set<String> _selectedSkills = {};
-  final List<String> _availableSkills = [
-    'Flutter & Dart',
-    'Laravel & PHP',
-    'UI/UX Design & Figma',
-    'RESTful API',
-    'PostgreSQL / Database',
-    'React & Frontend',
-    'Quality Assurance',
-    'Product Management',
-  ];
 
   int _selectedRateIndex = 1; // 0: 25 TC, 1: 35 TC, 2: 50 TC, 3: Kustom
   final List<Map<String, String>> _rateOptions = [
@@ -898,71 +889,17 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
                     // 6. Keahlian yang Ingin Diajarkan (Multi-select)
                     _buildFieldSection(
                       label: 'Bidang Keahlian Bimbingan (Pilih yang dikuasai)',
-                      caption: 'Mahasiswa akan memilihmu berdasarkan topik ini',
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _availableSkills.map((skill) {
-                          final bool isSelected = _selectedSkills.contains(
-                            skill,
-                          );
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                if (isSelected) {
-                                  if (_selectedSkills.length > 1) {
-                                    _selectedSkills.remove(skill);
-                                  }
-                                } else {
-                                  _selectedSkills.add(skill);
-                                }
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(0xFFEFF6FF)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primaryNavy
-                                      : const Color(0xFFE2E8F0),
-                                  width: isSelected ? 1.5 : 1.0,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (isSelected) ...[
-                                    const Icon(
-                                      Icons.check_rounded,
-                                      size: 14,
-                                      color: AppColors.primaryNavy,
-                                    ),
-                                    const SizedBox(width: 4),
-                                  ],
-                                  Text(
-                                    skill,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: isSelected
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                      color: isSelected
-                                          ? AppColors.primaryNavy
-                                          : AppColors.darkSlate,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                      caption:
+                          'Pilih kategori bidang lalu pilih atau ketik sendiri bahasa, teknologi, maupun keahlian Anda',
+                      child: MentorSkillPicker(
+                        selectedSkills: _selectedSkills,
+                        onChanged: (next) {
+                          setState(() {
+                            _selectedSkills
+                              ..clear()
+                              ..addAll(next);
+                          });
+                        },
                       ),
                     ),
 
@@ -1211,8 +1148,8 @@ class _MentorRegisterScreenState extends State<MentorRegisterScreen> {
 
                     // 9. Tarif TimeCoin per Sesi
                     _buildFieldSection(
-                      label: 'Tarif Bimbingan per Sesi 60 Menit',
-                      caption: '1 TC setara Rp1.000. Dana diteruskan via smart escrow setelah sesi tervalidasi.',
+                      label: 'Tarif Dasar Bimbingan (TimeCoin)',
+                      caption: '1 TC setara Rp1.000. Durasi pendampingan tiap program diatur sendiri sesuai kinerja murid.',
                       child: Row(
                         children: List.generate(_rateOptions.length, (idx) {
                           final bool isSelected = _selectedRateIndex == idx;

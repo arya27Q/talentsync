@@ -94,7 +94,7 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
       return;
     }
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!opened && mounted)
+    if (!opened && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -102,6 +102,7 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
           ),
         ),
       );
+    }
   }
 
   Future<void> _addMaterial() async {
@@ -163,9 +164,10 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
           if (!mounted) return;
           setState(() => _materials.add(title.text.trim()));
         } on ApiException catch (error) {
-          if (mounted)
+          if (mounted) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(error.message)));
+          }
           return;
         }
         ScaffoldMessenger.of(context).showSnackBar(
@@ -227,9 +229,10 @@ class _MentorLiveMentoringScreenState extends State<MentorLiveMentoringScreen> {
             ),
           );
         } on ApiException catch (error) {
-          if (mounted)
+          if (mounted) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(error.message)));
+          }
         }
       }
     }

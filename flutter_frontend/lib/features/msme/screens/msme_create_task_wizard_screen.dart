@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
+import 'package:flutter_frontend/features/mentor/widgets/mentor_skill_picker.dart';
 import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 
@@ -38,17 +39,21 @@ class _MsmeCreateTaskWizardScreenState
     final descController = TextEditingController(
       text: _customProjectDesc ?? '',
     );
-    String selectedCategory = _customProjectCategory ?? 'Lainnya';
-
     final categories = [
-      'Desain & Grafis',
-      'Video & Media',
-      'Web & Aplikasi',
-      'Penulisan & Konten',
-      'Administrasi & Data',
-      'Pemasaran Digital',
-      'Lainnya',
+      ...MentorSkillPicker.categories
+          .where((c) => c.id != 'career')
+          .map((c) => c.label),
     ];
+    String selectedCategory = categories.contains(_customProjectCategory)
+        ? _customProjectCategory!
+        : 'Bidang Lainnya';
+    final customCategoryController = TextEditingController(
+      text:
+          (_customProjectCategory != null &&
+              !categories.contains(_customProjectCategory))
+          ? _customProjectCategory!
+          : '',
+    );
 
     showModalBottomSheet<void>(
       context: context,
@@ -142,7 +147,7 @@ class _MsmeCreateTaskWizardScreenState
                 ),
                 const SizedBox(height: 14),
 
-                // Kategori
+                // Kategori (Crafted Dropdown)
                 const Text(
                   'Kategori Bidang',
                   style: TextStyle(
@@ -152,41 +157,114 @@ class _MsmeCreateTaskWizardScreenState
                   ),
                 ),
                 const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: categories.map((cat) {
-                    final isSel = selectedCategory == cat;
-                    return InkWell(
-                      onTap: () {
-                        setModalState(() {
-                          selectedCategory = cat;
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSel
-                              ? AppColors.primaryNavy
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          cat,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: isSel ? Colors.white : AppColors.darkSlate,
+                DropdownButtonFormField<String>(
+                  initialValue: selectedCategory,
+                  isExpanded: true,
+                  dropdownColor: Colors.white,
+                  elevation: 6,
+                  menuMaxHeight: 340,
+                  borderRadius: BorderRadius.circular(14),
+                  icon: Container(
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      color: AppColors.lightBlueSurface,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: AppColors.primaryNavy,
+                      size: 18,
+                    ),
+                  ),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.canvasWhite,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.borderSlate,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.borderSlate,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: AppColors.primaryNavy,
+                        width: 1.4,
+                      ),
+                    ),
+                  ),
+                  items: categories.map((cat) {
+                    return DropdownMenuItem<String>(
+                      value: cat,
+                      child: Row(
+                        children: [
+                          Icon(
+                            MentorSkillPicker.iconForLabel(cat),
+                            size: 16,
+                            color: AppColors.primaryNavy,
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              cat,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.darkSlate,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }).toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setModalState(() => selectedCategory = value);
+                  },
                 ),
+                if (selectedCategory == 'Bidang Lainnya') ...[
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: customCategoryController,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.darkSlate,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Ketik bidang kustom (misal: Fotografi, Pajak)',
+                      hintStyle: const TextStyle(
+                        fontSize: 12.5,
+                        color: Color(0xFF64748B),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 11,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderSlate,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 14),
 
                 // Anggaran TC
@@ -282,9 +360,14 @@ class _MsmeCreateTaskWizardScreenState
                         );
                         return;
                       }
+                      final resolvedCategory =
+                          selectedCategory == 'Bidang Lainnya' &&
+                              customCategoryController.text.trim().isNotEmpty
+                          ? customCategoryController.text.trim()
+                          : selectedCategory;
                       setState(() {
                         _customProjectTitle = title;
-                        _customProjectCategory = selectedCategory;
+                        _customProjectCategory = resolvedCategory;
                         _customProjectPrice =
                             priceController.text.trim().isEmpty
                             ? '100'

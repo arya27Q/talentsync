@@ -403,12 +403,23 @@ class _MentorProfileScreenState extends State<MentorProfileScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    '${cls['duration_minutes'] ?? 60} menit · Kapasitas ${cls['enrolled_count'] ?? 0}/${cls['capacity'] ?? 1}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.secondarySlate,
-                                    ),
+                                  Builder(
+                                    builder: (context) {
+                                      final rawDur =
+                                          (cls['duration_label'] as String?)
+                                              ?.trim();
+                                      final durText =
+                                          (rawDur != null && rawDur.isNotEmpty)
+                                          ? rawDur
+                                          : '${cls['duration_minutes'] ?? 60} menit';
+                                      return Text(
+                                        'Durasi $durText · Kapasitas ${cls['enrolled_count'] ?? 0}/${cls['capacity'] ?? 1}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.secondarySlate,
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),

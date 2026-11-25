@@ -8,6 +8,7 @@ use App\Models\MentoringClass;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class MentoringClassController extends Controller
 {
@@ -34,11 +35,21 @@ class MentoringClassController extends Controller
             'description' => ['nullable', 'string', 'max:10000'],
             'scheduled_time' => ['required', 'date', 'after:now'],
             'duration_minutes' => ['sometimes', 'integer', 'min:15', 'max:480'],
+            'duration_days' => ['sometimes', 'nullable', 'integer', 'min:2', 'max:365'],
+            'duration_label' => ['sometimes', 'nullable', 'string', 'min:3', 'max:80'],
             'price_tc' => ['required', 'integer', 'min:1', 'max:100000'],
             'meeting_link' => ['nullable', 'url', 'max:2048'],
             'capacity' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ], [
+            'duration_days.min' => 'Durasi pendampingan minimal 2 hari sesuai target kinerja murid.',
+            'duration_days.max' => 'Durasi pendampingan maksimal 365 hari.',
+            'duration_label.min' => 'Isi label durasi pendampingan minimal 3 karakter.',
         ]);
+
+        $data = $this->normalizeDurationPayload($data);
+        $data['duration_minutes'] = $data['duration_minutes'] ?? 60;
         $data['mentor_id'] = $request->user()->id;
+
         $class = MentoringClass::create($data);
         $class->load('mentor:id,name', 'mentor.mentorProfile');
 
@@ -53,11 +64,20 @@ class MentoringClassController extends Controller
             'description' => ['sometimes', 'nullable', 'string', 'max:10000'],
             'scheduled_time' => ['sometimes', 'required', 'date', 'after:now'],
             'duration_minutes' => ['sometimes', 'integer', 'min:15', 'max:480'],
+            'duration_days' => ['sometimes', 'nullable', 'integer', 'min:2', 'max:365'],
+            'duration_label' => ['sometimes', 'nullable', 'string', 'min:3', 'max:80'],
             'price_tc' => ['sometimes', 'required', 'integer', 'min:1', 'max:100000'],
             'meeting_link' => ['sometimes', 'nullable', 'url', 'max:2048'],
             'capacity' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'status' => ['sometimes', Rule::in(['open', 'completed', 'cancelled'])],
+        ], [
+            'duration_days.min' => 'Durasi pendampingan minimal 2 hari sesuai target kinerja murid.',
+            'duration_days.max' => 'Durasi pendampingan maksimal 365 hari.',
+            'duration_label.min' => 'Isi label durasi pendampingan minimal 3 karakter.',
         ]);
+
+        $data = $this->normalizeDurationPayload($data);
+
         if (($data['status'] ?? null) === 'completed') {
             abort_unless($mentoringClass->scheduled_time->copy()->addMinutes($mentoringClass->duration_minutes)->isPast(), 409, 'Kelas hanya dapat diselesaikan setelah jadwalnya.');
         }
@@ -79,5 +99,24 @@ class MentoringClassController extends Controller
         $mentoringClass->delete();
 
         return response()->json(['status' => 'success', 'message' => 'Kelas mentoring berhasil dihapus.']);
+    }
+
+    private function normalizeDurationPayload(array $data): array
+    {
+        if (array_key_exists('duration_label', $data) && $data['duration_label'] !== null) {
+            $label = trim((string) $data['duration_label']);
+            if (preg_match('/^\s*1\s*hari\s*$/i', $label)) {
+                throw ValidationException::withMessages([
+                    'duration_label' => ['Durasi pendampingan minimal 2 hari sesuai target kinerja murid.'],
+                ]);
+            }
+            $data['duration_label'] = $label;
+        }
+
+        if (! empty($data['duration_days']) && empty($data['duration_label'])) {
+            $data['duration_label'] = "{$data['duration_days']} Hari";
+        }
+
+        return $data;
     }
 }
