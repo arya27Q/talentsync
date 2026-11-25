@@ -203,12 +203,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Keahlian terpilih (4)'), findsOneWidget);
 
+      await tester.scrollUntilVisible(
+        find.text('Terbitkan Layanan'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Terbitkan Layanan'));
       await tester.pumpAndSettle();
 
       await tester.scrollUntilVisible(
         find.text('Durasi pendampingan'),
-        200,
+        -200,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
@@ -221,7 +227,20 @@ void main() {
       await tester.enterText(durationField, '1');
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('Terbitkan Layanan'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Terbitkan Layanan'));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Durasi pendampingan'),
+        -200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
 
       expect(
