@@ -7,6 +7,7 @@ import 'package:flutter_frontend/core/widgets/interactive_image_carousel.dart';
 import 'package:flutter_frontend/features/auth/data/auth_api.dart';
 import 'package:flutter_frontend/features/auth/widgets/msme_logo_modal.dart';
 import 'package:flutter_frontend/features/msme/data/msme_api.dart';
+import 'package:flutter_frontend/features/msme/widgets/msme_finance_modals.dart';
 
 class MsmeStoreProfileScreen extends StatefulWidget {
   const MsmeStoreProfileScreen({super.key, this.msmeApi, this.authApi});
@@ -344,155 +345,7 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
   }
 
   void _showTimeCoinHistoryModal(BuildContext context) {
-    final balanceTc = (_profileData?['balance_tc'] as num?)?.toInt() ??
-        (_sessionUser?['balance_tc'] as num?)?.toInt() ??
-        0;
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (modalContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.borderSlate,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Riwayat TimeCoin Usaha',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.darkSlate,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$balanceTc TC',
-                      style: const TextStyle(
-                        color: Color(0xFFB45309),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Saldo aktif setara Rp${balanceTc * 1000} · Smart Escrow',
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  color: AppColors.secondarySlate,
-                ),
-              ),
-              const SizedBox(height: 18),
-              if (balanceTc == 0) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.borderSlate),
-                  ),
-                  child: const Column(
-                    children: [
-                      Icon(
-                        Icons.account_balance_wallet_outlined,
-                        color: AppColors.secondarySlate,
-                        size: 32,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Belum Ada Transaksi TimeCoin',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.darkSlate,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'TimeCoin adalah kredit kolaborasi TalentSync untuk imbalan proyek mahasiswa. Saldo akan bertambah saat Anda melakukan Top Up atau program insentif.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.secondarySlate,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ] else ...[
-                _buildMutationTile(
-                  title: 'Alokasi Saldo Kemitraan Aktif',
-                  date: 'Hari ini · Dompet Usaha Terverifikasi',
-                  amount: '+$balanceTc TC',
-                  isIncome: true,
-                ),
-                const Divider(color: AppColors.borderSlate, height: 16),
-                _buildMutationTile(
-                  title: 'Kuota Sosial Bulanan Mahasiswa',
-                  date: 'Tersedia · Subsidi TalentSync',
-                  amount: '+20 TC',
-                  isIncome: true,
-                ),
-              ],
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primaryNavy,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  onPressed: () => Navigator.pop(modalContext),
-                  child: const Text(
-                    'Tutup',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    MsmeTransactionHistorySheet.show(context, msmeApi: _msmeApi);
   }
 
   void _showHelpCenterModal(BuildContext context) {
@@ -745,47 +598,6 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
     ),
   );
 
-  static Widget _buildMutationTile({
-    required String title,
-    required String date,
-    required String amount,
-    required bool isIncome,
-  }) => Row(
-    children: [
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 13.5,
-                color: AppColors.darkSlate,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              date,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.secondarySlate,
-              ),
-            ),
-          ],
-        ),
-      ),
-      Text(
-        amount,
-        style: TextStyle(
-          color: isIncome ? const Color(0xFF059669) : const Color(0xFFDC2626),
-          fontWeight: FontWeight.w800,
-          fontSize: 14,
-        ),
-      ),
-    ],
-  );
-
   @override
   Widget build(BuildContext context) {
     final businessName = (_profileData?['business_name'] as String?) ??
@@ -806,6 +618,12 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
     final ratingStr = ratingNum > 0 ? ratingNum.toStringAsFixed(1) : '0';
     final mentoredStudentsCount =
         (_profileData?['mentored_students_count'] as num?)?.toInt() ?? 0;
+    final isPremium = (_profileData?['is_premium'] as bool?) ??
+        (_sessionUser?['is_premium'] as bool?) ??
+        false;
+    final monthlyQuotaTc =
+        (_profileData?['monthly_quota_tc'] as num?)?.toInt() ??
+        (isPremium ? 500 : 20);
 
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
@@ -913,25 +731,33 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFEF3C7),
+                            color: isPremium
+                                ? const Color(0xFFECFDF5)
+                                : const Color(0xFFFEF3C7),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 Icons.workspace_premium_rounded,
-                                color: Color(0xFFB45309),
+                                color: isPremium
+                                    ? const Color(0xFF047857)
+                                    : const Color(0xFFB45309),
                                 size: 14,
                               ),
-                              SizedBox(width: 5),
+                              const SizedBox(width: 5),
                               Flexible(
                                 child: Text(
-                                  'Verified Partner',
+                                  isPremium
+                                      ? 'Partner Pro Aktif'
+                                      : 'Verified Partner',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    color: Color(0xFFB45309),
+                                    color: isPremium
+                                        ? const Color(0xFF047857)
+                                        : const Color(0xFFB45309),
                                     fontWeight: FontWeight.w800,
                                     fontSize: 11.5,
                                   ),
@@ -1040,12 +866,12 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Row: Subscription Plan + Aktif: Gratis badge
+              // Header Row: Paket Langganan + status badge
               Row(
                 children: [
                   const Expanded(
                     child: Text(
-                      'Subscription Plan',
+                      'Paket Kemitraan',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -1062,13 +888,17 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF2FF),
+                      color: isPremium
+                          ? const Color(0xFFECFDF5)
+                          : const Color(0xFFEEF2FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      'Aktif: Gratis',
+                    child: Text(
+                      isPremium ? 'Aktif: Partner Pro' : 'Aktif: Gratis',
                       style: TextStyle(
-                        color: Color(0xFF4338CA),
+                        color: isPremium
+                            ? const Color(0xFF047857)
+                            : const Color(0xFF4338CA),
                         fontWeight: FontWeight.w800,
                         fontSize: 11.5,
                       ),
@@ -1079,11 +909,15 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
               const SizedBox(height: 14),
 
               // Checklist Features
-              _buildPlanFeature('Kuota sosial 100 TC per bulan'),
+              _buildPlanFeature('Kuota sosial $monthlyQuotaTc TC per bulan'),
               const SizedBox(height: 10),
-              _buildPlanFeature('2 slot proyek aktif'),
+              _buildPlanFeature(
+                isPremium ? '10 slot proyek aktif' : '2 slot proyek aktif',
+              ),
               const SizedBox(height: 10),
-              _buildPlanFeature('Admin top up 5%'),
+              _buildPlanFeature(
+                isPremium ? 'Admin top up 0% (Gratis)' : 'Admin top up 5%',
+              ),
               const SizedBox(height: 16),
 
               // Navy Promotion Box for Partner Pro
@@ -1097,9 +931,11 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Partner Pro · Rp49.000/bulan',
-                      style: TextStyle(
+                    Text(
+                      isPremium
+                          ? 'Partner Pro Aktif · Hemat Biaya Admin'
+                          : 'Partner Pro · Rp49.000/bulan',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w800,
@@ -1107,7 +943,9 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '10 slot proyek, 0% admin top up, perpanjang kolaborasi, dan rekomendasi mentor tanpa batas.',
+                      isPremium
+                          ? 'Semua manfaat Partner Pro telah aktif: 10 slot proyek, 0% admin top-up, dan kuota sosial 500 TC/bulan.'
+                          : '10 slot proyek, 0% admin top up, kuota sosial 500 TC, dan rekomendasi mentor tanpa batas.',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 12,
@@ -1116,8 +954,14 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
                     ),
                     const SizedBox(height: 14),
                     InkWell(
-                      onTap: () {
-                        Navigator.pushNamed(context, AppRoutes.msmeUpgradePro);
+                      onTap: () async {
+                        final upgraded = await Navigator.pushNamed(
+                          context,
+                          AppRoutes.msmeUpgradePro,
+                        );
+                        if (upgraded == true && mounted) {
+                          await _loadProfile();
+                        }
                       },
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
@@ -1129,9 +973,9 @@ class _MsmeStoreProfileScreenState extends State<MsmeStoreProfileScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          'Tingkatkan',
-                          style: TextStyle(
+                        child: Text(
+                          isPremium ? 'Kelola Paket' : 'Tingkatkan',
+                          style: const TextStyle(
                             color: AppColors.primaryNavy,
                             fontSize: 13,
                             fontWeight: FontWeight.w800,

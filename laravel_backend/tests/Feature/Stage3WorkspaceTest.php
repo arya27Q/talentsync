@@ -7,6 +7,7 @@ use App\Models\ProjectApplication;
 use App\Models\ProjectMilestone;
 use App\Models\Role;
 use App\Models\StudentProfile;
+use App\Models\TimeCoinWallet;
 use App\Models\UmkmProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,6 +43,11 @@ class Stage3WorkspaceTest extends TestCase
                 'business_sector' => 'Kuliner',
                 'address' => 'Jl. Ketintang Baru No. 12, Surabaya',
                 'city' => 'Surabaya',
+            ]);
+            TimeCoinWallet::create([
+                'user_id' => $user->id,
+                'balance' => 200,
+                'locked_balance' => 0,
             ]);
         }
 

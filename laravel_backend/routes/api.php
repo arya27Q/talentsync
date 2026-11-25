@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\MentorPremiumSubscriptionController;
 use App\Http\Controllers\Api\MentorProfileController;
 use App\Http\Controllers\Api\Msme\MsmeApplicantController;
 use App\Http\Controllers\Api\Msme\MsmeDashboardController;
+use App\Http\Controllers\Api\Msme\MsmeFinanceController;
 use App\Http\Controllers\Api\Msme\MsmeProfileController;
 use App\Http\Controllers\Api\Msme\MsmeProjectController;
 use App\Http\Controllers\Api\Msme\MsmeSubmissionController;
@@ -201,4 +202,10 @@ Route::middleware(['auth:sanctum', 'role:msme'])->prefix('msme')->group(function
     Route::get('/submissions', [MsmeSubmissionController::class, 'index']);
     Route::post('/milestones/{milestone}/revision', [MsmeSubmissionController::class, 'requestRevision']);
     Route::post('/milestones/{milestone}/approve', [MsmeSubmissionController::class, 'approve']);
+    Route::get('/barters', [MsmeFinanceController::class, 'barters']);
+    Route::post('/barters', [MsmeFinanceController::class, 'storeBarter']);
+    Route::post('/top-up', [MsmeFinanceController::class, 'topUp']);
+    Route::get('/transactions', [MsmeFinanceController::class, 'transactions']);
+    Route::get('/subscription', [MsmeFinanceController::class, 'subscription']);
+    Route::post('/subscription', [MsmeFinanceController::class, 'subscribe']);
 });

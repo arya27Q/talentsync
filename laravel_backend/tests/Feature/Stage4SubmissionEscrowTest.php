@@ -99,7 +99,13 @@ class Stage4SubmissionEscrowTest extends TestCase
         $appId = (int) Project::findOrFail($projectId)->applications()->firstOrFail()->id;
         $this->actingAs($msme, 'sanctum')
             ->postJson("/api/msme/applications/{$appId}/accept")
-            ->assertOk();
+            ->assertOk()
+            ->assertJsonPath('data.escrow_locked_tc', 100)
+            ->assertJsonPath('data.balance_tc', 0)
+            ->assertJsonPath('data.locked_balance_tc', 100);
+
+        $this->assertSame(0, TimeCoinWallet::where('user_id', $msme->id)->value('balance'));
+        $this->assertSame(100, TimeCoinWallet::where('user_id', $msme->id)->value('locked_balance'));
 
         // Fresh MSME dashboard before any submission should show 0 pending_submissions_count
         $this->actingAs($msme, 'sanctum')
@@ -164,7 +170,9 @@ class Stage4SubmissionEscrowTest extends TestCase
             ->assertJsonPath('data.is_project_completed', false)
             ->assertJsonPath('data.reward_tc', 30)
             ->assertJsonPath('data.student_balance_tc', 30)
-            ->assertJsonPath('data.msme_balance_tc', 70);
+            ->assertJsonPath('data.msme_balance_tc', 0);
+
+        $this->assertSame(70, (int) TimeCoinWallet::where('user_id', $msme->id)->value('locked_balance'));
 
         // Double approval must be blocked with 409
         $this->actingAs($msme, 'sanctum')
@@ -187,7 +195,9 @@ class Stage4SubmissionEscrowTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.is_project_completed', false)
             ->assertJsonPath('data.student_balance_tc', 70)
-            ->assertJsonPath('data.msme_balance_tc', 30);
+            ->assertJsonPath('data.msme_balance_tc', 0);
+
+        $this->assertSame(30, (int) TimeCoinWallet::where('user_id', $msme->id)->value('locked_balance'));
 
         // 6. Final Milestone 3 (30 TC) -> submit -> verify is_final_stage=true -> approve with 5-star review
         $m3 = $milestones[2];
@@ -215,6 +225,8 @@ class Stage4SubmissionEscrowTest extends TestCase
             ->assertJsonPath('data.student_balance_tc', 100)
             ->assertJsonPath('data.msme_balance_tc', 0)
             ->assertJsonPath('data.portfolio_created', true);
+
+        $this->assertSame(0, (int) TimeCoinWallet::where('user_id', $msme->id)->value('locked_balance'));
 
         // Verify DB side-effects: Portfolio, Certificate, Review, StudentProfile metrics, Ledger transactions
         $this->assertTrue(Portfolio::where('student_id', $student->id)->where('project_id', $projectId)->where('is_verified', true)->exists());

@@ -12,8 +12,10 @@ use App\Models\ProjectMessage;
 use App\Models\ProjectMilestone;
 use App\Models\ProjectTask;
 use App\Models\StudentCertificate;
+use App\Models\TimeCoinWallet;
 use App\Models\User;
 use App\Services\NotificationDispatcher;
+use App\Services\TimeCoinLedgerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +24,7 @@ class MsmeApplicantController extends Controller
 {
     public function __construct(
         private readonly NotificationDispatcher $notifications,
+        private readonly TimeCoinLedgerService $ledger,
     ) {
     }
 
@@ -220,7 +223,22 @@ class MsmeApplicantController extends Controller
         abort_unless($project && $project->msme_id === $user->id, 403, 'Akses ditolak.');
         abort_unless($application->status === 'pending', 409, 'Lamaran ini sudah tidak berstatus pending.');
 
-        DB::transaction(function () use ($application, $project, $user) {
+        $escrowResult = DB::transaction(function () use ($application, $project, $user) {
+            // Kunci dana escrow sebesar reward_tc proyek secara ketat sebelum menerima pelamar
+            $rewardTc = (int) $project->reward_tc;
+            $wallet = TimeCoinWallet::firstOrCreate(
+                ['user_id' => $user->id],
+                ['balance' => 0, 'locked_balance' => 0]
+            );
+            $lockedWallet = TimeCoinWallet::whereKey($wallet->id)->lockForUpdate()->firstOrFail();
+            $this->ledger->holdForProjectEscrow(
+                $lockedWallet,
+                $user->id,
+                $application->student_id,
+                $rewardTc,
+                $project,
+            );
+
             $application->update([
                 'status' => 'accepted',
                 'reviewed_at' => now(),
@@ -318,19 +336,30 @@ class MsmeApplicantController extends Controller
                 $application->student_id,
                 'application_accepted',
                 'Lamaran Proyek Diterima!',
-                "Selamat! Lamaran Anda untuk tugas '{$project->title}' telah diterima oleh {$msmeName}. Ruang kerja Kanban telah aktif.",
+                "Selamat! Lamaran Anda untuk tugas '{$project->title}' telah diterima oleh {$msmeName}. Dana escrow {$rewardTc} TC telah dikunci dan ruang kerja Kanban telah aktif.",
                 '/workspace/kanban',
                 ['project_id' => $project->id],
             );
-        });
+
+            $freshWallet = $lockedWallet->fresh();
+
+            return [
+                'escrow_locked_tc' => $rewardTc,
+                'balance_tc' => (int) ($freshWallet?->balance ?? 0),
+                'locked_balance_tc' => (int) ($freshWallet?->locked_balance ?? 0),
+            ];
+        }, 3);
 
         return response()->json([
             'status' => 'success',
-            'message' => "Pelamar {$application->student?->name} berhasil diterima. Proyek telah berpindah ke tahap Berjalan.",
+            'message' => "Pelamar {$application->student?->name} berhasil diterima & dana {$escrowResult['escrow_locked_tc']} TC dikunci di Smart Escrow. Proyek berpindah ke tahap Berjalan.",
             'data' => [
                 'application_id' => $application->id,
                 'project_id' => $project->id,
                 'project_status' => 'in_progress',
+                'escrow_locked_tc' => $escrowResult['escrow_locked_tc'],
+                'balance_tc' => $escrowResult['balance_tc'],
+                'locked_balance_tc' => $escrowResult['locked_balance_tc'],
             ],
         ]);
     }

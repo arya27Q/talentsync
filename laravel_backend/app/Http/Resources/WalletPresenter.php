@@ -13,11 +13,13 @@ final class WalletPresenter
     {
         $title = match ($transaction->transaction_type) {
             'project_reward' => 'Imbalan Proyek UMKM',
+            'project_escrow_hold' => 'Kunci Escrow Proyek UMKM',
             'mentoring_payment' => $transaction->direction === 'debit' || $transaction->direction === 'escrow_credit'
                 ? 'Booking Sesi Mentoring'
                 : 'Pembayaran Sesi Mentoring',
             'mentoring_refund' => 'Pengembalian Escrow Mentoring',
             'top_up' => 'Top-Up TimeCoin',
+            'voucher_barter' => 'Barter Voucher Sosial UMKM',
             'p2p_transfer' => $transaction->direction === 'debit'
                 ? 'Kirim TimeCoin ke Rekan'
                 : 'Terima TimeCoin dari Rekan',

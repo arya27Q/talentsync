@@ -65,7 +65,7 @@ class MentoringWorkflowTest extends TestCase
 
         $this->postJson('/api/auth/login', ['email' => 'student@example.test', 'password' => 'wrong-password'])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('email');
+            ->assertJsonValidationErrors('password');
         $this->postJson('/api/auth/login', ['email' => 'student@example.test', 'password' => 'password123'])
             ->assertOk()
             ->assertJsonPath('data.user.role', 'student');

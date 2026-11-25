@@ -152,7 +152,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         );
         return;
       }
-      if (targetRoute.contains('wallet')) {
+      if (targetRoute.contains('/msme/upgrade-pro')) {
+        Navigator.pushNamed(context, AppRoutes.msmeUpgradePro);
+        return;
+      }
+      if (targetRoute.contains('wallet') || targetRoute.contains('/msme/barter')) {
         Navigator.pushNamed(context, AppRoutes.msmeBarter);
         return;
       }

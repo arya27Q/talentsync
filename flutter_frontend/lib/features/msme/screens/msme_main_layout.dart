@@ -18,11 +18,15 @@ class _MsmeMainLayoutState extends State<MsmeMainLayout> {
   int _currentIndex = 0;
   int _dashboardVersion = 0;
   int _postingsVersion = 0;
+  int _barterVersion = 0;
+  int _profileVersion = 0;
 
   void _selectTab(int index) {
     setState(() {
-      if (index == 0 && _currentIndex != 0) {
-        _dashboardVersion++;
+      if (index != _currentIndex) {
+        if (index == 0) _dashboardVersion++;
+        if (index == 2) _barterVersion++;
+        if (index == 3) _profileVersion++;
       }
       _currentIndex = index;
     });
@@ -60,8 +64,16 @@ class _MsmeMainLayoutState extends State<MsmeMainLayout> {
         key: ValueKey('post_$_postingsVersion'),
         onCreatePosting: _openCreateTaskWizard,
       ),
-      const MsmeBarterScreen(),
-      const MsmeStoreProfileScreen(),
+      MsmeBarterScreen(
+        key: ValueKey('barter_$_barterVersion'),
+        onBalanceChanged: () {
+          setState(() {
+            _dashboardVersion++;
+            _profileVersion++;
+          });
+        },
+      ),
+      MsmeStoreProfileScreen(key: ValueKey('profile_$_profileVersion')),
     ];
 
     return Scaffold(

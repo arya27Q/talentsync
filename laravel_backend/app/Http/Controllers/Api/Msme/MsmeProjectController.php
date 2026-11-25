@@ -93,6 +93,20 @@ class MsmeProjectController extends Controller
         $user = $request->user();
         $umkmProfile = $user->umkmProfile;
 
+        $isPremium = (bool) ($umkmProfile?->is_premium ?? false);
+        $maxSlots = $isPremium ? 10 : 2;
+        $activeProjectsCount = Project::where('msme_id', $user->id)
+            ->whereIn('status', ['open', 'in_progress', 'review'])
+            ->count();
+
+        abort_if(
+            $activeProjectsCount >= $maxSlots,
+            422,
+            $isPremium
+                ? "Batas maksimal {$maxSlots} slot proyek aktif Partner Pro sudah penuh. Selesaikan proyek yang sedang berjalan terlebih dahulu."
+                : "Slot proyek aktif paket Gratis ({$maxSlots} proyek) sudah penuh. Tingkatkan ke Partner Pro untuk membuka hingga 10 slot proyek aktif."
+        );
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:200'],
             'category' => ['required', 'string', 'max:100'],

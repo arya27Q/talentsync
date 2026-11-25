@@ -204,4 +204,77 @@ class MsmeApi {
             'review_text': reviewText.trim(),
         },
       );
+
+  Future<Map<String, dynamic>> getBarters() async =>
+      (await _client.get('/msme/barters'))['data'] as Map<String, dynamic>;
+
+  Future<Map<String, dynamic>> createBarter({
+    required String voucherType,
+    required String title,
+    required int quantity,
+    required int valueIdr,
+    required int validityDays,
+    required bool isGuaranteed,
+    String? designFileName,
+    Uint8List? designBytes,
+  }) async {
+    if (designFileName != null && designBytes != null) {
+      return await _client.postMultipart(
+        '/msme/barters',
+        fields: {
+          'voucher_type': voucherType,
+          'title': title.trim(),
+          'quantity': '$quantity',
+          'value_idr': '$valueIdr',
+          'validity_days': '$validityDays',
+          'is_guaranteed': isGuaranteed ? '1' : '0',
+        },
+        fileField: 'design_file',
+        fileName: designFileName,
+        fileBytes: designBytes,
+      );
+    }
+
+    return await _client.post(
+      '/msme/barters',
+      body: {
+        'voucher_type': voucherType,
+        'title': title.trim(),
+        'quantity': quantity,
+        'value_idr': valueIdr,
+        'validity_days': validityDays,
+        'is_guaranteed': isGuaranteed,
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> topUp({
+    required int amountTc,
+    String paymentChannel = 'qris_sandbox',
+  }) async =>
+      await _client.post(
+        '/msme/top-up',
+        body: {
+          'amount_tc': amountTc,
+          'payment_channel': paymentChannel,
+        },
+      );
+
+  Future<Map<String, dynamic>> getTransactions() async =>
+      (await _client.get('/msme/transactions'))['data'] as Map<String, dynamic>;
+
+  Future<Map<String, dynamic>> getSubscription() async =>
+      (await _client.get('/msme/subscription'))['data'] as Map<String, dynamic>;
+
+  Future<Map<String, dynamic>> subscribePro({
+    required String planType,
+    String paymentChannel = 'qris_sandbox',
+  }) async =>
+      await _client.post(
+        '/msme/subscription',
+        body: {
+          'plan_type': planType,
+          'payment_channel': paymentChannel,
+        },
+      );
 }

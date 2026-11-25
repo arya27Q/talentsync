@@ -46,6 +46,12 @@ class TimeCoinLedgerService
         $this->record($wallet, null, $userId, 'top_up', 'credit', 'balance', $amount, $reference);
     }
 
+    public function recordVoucherBarter(TimeCoinWallet $wallet, int $msmeId, int $amount, Model $reference): void
+    {
+        $wallet->increment('balance', $amount);
+        $this->record($wallet, null, $msmeId, 'voucher_barter', 'credit', 'balance', $amount, $reference);
+    }
+
     public function transferBetweenUsers(
         TimeCoinWallet $senderWallet,
         TimeCoinWallet $recipientWallet,
@@ -66,6 +72,29 @@ class TimeCoinLedgerService
         abort_if($wallet->balance < $amount, 422, 'Saldo TimeCoin tidak mencukupi untuk menukar reward.');
         $wallet->decrement('balance', $amount);
         $this->record($wallet, $studentId, $studentId, 'voucher_redeem', 'debit', 'balance', $amount, $reference);
+    }
+
+    public function holdForProjectEscrow(
+        TimeCoinWallet $msmeWallet,
+        int $msmeId,
+        int $studentId,
+        int $amount,
+        Model $reference,
+    ): void {
+        if ($amount <= 0) {
+            return;
+        }
+
+        abort_if(
+            $msmeWallet->balance < $amount,
+            422,
+            "Saldo TimeCoin usaha tidak mencukupi untuk mengunci escrow proyek ini. Dibutuhkan {$amount} TC, saldo tersedia {$msmeWallet->balance} TC. Silakan Top-Up atau Barter Voucher terlebih dahulu."
+        );
+
+        $msmeWallet->decrement('balance', $amount);
+        $msmeWallet->increment('locked_balance', $amount);
+        $this->record($msmeWallet, $msmeId, $studentId, 'project_escrow_hold', 'debit', 'balance', $amount, $reference);
+        $this->record($msmeWallet, $msmeId, $studentId, 'project_escrow_hold', 'escrow_credit', 'locked_balance', $amount, $reference);
     }
 
     public function releaseProjectMilestoneReward(

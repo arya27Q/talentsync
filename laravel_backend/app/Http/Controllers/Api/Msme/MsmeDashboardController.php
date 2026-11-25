@@ -97,6 +97,9 @@ class MsmeDashboardController extends Controller
                 ];
             });
 
+        $isPremium = (bool) ($umkmProfile?->is_premium ?? false);
+        $slotsMax = $isPremium ? 10 : 2;
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -117,9 +120,10 @@ class MsmeDashboardController extends Controller
                 'pending_submission_preview' => $pendingSubmissionPreview,
                 'completed_projects_count' => $completedProjectsCount,
                 'total_projects_count' => $totalProjectsCount,
-                'active_slots_used' => min(2, $activeProjectsCount),
-                'active_slots_max' => (bool) ($umkmProfile?->is_premium ?? false) ? 10 : 2,
-                'is_premium' => (bool) ($umkmProfile?->is_premium ?? false),
+                'active_slots_used' => min($slotsMax, $activeProjectsCount),
+                'active_slots_max' => $slotsMax,
+                'admin_fee_percent' => $isPremium ? 0 : 5,
+                'is_premium' => $isPremium,
                 'is_verified' => (bool) ($umkmProfile?->is_verified ?? true),
                 'recent_postings' => $recentPostings,
             ],

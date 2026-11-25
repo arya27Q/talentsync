@@ -11,6 +11,7 @@ import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_inbox_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_applicants_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_review_submission_screen.dart';
+import 'package:flutter_frontend/features/msme/widgets/msme_finance_modals.dart';
 
 class MsmeDashboardScreen extends StatefulWidget {
   const MsmeDashboardScreen({
@@ -110,11 +111,18 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
         )
         .take(3)
         .toList();
+    final isPremium = (_dashboardData?['is_premium'] as bool?) ??
+        (_sessionUser?['is_premium'] as bool?) ??
+        false;
+    final adminFeePercent =
+        (_dashboardData?['admin_fee_percent'] as num?)?.toInt() ??
+        (isPremium ? 0 : 5);
+    final slotsMax =
+        (_dashboardData?['active_slots_max'] as num?)?.toInt() ??
+        (isPremium ? 10 : 2);
     final slotsUsed =
         (_dashboardData?['active_slots_used'] as num?)?.toInt() ??
-        (activeCount > 2 ? 2 : activeCount);
-    final slotsMax =
-        (_dashboardData?['active_slots_max'] as num?)?.toInt() ?? 2;
+        (activeCount > slotsMax ? slotsMax : activeCount);
 
     return Scaffold(
       backgroundColor: AppColors.canvasWhite,
@@ -336,7 +344,7 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Setara Rp${balanceTc * 1000}',
+                        'Setara ${formatRupiah(balanceTc * 1000)}',
                         style: const TextStyle(
                           color: Color(0xFF93C5FD),
                           fontSize: 12,
@@ -351,15 +359,15 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                               label: 'Top Up',
                               icon: Icons.add_circle_outline_rounded,
                               isPrimary: true,
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Menu Top Up TimeCoin dibuka.',
-                                    ),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
+                              onTap: () async {
+                                final ok = await MsmeTopUpSheet.show(
+                                  context,
+                                  isPremium: isPremium,
+                                  msmeApi: _msmeApi,
                                 );
+                                if (ok && mounted) {
+                                  await _loadDashboard();
+                                }
                               },
                             ),
                           ),
@@ -379,11 +387,9 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                               icon: Icons.history_rounded,
                               isPrimary: false,
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Riwayat mutasi TimeCoin.'),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
+                                MsmeTransactionHistorySheet.show(
+                                  context,
+                                  msmeApi: _msmeApi,
                                 );
                               },
                             ),
@@ -437,9 +443,11 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Verified Partner',
-                                  style: TextStyle(
+                                Text(
+                                  isPremium
+                                      ? 'Partner Pro Aktif'
+                                      : 'Verified Partner',
+                                  style: const TextStyle(
                                     fontSize: 14.5,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.darkSlate,
@@ -447,7 +455,7 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Slot proyek $slotsUsed/$slotsMax \u00B7 admin top up 5%',
+                                  'Slot proyek $slotsUsed/$slotsMax \u00B7 admin top up $adminFeePercent%',
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: AppColors.secondarySlate,
@@ -458,28 +466,38 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                           ),
                           Container(
                             decoration: BoxDecoration(
-                              color: AppColors.primaryNavy,
+                              color: isPremium
+                                  ? const Color(0xFFECFDF5)
+                                  : AppColors.primaryNavy,
                               borderRadius: BorderRadius.circular(10),
+                              border: isPremium
+                                  ? Border.all(color: const Color(0xFFA7F3D0))
+                                  : null,
                             ),
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: () {
-                                  Navigator.pushNamed(
+                                onTap: () async {
+                                  final upgraded = await Navigator.pushNamed(
                                     context,
                                     AppRoutes.msmeUpgradePro,
                                   );
+                                  if (upgraded == true && mounted) {
+                                    await _loadDashboard();
+                                  }
                                 },
                                 borderRadius: BorderRadius.circular(10),
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
                                     horizontal: 14,
                                     vertical: 8,
                                   ),
                                   child: Text(
-                                    'Tingkatkan',
+                                    isPremium ? 'Kelola Pro' : 'Tingkatkan',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: isPremium
+                                          ? const Color(0xFF047857)
+                                          : Colors.white,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                     ),
@@ -491,33 +509,20 @@ class _MsmeDashboardScreenState extends State<MsmeDashboardScreen> {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      // 2-segment progress bar
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: slotsUsed >= 1
-                                    ? const Color(0xFFF59E0B)
-                                    : const Color(0xFFE2E8F0),
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: slotsMax > 0
+                              ? (slotsUsed / slotsMax).clamp(0.0, 1.0)
+                              : 0.0,
+                          minHeight: 5,
+                          backgroundColor: const Color(0xFFE2E8F0),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isPremium
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFF59E0B),
                           ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Container(
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: slotsUsed >= 2
-                                    ? const Color(0xFFF59E0B)
-                                    : const Color(0xFFE2E8F0),
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(

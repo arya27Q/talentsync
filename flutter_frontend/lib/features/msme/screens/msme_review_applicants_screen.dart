@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_frontend/core/constants/app_colors.dart';
 import 'package:flutter_frontend/core/network/api_client.dart';
+import 'package:flutter_frontend/core/network/api_exception.dart';
 import 'package:flutter_frontend/core/routes/app_routes.dart';
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
 import 'package:flutter_frontend/core/widgets/app_status_dialog.dart';
 import 'package:flutter_frontend/features/msme/data/msme_api.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_applicant_profile_screen.dart';
 import 'package:flutter_frontend/features/msme/screens/msme_chat_screen.dart';
+import 'package:flutter_frontend/features/msme/widgets/msme_finance_modals.dart';
 import 'package:flutter_frontend/features/msme/widgets/msme_reject_mentor_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -154,6 +156,11 @@ class _MsmeReviewApplicantsScreenState
 
     try {
       final response = await _msmeApi.acceptApplicant(applicationId);
+      final resData = response['data'] as Map<String, dynamic>?;
+      final newBalance = (resData?['balance_tc'] as num?)?.toInt();
+      if (newBalance != null) {
+        await ApiClient.instance.updateSessionUser({'balance_tc': newBalance});
+      }
       if (!mounted) return;
 
       final message =
@@ -168,6 +175,34 @@ class _MsmeReviewApplicantsScreenState
       );
 
       _loadApplicants();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.statusCode == 422) {
+        final session = await ApiClient.instance.readSessionUser();
+        if (!mounted) return;
+        final isPremium = (session?['is_premium'] as bool?) ?? false;
+        final wantTopUp = await AppStatusDialog.show(
+          context,
+          type: AppStatusDialogType.error,
+          title: 'Saldo TimeCoin Belum Cukup',
+          message: e.message,
+          primaryButtonText: 'Top Up Sekarang',
+          secondaryButtonText: 'Tutup',
+        );
+        if (wantTopUp == true && mounted) {
+          await MsmeTopUpSheet.show(
+            context,
+            isPremium: isPremium,
+            msmeApi: _msmeApi,
+          );
+        }
+        return;
+      }
+      await AppStatusDialog.showError(
+        context,
+        title: 'Gagal Menerima Pelamar',
+        message: e.message,
+      );
     } catch (e) {
       if (!mounted) return;
       await AppStatusDialog.showError(
