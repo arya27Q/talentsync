@@ -300,14 +300,12 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
           ),
         ),
         Expanded(
-          child: Stack(
-            children: [
-              Form(
-                key: _formKey,
-                child: ListView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 140),
-                  children: [
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+              children: [
                     Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
@@ -817,44 +815,41 @@ class MentorServicesScreenState extends State<MentorServicesScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.primaryNavy,
+                          disabledBackgroundColor: _accessibleCaptionSlate,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: _saving ? null : _saveService,
+                        icon: Icon(
+                          _saving
+                              ? Icons.hourglass_top_rounded
+                              : Icons.check_circle_outline_rounded,
+                          color: Colors.white,
+                          size: 19,
+                        ),
+                        label: Text(
+                          _saving
+                              ? 'Menerbitkan Layanan...'
+                              : 'Terbitkan Layanan',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Positioned(
-                left: 20,
-                right: 20,
-                bottom: 16,
-                child: SizedBox(
-                  height: 54,
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primaryNavy,
-                      disabledBackgroundColor: _accessibleCaptionSlate,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    onPressed: _saving ? null : _saveService,
-                    icon: Icon(
-                      _saving
-                          ? Icons.hourglass_top_rounded
-                          : Icons.check_circle_outline_rounded,
-                      color: Colors.white,
-                      size: 19,
-                    ),
-                    label: Text(
-                      _saving ? 'Menerbitkan Layanan...' : 'Terbitkan Layanan',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ],
     );
