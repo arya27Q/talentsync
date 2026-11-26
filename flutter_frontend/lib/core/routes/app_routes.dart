@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/splash_screen.dart';
-import 'package:flutter_frontend/role_selection_screen.dart';
+import 'package:flutter_frontend/features/auth/screens/splash_screen.dart';
+import 'package:flutter_frontend/features/auth/screens/role_selection_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/student_auth_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/msme_auth_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/mentor_auth_screen.dart';

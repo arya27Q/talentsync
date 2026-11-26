@@ -1,26 +1,27 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Admin\AdminMentorPremiumController;
 use App\Http\Controllers\Api\Admin\AdminPortalController;
-use App\Http\Controllers\Api\AdminMentorPremiumController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\DisputeController;
-use App\Http\Controllers\Api\InboxController;
-use App\Http\Controllers\Api\MentorCatalogController;
-use App\Http\Controllers\Api\MentorDashboardController;
-use App\Http\Controllers\Api\MentoringAssignmentController;
-use App\Http\Controllers\Api\MentoringClassController;
-use App\Http\Controllers\Api\MentoringEnrollmentController;
-use App\Http\Controllers\Api\MentoringMessageController;
-use App\Http\Controllers\Api\MentorPremiumSubscriptionController;
-use App\Http\Controllers\Api\MentorProfileController;
+use App\Http\Controllers\Api\Mentor\MentorCatalogController;
+use App\Http\Controllers\Api\Mentor\MentorDashboardController;
+use App\Http\Controllers\Api\Mentor\MentoringAssignmentController;
+use App\Http\Controllers\Api\Mentor\MentoringClassController;
+use App\Http\Controllers\Api\Mentor\MentoringEnrollmentController;
+use App\Http\Controllers\Api\Mentor\MentoringMessageController;
+use App\Http\Controllers\Api\Mentor\MentorPremiumSubscriptionController;
+use App\Http\Controllers\Api\Mentor\MentorProfileController;
 use App\Http\Controllers\Api\Msme\MsmeApplicantController;
 use App\Http\Controllers\Api\Msme\MsmeDashboardController;
 use App\Http\Controllers\Api\Msme\MsmeFinanceController;
 use App\Http\Controllers\Api\Msme\MsmeProfileController;
 use App\Http\Controllers\Api\Msme\MsmeProjectController;
 use App\Http\Controllers\Api\Msme\MsmeSubmissionController;
-use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\Shared\AuthController;
+use App\Http\Controllers\Api\Shared\DisputeController;
+use App\Http\Controllers\Api\Shared\InboxController;
+use App\Http\Controllers\Api\Shared\NotificationController;
+use App\Http\Controllers\Api\Shared\WalletController;
 use App\Http\Controllers\Api\Student\PortfolioController;
 use App\Http\Controllers\Api\Student\ProjectController;
 use App\Http\Controllers\Api\Student\StudentDashboardController;
@@ -28,7 +29,6 @@ use App\Http\Controllers\Api\Student\StudentProfileController;
 use App\Http\Controllers\Api\Student\StudentProjectController;
 use App\Http\Controllers\Api\Student\WorkspaceMessageController;
 use App\Http\Controllers\Api\Student\WorkspaceTaskController;
-use App\Http\Controllers\Api\WalletController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
