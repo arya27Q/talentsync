@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/splash_screen.dart';
-import 'package:flutter_frontend/role_selection_screen.dart';
+import 'package:flutter_frontend/features/auth/screens/splash_screen.dart';
+import 'package:flutter_frontend/features/auth/screens/role_selection_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/student_auth_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/msme_auth_screen.dart';
 import 'package:flutter_frontend/features/auth/screens/mentor_auth_screen.dart';
@@ -67,6 +67,8 @@ import 'package:flutter_frontend/features/msme/screens/msme_store_profile_screen
 import 'package:flutter_frontend/features/msme/screens/msme_edit_profile_screen.dart';
 
 import 'package:flutter_frontend/core/routes/student_route_args.dart';
+import 'package:flutter_frontend/features/admin/screens/admin_login_screen.dart';
+import 'package:flutter_frontend/features/admin/screens/admin_main_layout.dart';
 import 'package:flutter_frontend/features/wallet/screens/history_screen.dart';
 import 'package:flutter_frontend/features/wallet/screens/transfer_screen.dart';
 
@@ -140,10 +142,14 @@ class AppRoutes {
   static const String privacySecurity = '/settings/privacy-security';
   static const String helpSupport = '/settings/help-support';
   static const String switchToMentor = '/profile/switch-to-mentor';
+  static const String adminLogin = '/admin/login';
+  static const String adminDashboard = '/admin/dashboard';
 
   // Define Route Map
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => const SplashScreen(),
+    adminLogin: (context) => const AdminLoginScreen(),
+    adminDashboard: (context) => const AdminMainLayout(),
     roleSelection: (context) => const RoleSelectionScreen(),
     studentAuth: (context) => const StudentAuthScreen(),
     msmeAuth: (context) => const MsmeAuthScreen(),

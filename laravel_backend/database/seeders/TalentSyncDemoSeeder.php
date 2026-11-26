@@ -37,6 +37,14 @@ class TalentSyncDemoSeeder extends Seeder
         $studentRole = Role::firstOrCreate(['name' => 'student'], ['description' => 'Mahasiswa']);
         $msmeRole = Role::firstOrCreate(['name' => 'msme'], ['description' => 'Mitra UMKM']);
         $mentorRole = Role::firstOrCreate(['name' => 'mentor'], ['description' => 'Mentor']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin'], ['description' => 'Administrator Ekosistem']);
+
+        // 0. Administrator Ekosistem (Portal Web Admin)
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@talentsync.id'],
+            ['name' => 'Admin TalentSync', 'password' => 'password123', 'role_id' => $adminRole->id],
+        );
+        $admin->roles()->syncWithoutDetaching([$adminRole->id]);
 
         // 1. Mahasiswa demo (NIM 24051214017)
         $student = User::firstOrCreate(
@@ -45,12 +53,17 @@ class TalentSyncDemoSeeder extends Seeder
         );
         $student->roles()->syncWithoutDetaching([$studentRole->id]);
 
+        $existingByNim = StudentProfile::where('student_id_number', '24051214017')->first();
+        $demoNim = ($existingByNim && $existingByNim->user_id !== $student->id)
+            ? '24051214099'
+            : '24051214017';
+
         StudentProfile::updateOrCreate(
             ['user_id' => $student->id],
             [
                 'university' => 'Universitas Negeri Surabaya',
                 'major' => 'S1 Sistem Informasi',
-                'student_id_number' => '24051214017',
+                'student_id_number' => $demoNim,
                 'ktm_verification_status' => 'approved',
                 'headline' => 'Flutter Developer',
                 'bio' => 'Mahasiswa Sistem Informasi yang fokus membangun aplikasi kasir dan katalog digital untuk UMKM Jawa Timur.',

@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Http\Controllers\Api\Mentor;
+
+use App\Http\Controllers\Controller;
+use App\Models\MentorProfile;
+use App\Models\MentoringClass;
+use App\Models\MentoringEnrollment;
+use App\Models\TimeCoinWallet;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class MentorDashboardController extends Controller
+{
+    public function index(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $mentorId = $user->id;
+        $profile = MentorProfile::where('user_id', $mentorId)->first();
+        $classIds = MentoringClass::query()->where('mentor_id', $mentorId)->select('id');
+        $balance = TimeCoinWallet::where('user_id', $mentorId)->value('balance') ?? 0;
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'name' => $user->name,
+                'avatar_url' => $profile?->avatar_url,
+                'title_headline' => $profile?->title_headline,
+                'balance_tc' => $balance,
+                'estimated_idr' => $balance * 1000,
+                'new_bookings' => MentoringEnrollment::whereIn('class_id', $classIds)->where('status', 'pending')->count(),
+                'scheduled_bookings' => MentoringEnrollment::whereIn('class_id', $classIds)->where('status', 'accepted')->count(),
+                'needs_review' => MentoringEnrollment::whereIn('class_id', $classIds)->where('status', 'attended')->count(),
+                'endorsement_requests' => MentoringEnrollment::whereIn('class_id', $classIds)
+                    ->where('status', 'completed')
+                    ->where('assessment_score', '>=', 80)
+                    ->where('has_endorsement', false)
+                    ->count(),
+            ],
+        ]);
+    }
+}

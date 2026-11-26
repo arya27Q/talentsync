@@ -26,6 +26,7 @@ final class WalletPresenter
             'voucher_redeem' => 'Penukaran Reward Hub',
             'cash_out' => 'Penarikan Dana (Cash-Out)',
             'cash_out_refund' => 'Pengembalian Cash-Out Gagal',
+            'admin_adjustment' => 'Penyesuaian Saldo Admin',
             default => ucfirst(str_replace('_', ' ', $transaction->transaction_type)),
         };
 
